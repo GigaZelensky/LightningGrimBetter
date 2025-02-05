@@ -64,6 +64,13 @@ Simulation:
   # Это сделано для того, чтобы игрок не собирал слишком много нарушений и никогда не смог очистить их все.
   # Потолок преимущества по умолчанию (ось x = секунды, ось y = 1/1000 блока): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # How much should we scale VL gain from a flag by the player's advantage?
+  # ≤1 for no scaling (old behavior)
+  vl-scale: 10
+  # Limits the amount of VLs the player could gain from each flag
+  # This is to prevent high latency players from getting large amount of VLs because of lag spikes
+  # -1 to disable
+  max-vls-per-flag: 5
 
 # Проверяет, вошел ли игрок в блок во время движения.
 Phase:
