@@ -19,6 +19,8 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     double immediateSetbackThreshold;
     double maxAdvantage;
     double maxCeiling;
+    double vlScale;
+    double maxVlsPerFlag;
 
     // Current advantage gained
     double advantageGained = 0;
@@ -50,7 +52,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                 player.getSetbackTeleportUtil().executeViolationSetback();
             }
 
-            violations++;
+            violations += Math.min(maxVlsPerFlag, Math.ceil(offset * vlScale) - 1.0);
 
             synchronized (flags) {
                 int flagId = (flags.get() & 255) + 1; // 1-256 as possible values
@@ -106,8 +108,11 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         immediateSetbackThreshold = config.getDoubleElse("Simulation.immediate-setback-threshold", 0.1);
         maxAdvantage = config.getDoubleElse("Simulation.max-advantage", 1);
         maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
+        vlScale = Math.max(1.0, config.getDoubleElse("Simulation.vl-scale", 10));
+        maxVlsPerFlag = config.getDoubleElse("Simulation.max-vls-per-flag", 5);
         if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
         if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;
+        if (maxVlsPerFlag == -1) maxVlsPerFlag = Double.MAX_VALUE;
     }
 
     public boolean doesOffsetFlag(double offset) {
