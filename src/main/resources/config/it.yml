@@ -56,6 +56,13 @@ Simulation:
   max-advantage: 1
   # Limite massimo di vantaggio accumulabile prima di arretrare il giocatore
   max-ceiling: 4
+  # How much should we scale VL gain from a flag by the player's advantage?
+  # ≤1 for no scaling (old behavior)
+  vl-scale: 10
+  # Limits the amount of VLs the player could gain from each flag
+  # This is to prevent high latency players from getting large amount of VLs because of lag spikes
+  # -1 to disable
+  max-vls-per-flag: 5
 
 Phase:
   # Livello di violazione per il glitch nel blocco
