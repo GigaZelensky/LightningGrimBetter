@@ -64,6 +64,13 @@ Simulation:
   # Dit is om te voorkomen dat de speler te veel schendingen verzamelt en ze nooit allemaal kan opruimen
   # Standaard voordelenplatform (x-as = seconden, y-as = 1/1000 blok): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # How much should we scale VL gain from a flag by the player's advantage?
+  # ≤1 for no scaling (old behavior)
+  vl-scale: 10
+  # Limits the amount of VLs the player could gain from each flag
+  # This is to prevent high latency players from getting large amount of VLs because of lag spikes
+  # -1 to disable
+  max-vls-per-flag: 5
 
 # Controleert of een speler een blok is binnengegaan tijdens een beweging
 Phase:
