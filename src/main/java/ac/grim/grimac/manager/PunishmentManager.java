@@ -145,7 +145,15 @@ public class PunishmentManager implements ConfigReloadable {
 
                         if (command.command.equals("[webhook]")) {
                             GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
-                        } else if (command.command.equals("[proxy]")) {
+                        } 
+                        // BEGIN: Inserted [log] block
+                        else if (command.command.equals("[log]")) {
+                            int vls = (int) group.violations.values().stream().filter((e) -> e == check).count();
+                            String verboseWithoutGl = verbose.replaceAll(" /gl .*", "");
+                            GrimAPI.INSTANCE.getViolationDatabaseManager().logAlert(player, verboseWithoutGl, check.getDisplayName(), vls);
+                        }
+                        // END: Inserted [log] block
+                        else if (command.command.equals("[proxy]")) {
                             ProxyAlertMessenger.sendPluginMessage(replaceAlertPlaceholders(command.command, vl, group, check, proxyAlertString, verbose));
                         } else {
                             if (command.command.equals("[alert]")) {
