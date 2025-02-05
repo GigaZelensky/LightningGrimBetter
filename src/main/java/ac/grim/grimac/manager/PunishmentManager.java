@@ -134,40 +134,33 @@ public class PunishmentManager implements ConfigReloadable {
                         }
                     }
 
-                    if (violationCount >= command.threshold) {
-                        // 0 means execute once
-                        // Any other number means execute every X interval
-                        boolean inInterval = command.interval == 0 ? (command.executeCount == 0) : (violationCount % command.interval == 0);
-                        if (inInterval) {
-                            CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, verbose, cmd);
-                            Bukkit.getPluginManager().callEvent(executeEvent);
-                            if (executeEvent.isCancelled()) continue;
+                    // 0 means execute once
+                    // Any other number means execute every X interval
+                    for (; vl >= (command.threshold + (command.interval * command.executeCount)); command.executeCount++) {
+                        if (command.interval == 0 && command.executeCount > 0) break;
 
-                            if (command.command.equals("[webhook]")) {
-                                GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
-                            } else if (command.command.equals("[log]")) {
-                                int vls = (int) group.violations.values().stream().filter((e) -> e == check).count();
-                                String verboseWithoutGl = verbose.replaceAll(" /gl .*", "");
-                                GrimAPI.INSTANCE.getViolationDatabaseManager().logAlert(player, verboseWithoutGl, check.getDisplayName(), vls);
-                            } else if (command.command.equals("[proxy]")) {
-                                ProxyAlertMessenger.sendPluginMessage(replaceAlertPlaceholders(command.command, vl, group, check, proxyAlertString, verbose));
-                            } else {
-                                if (command.command.equals("[alert]")) {
-                                    sentDebug = true;
-                                    if (testMode) { // secret test mode
-                                        player.user.sendMessage(MessageUtil.miniMessage(cmd));
-                                        continue;
-                                    }
-                                    cmd = "grim sendalert " + cmd; // Not test mode, we can add the command prefix
+                        CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, verbose, cmd);
+                        Bukkit.getPluginManager().callEvent(executeEvent);
+                        if (executeEvent.isCancelled()) continue;
+
+                        if (command.command.equals("[webhook]")) {
+                            GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
+                        } else if (command.command.equals("[proxy]")) {
+                            ProxyAlertMessenger.sendPluginMessage(replaceAlertPlaceholders(command.command, vl, group, check, proxyAlertString, verbose));
+                        } else {
+                            if (command.command.equals("[alert]")) {
+                                sentDebug = true;
+                                if (testMode) { // secret test mode
+                                    player.user.sendMessage(MessageUtil.miniMessage(cmd));
+                                    continue;
                                 }
-
-                                String finalCmd = cmd;
-                                FoliaScheduler.getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getPlugin(), (dummy) ->
-                                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));
+                                cmd = "grim sendalert " + cmd; // Not test mode, we can add the command prefix
                             }
-                        }
 
-                        command.executeCount++;
+                            String finalCmd = cmd;
+                            FoliaScheduler.getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getPlugin(), (dummy) ->
+                                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));
+                        }
                     }
                 }
             }
@@ -190,7 +183,9 @@ public class PunishmentManager implements ConfigReloadable {
     private int getViolations(PunishGroup group, Check check) {
         int vl = 0;
         for (Check value : group.violations.values()) {
-            if (value == check) vl++;
+            if (value == check) {
+                vl = Math.max(vl, (int)Math.ceil(value.getViolations()));
+            }
         }
         return vl;
     }
