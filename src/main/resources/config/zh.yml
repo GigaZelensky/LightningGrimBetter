@@ -65,6 +65,13 @@ Simulation:
   # 这是为了防止玩家收集过多的违规行为，并且永远无法清除所有的违规行为
   # 这是默认配置的样子（x 轴 = seconds ，y 轴 = 1/1000 方块）: https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # How much should we scale VL gain from a flag by the player's advantage?
+  # ≤1 for no scaling (old behavior)
+  vl-scale: 10
+  # Limits the amount of VLs the player could gain from each flag
+  # This is to prevent high latency players from getting large amount of VLs because of lag spikes
+  # -1 to disable
+  max-vls-per-flag: 5
 
 # 检查玩家是否穿墙
 Phase:
