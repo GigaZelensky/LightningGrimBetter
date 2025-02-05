@@ -8,7 +8,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class PlaceholderAPIExpansion extends PlaceholderExpansion {
@@ -27,10 +29,15 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
     }
 
     @Override
+    public boolean persist() {
+        return true;
+    }
+
+    @Override
     public @NotNull List<String> getPlaceholders() {
         Set<String> placeholders = GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements().keySet();
         placeholders.addAll(GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements().keySet());
-        return Collections.unmodifiableList(new ArrayList<>(placeholders));
+        return List.copyOf(placeholders);
     }
 
     @Override
@@ -44,8 +51,7 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (offlinePlayer instanceof Player) {
-            Player player = (Player) offlinePlayer;
+        if (offlinePlayer instanceof Player player) {
             GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player);
             if (grimPlayer == null) return null;
 
