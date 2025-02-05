@@ -64,6 +64,13 @@ Simulation:
   # Dies soll verhindern, dass der Spieler zu viele Verstöße sammelt und nie in der Lage ist, sie alle zu beseitigen.
   # Standard-Vorteilsgrenze (x-Achse = Sekunden, y-Achse = 1/1000 Block): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
+  # How much should we scale VL gain from a flag by the player's advantage?
+  # ≤1 for no scaling (old behavior)
+  vl-scale: 10
+  # Limits the amount of VLs the player could gain from each flag
+  # This is to prevent high latency players from getting large amount of VLs because of lag spikes
+  # -1 to disable
+  max-vls-per-flag: 5
 
 # Überprüft, ob ein Spieler während einer Bewegung einen Block betreten hat.
 Phase:
