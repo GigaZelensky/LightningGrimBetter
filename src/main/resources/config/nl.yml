@@ -71,6 +71,8 @@ Simulation:
   # This is to prevent high latency players from getting large amount of VLs because of lag spikes
   # -1 to disable
   max-vls-per-flag: 5
+  # Violation level threshold for setback
+  setback-violation-threshold: 1
 
 # Controleert of een speler een blok is binnengegaan tijdens een beweging
 Phase:
