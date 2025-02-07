@@ -65,13 +65,15 @@ Simulation:
   # Isso serve para previnir o jogador de alcançar violações demais e nunca conseguir se livrar delas.
   # Cela de vantagens padrão (eixo X = segundos, eixo Y = 1/1000 blocos): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
-  # How much should we scale VL gain from a flag by the player's advantage?
-  # ≤1 for no scaling (old behavior)
+  # Por quanto devemos escalar violações dependendo da vantagem dos jogadores?
+  # ≤1 para não escalar (comportamento antigo)
   vl-scale: 10
-  # Limits the amount of VLs the player could gain from each flag
-  # This is to prevent high latency players from getting large amount of VLs because of lag spikes
-  # -1 to disable
+  # Limita o máximo de violações que os jogadores devem receber por cada falha de verificação
+  # Isto é para prevenir jogadores de alta latência de causar muitas violações falsas
+  # -1 para desativar
   max-vls-per-flag: 5
+  # Quantas violações para começar a recuar o jogador?
+  setback-violation-threshold: 1
 
 # Verifica se um jogador entrou em um bloco ao se mover.
 Phase:
