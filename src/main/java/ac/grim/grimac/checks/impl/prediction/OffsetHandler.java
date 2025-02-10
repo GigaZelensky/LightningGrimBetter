@@ -19,6 +19,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     double immediateSetbackThreshold;
     double maxAdvantage;
     double maxCeiling;
+    double setbackViolationThreshold;
     double vlScale;
     double maxVlsPerFlag;
 
@@ -41,23 +42,27 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
 
         if (completePredictionEvent.isCancelled()) return;
 
+        // Short circuit out flag call
         if ((offset >= threshold || offset >= immediateSetbackThreshold) && flag()) {
             advantageGained += offset;
 
-            boolean isSetback = (advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold) && !isNoSetbackPermission();
+            boolean isSetback = (advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
+                    && !isNoSetbackPermission()
+                    && violations >= setbackViolationThreshold;
             giveOffsetLenienceNextTick(offset);
 
             if (isSetback) {
                 player.getSetbackTeleportUtil().executeViolationSetback();
             }
 
+            // Add scaled VL
             violations += Math.min(maxVlsPerFlag, Math.ceil(offset * vlScale) - 1.0);
 
             synchronized (flags) {
                 int flagId = (flags.get() & 255) + 1; // 1-256 as possible values
 
                 String humanFormattedOffset;
-                if (offset < 0.001) {
+                if (offset < 0.001) { // 1.129E-3
                     humanFormattedOffset = String.format("%.4E", offset);
                     humanFormattedOffset = humanFormattedOffset.replace("E-0", "E-");
                 } else {
@@ -66,7 +71,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                 }
 
                 if (alert(humanFormattedOffset + " /gl " + flagId)) {
-                    flags.incrementAndGet();
+                    flags.incrementAndGet(); // This debug was sent somewhere
                     predictionComplete.setIdentifier(flagId);
                 }
             }
@@ -80,7 +85,10 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     }
 
     private void giveOffsetLenienceNextTick(double offset) {
+        // Don't let players carry more than 1 offset into the next tick
         double minimizedOffset = Math.min(offset, 1);
+
+        // Normalize offsets
         player.uncertaintyHandler.lastHorizontalOffset = minimizedOffset;
         player.uncertaintyHandler.lastVerticalOffset = minimizedOffset;
     }
@@ -97,6 +105,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         immediateSetbackThreshold = config.getDoubleElse("Simulation.immediate-setback-threshold", 0.1);
         maxAdvantage = config.getDoubleElse("Simulation.max-advantage", 1);
         maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
+        setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
         vlScale = Math.max(1.0, config.getDoubleElse("Simulation.vl-scale", 10));
         maxVlsPerFlag = config.getDoubleElse("Simulation.max-vls-per-flag", 5);
 
