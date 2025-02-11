@@ -5,6 +5,7 @@ import ac.grim.grimac.api.events.CompletePredictionEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.manager.PunishmentManager;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import org.bukkit.Bukkit;
@@ -20,14 +21,10 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     double maxAdvantage;
     double maxCeiling;
     double setbackViolationThreshold;
-
-    // Math-based VL scaling
     double vlScale;
     double maxVlsPerFlag;
 
-    // Current advantage gained
     double advantageGained = 0;
-
     private static final AtomicInteger flags = new AtomicInteger(0);
 
     public OffsetHandler(GrimPlayer player) {
@@ -39,8 +36,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
 
         double offset = predictionComplete.getOffset();
 
-        CompletePredictionEvent completePredictionEvent =
-                new CompletePredictionEvent(player, this, "", offset);
+        CompletePredictionEvent completePredictionEvent = new CompletePredictionEvent(player, this, "", offset);
         Bukkit.getPluginManager().callEvent(completePredictionEvent);
 
         if (completePredictionEvent.isCancelled()) return;
@@ -48,23 +44,30 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         if ((offset >= threshold || offset >= immediateSetbackThreshold) && flag()) {
             advantageGained += offset;
 
-            boolean isSetback = (advantageGained >= maxAdvantage
-                    || offset >= immediateSetbackThreshold)
+            // Compute how many VL to add
+            double increment = Math.min(maxVlsPerFlag, Math.ceil(offset * vlScale) - 1.0);
+
+            // Instead of local this.violations += increment,
+            // add it to the manager so it can remove old increments after the configured time
+            PunishmentManager pm = player.getPunishmentManager();
+            pm.handleViolation(this, increment);
+
+            // Check the manager's current total VL for whether we do a setback
+            int currentVl = pm.handleAlert(player, "", this)
+                    ? pmAlertLevel(pm, this)
+                    : pmAlertLevel(pm, this);
+
+            boolean isSetback = (advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
                     && !isNoSetbackPermission()
-                    && violations >= setbackViolationThreshold;
+                    && currentVl >= setbackViolationThreshold;
             giveOffsetLenienceNextTick(offset);
 
             if (isSetback) {
                 player.getSetbackTeleportUtil().executeViolationSetback();
             }
 
-            // Calculate the partial increment for this specific flag
-            double partialIncrement = Math.min(maxVlsPerFlag, Math.ceil(offset * vlScale) - 1.0);
-            // Store it in the player's punishment manager with a timestamp
-            player.punishmentManager.handleViolation(this, partialIncrement);
-
             synchronized (flags) {
-                int flagId = (flags.get() & 255) + 1; // 1-256 possible values
+                int flagId = (flags.get() & 255) + 1;
 
                 String humanFormattedOffset;
                 if (offset < 0.001) {
@@ -89,15 +92,10 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         removeOffsetLenience();
     }
 
-    private void giveOffsetLenienceNextTick(double offset) {
-        double minimizedOffset = Math.min(offset, 1);
-        player.uncertaintyHandler.lastHorizontalOffset = minimizedOffset;
-        player.uncertaintyHandler.lastVerticalOffset = minimizedOffset;
-    }
-
-    private void removeOffsetLenience() {
-        player.uncertaintyHandler.lastHorizontalOffset = 0;
-        player.uncertaintyHandler.lastVerticalOffset = 0;
+    private int pmAlertLevel(PunishmentManager pm, Check check) {
+        // For clarity, re-check the time-pruned violation count from pm:
+        // (This ensures we use increments that haven't expired.)
+        return pm.getCurrentViolations(check);
     }
 
     @Override
@@ -108,14 +106,23 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         maxAdvantage = config.getDoubleElse("Simulation.max-advantage", 1);
         maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
         setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
-
-        // Added for math-based scaling
-        vlScale = Math.max(1.0, config.getDoubleElse("Simulation.vl-scale", 1));
-        maxVlsPerFlag = config.getDoubleElse("Simulation.max-vls-per-flag", -1);
+        vlScale = Math.max(1.0, config.getDoubleElse("Simulation.vl-scale", 10));
+        maxVlsPerFlag = config.getDoubleElse("Simulation.max-vls-per-flag", 5);
 
         if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
         if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;
         if (maxVlsPerFlag == -1) maxVlsPerFlag = Double.MAX_VALUE;
+    }
+
+    private void giveOffsetLenienceNextTick(double offset) {
+        double minimizedOffset = Math.min(offset, 1);
+        player.uncertaintyHandler.lastHorizontalOffset = minimizedOffset;
+        player.uncertaintyHandler.lastVerticalOffset = minimizedOffset;
+    }
+
+    private void removeOffsetLenience() {
+        player.uncertaintyHandler.lastHorizontalOffset = 0;
+        player.uncertaintyHandler.lastVerticalOffset = 0;
     }
 
     public boolean doesOffsetFlag(double offset) {
