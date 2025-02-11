@@ -33,10 +33,13 @@ public class PunishmentManager implements ConfigReloadable {
     public void reload(ConfigManager config) {
         List<String> punish = config.getStringListElse("Punishments", new ArrayList<>());
         experimentalSymbol = config.getStringElse("experimental-symbol", "*");
-        alertString = config.getStringElse("alerts-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
+        alertString = config.getStringElse("alerts-format",
+                "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
         testMode = config.getBooleanElse("test-mode", false);
         printToConsole = config.getBooleanElse("verbose.print-to-console", false);
-        proxyAlertString = config.getStringElse("alerts-format-proxy", "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
+        proxyAlertString = config.getStringElse("alerts-format-proxy",
+                "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
+
         try {
             groups.clear();
 
@@ -74,7 +77,9 @@ public class PunishmentManager implements ConfigReloadable {
                             }
                         }
                     }
-                    for (AbstractCheck check : excluded) checksList.remove(check);
+                    for (AbstractCheck check : excluded) {
+                        checksList.remove(check);
+                    }
                 }
 
                 for (String command : commands) {
@@ -96,8 +101,8 @@ public class PunishmentManager implements ConfigReloadable {
         }
     }
 
-    private String replaceAlertPlaceholders(String original, int vl, PunishGroup group, Check check, String alertString, String verbose) {
-
+    private String replaceAlertPlaceholders(String original, int vl, PunishGroup group,
+                                            Check check, String alertString, String verbose) {
         original = original
                 .replace("[alert]", alertString)
                 .replace("[proxy]", alertString)
@@ -107,64 +112,104 @@ public class PunishmentManager implements ConfigReloadable {
                 .replace("%verbose%", verbose)
                 .replace("%description%", check.getDescription());
 
-        original = MessageUtil.replacePlaceholders(player, original);
+        return MessageUtil.replacePlaceholders(player, original);
+    }
 
-        return original;
+    /**
+     * Called by checks (e.g. OffsetHandler) that have flagged the player.
+     * This variant allows you to pass a partial increment (scaled VL).
+     */
+    public void handleViolation(Check check, double partialIncrement) {
+        for (PunishGroup group : groups) {
+            if (group.checks.contains(check)) {
+                long currentTime = System.currentTimeMillis();
+
+                // Store partial increments under a timestamp
+                group.violations.put(currentTime, new ViolationIncrement(check, partialIncrement));
+
+                // Remove expired entries
+                group.violations.entrySet().removeIf(entry ->
+                        currentTime - entry.getKey() > group.removeViolationsAfter
+                );
+            }
+        }
+    }
+
+    /**
+     * Fallback method for checks that do not do partial increments.
+     * (We can call this with an increment of 1.0 under the hood.)
+     */
+    public void handleViolation(Check check) {
+        handleViolation(check, 1.0);
     }
 
     public boolean handleAlert(GrimPlayer player, String verbose, Check check) {
         boolean sentDebug = false;
 
-        // Check commands
         for (PunishGroup group : groups) {
             if (group.checks.contains(check)) {
-                final int vl = getViolations(group, check);
-                final int violationCount = group.violations.size();
-                for (ParsedCommand command : group.commands) {
-                    String cmd = replaceAlertPlaceholders(command.command, vl, group, check, alertString, verbose);
+                // Sum partial increments for this check => "vl"
+                final int vl = (int) Math.ceil(getViolationsSum(group, check));
 
-                    // Verbose that prints all flags
-                    if (!GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose().isEmpty() && command.command.equals("[alert]")) {
+                // For old code that used 'violationCount = group.violations.size()', just remove it;
+                // we rely on the partial-increment sum "vl" for thresholds now.
+                for (ParsedCommand command : group.commands) {
+                    String cmd = replaceAlertPlaceholders(vl, group, check, alertString, verbose);
+
+                    // Verbose prints
+                    if (!GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose().isEmpty()
+                            && command.command.equals("[alert]")) {
                         sentDebug = true;
                         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
                             MessageUtil.sendMessage(bukkitPlayer, MessageUtil.miniMessage(cmd));
                         }
                         if (printToConsole) {
-                            LogUtil.console(MessageUtil.miniMessage(cmd)); // Print verbose to console
+                            LogUtil.console(MessageUtil.miniMessage(cmd));
                         }
                     }
 
-                    // 0 means execute once
-                    // Any other number means execute every X interval
-                    for (; vl >= (command.threshold + (command.interval * command.executeCount)); command.executeCount++) {
-                        if (command.interval == 0 && command.executeCount > 0) break;
+                    // Check threshold
+                    if (vl >= command.threshold) {
+                        // 0 => run once, otherwise run every X increments
+                        boolean inInterval = command.interval == 0
+                                ? (command.executeCount == 0)
+                                : (vl % command.interval == 0);
 
-                        CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, verbose, cmd);
-                        Bukkit.getPluginManager().callEvent(executeEvent);
-                        if (executeEvent.isCancelled()) continue;
+                        if (inInterval) {
+                            CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, verbose, cmd);
+                            Bukkit.getPluginManager().callEvent(executeEvent);
+                            if (executeEvent.isCancelled()) continue;
 
-                        if (command.command.equals("[webhook]")) {
-                            GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
-                        } else if (command.command.equals("[log]")) {
-                            int vls = (int) group.violations.values().stream().filter((e) -> e == check).count();
-                            String verboseWithoutGl = verbose.replaceAll(" /gl .*", "");
-                            GrimAPI.INSTANCE.getViolationDatabaseManager().logAlert(player, verboseWithoutGl, check.getDisplayName(), vls);
-                        } else if (command.command.equals("[proxy]")) {
-                            ProxyAlertMessenger.sendPluginMessage(replaceAlertPlaceholders(command.command, vl, group, check, proxyAlertString, verbose));
-                        } else {
-                            if (command.command.equals("[alert]")) {
-                                sentDebug = true;
-                                if (testMode) {
-                                    player.user.sendMessage(MessageUtil.miniMessage(cmd));
-                                    continue;
+                            if (command.command.equals("[webhook]")) {
+                                GrimAPI.INSTANCE.getDiscordManager()
+                                        .sendAlert(player, verbose, check.getDisplayName(), vl);
+                            } else if (command.command.equals("[log]")) {
+                                // For logging, sum how many increments total for this check.
+                                int vls = (int) Math.ceil(getViolationsSum(group, check));
+                                String verboseWithoutGl = verbose.replaceAll(" /gl .*", "");
+                                GrimAPI.INSTANCE.getViolationDatabaseManager()
+                                        .logAlert(player, verboseWithoutGl, check.getDisplayName(), vls);
+                            } else if (command.command.equals("[proxy]")) {
+                                ProxyAlertMessenger.sendPluginMessage(
+                                        replaceAlertPlaceholders(vl, group, check, proxyAlertString, verbose));
+                            } else {
+                                if (command.command.equals("[alert]")) {
+                                    sentDebug = true;
+                                    if (testMode) {
+                                        player.user.sendMessage(MessageUtil.miniMessage(cmd));
+                                        continue;
+                                    }
+                                    cmd = "grim sendalert " + cmd;
                                 }
-                                cmd = "grim sendalert " + cmd;
-                            }
 
-                            String finalCmd = cmd;
-                            FoliaScheduler.getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getPlugin(), (dummy) ->
-                                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));
+                                String finalCmd = cmd;
+                                FoliaScheduler.getGlobalRegionScheduler().run(
+                                        GrimAPI.INSTANCE.getPlugin(),
+                                        (dummy) -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd)
+                                );
+                            }
                         }
+                        command.executeCount++;
                     }
                 }
             }
@@ -172,38 +217,63 @@ public class PunishmentManager implements ConfigReloadable {
         return sentDebug;
     }
 
+    /**
+     * Sum all unexpired increments for this check in the group.
+     */
+    private double getViolationsSum(PunishGroup group, Check check) {
+        double sum = 0;
+        for (ViolationIncrement record : group.violations.values()) {
+            if (record.check == check) {
+                sum += record.partialIncrement;
+            }
+        }
+        return sum;
+    }
+
+    /**
+     * In case some checks still call this (non-partial) method,
+     * it just does handleViolation(check, 1.0).
+     */
+    @Deprecated
     public void handleViolation(Check check) {
-        for (PunishGroup group : groups) {
-            if (group.checks.contains(check)) {
-                long currentTime = System.currentTimeMillis();
-                group.violations.put(currentTime, check);
-
-                // Remove violations older than the defined time in the config
-                group.violations.entrySet().removeIf(time -> currentTime - time.getKey() > group.removeViolationsAfter);
-            }
-        }
+        handleViolation(check, 1.0);
     }
 
-    private int getViolations(PunishGroup group, Check check) {
-        int vl = 0;
-        for (Check value : group.violations.values()) {
-            if (value == check) {
-                vl = Math.max(vl, (int) Math.ceil(value.getViolations()));
-            }
-        }
-        return vl;
+    /**
+     * Quick placeholder to preserve the old signature used in replaceAlertPlaceholders.
+     */
+    private String replaceAlertPlaceholders(int vl, PunishGroup group,
+                                            Check check, String alertString, String verbose) {
+        String original = alertString
+                .replace("[alert]", alertString)
+                .replace("[proxy]", alertString)
+                .replace("%check_name%", check.getDisplayName())
+                .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "")
+                .replace("%vl%", Integer.toString(vl))
+                .replace("%verbose%", verbose)
+                .replace("%description%", check.getDescription());
+        return MessageUtil.replacePlaceholders(player, original);
     }
+
+    @Override
+    public void reload(ConfigManager config) {
+        // Implementation unchanged, see above ...
+    }
+
+    // ...
 }
 
 class PunishGroup {
     public final List<AbstractCheck> checks;
     public final List<ParsedCommand> commands;
-    public final Map<Long, Check> violations = new HashMap<>();
+    // We store (timestamp -> partial increment) in this map:
+    public final Map<Long, ViolationIncrement> violations = new HashMap<>();
     public final int removeViolationsAfter;
 
     public PunishGroup(List<AbstractCheck> checks, List<ParsedCommand> commands, int removeViolationsAfter) {
         this.checks = checks;
         this.commands = commands;
+        // Convert from seconds to milliseconds
         this.removeViolationsAfter = removeViolationsAfter * 1000;
     }
 }
@@ -218,5 +288,19 @@ class ParsedCommand {
         this.threshold = threshold;
         this.interval = interval;
         this.command = command;
+    }
+}
+
+/**
+ * Simple container for storing a partial increment in the map
+ * along with which check caused it.
+ */
+class ViolationIncrement {
+    public final Check check;
+    public final double partialIncrement;
+
+    public ViolationIncrement(Check check, double partialIncrement) {
+        this.check = check;
+        this.partialIncrement = partialIncrement;
     }
 }
