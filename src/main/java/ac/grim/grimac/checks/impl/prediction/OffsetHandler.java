@@ -19,6 +19,9 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     double immediateSetbackThreshold;
     double maxAdvantage;
     double maxCeiling;
+    double setbackViolationThreshold;
+    double vlScale;
+    double maxVlsPerFlag;
 
     // Current advantage gained
     double advantageGained = 0;
@@ -43,14 +46,17 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         if ((offset >= threshold || offset >= immediateSetbackThreshold) && flag()) {
             advantageGained += offset;
 
-            boolean isSetback = (advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold) && !isNoSetbackPermission();
+            boolean isSetback = (advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
+                    && !isNoSetbackPermission()
+                    && violations >= setbackViolationThreshold;
             giveOffsetLenienceNextTick(offset);
 
             if (isSetback) {
                 player.getSetbackTeleportUtil().executeViolationSetback();
             }
 
-            violations++;
+            // Add scaled VL
+            violations += Math.min(maxVlsPerFlag, Math.ceil(offset * vlScale) - 1.0);
 
             synchronized (flags) {
                 int flagId = (flags.get() & 255) + 1; // 1-256 as possible values
@@ -58,12 +64,9 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                 String humanFormattedOffset;
                 if (offset < 0.001) { // 1.129E-3
                     humanFormattedOffset = String.format("%.4E", offset);
-                    // Squeeze out an extra digit here by E-03 to E-3
                     humanFormattedOffset = humanFormattedOffset.replace("E-0", "E-");
                 } else {
-                    // 0.00112945678 -> .001129
                     humanFormattedOffset = String.format("%6f", offset);
-                    // I like the leading zero, but removing it lets us add another digit to the end
                     humanFormattedOffset = humanFormattedOffset.replace("0.", ".");
                 }
 
@@ -72,7 +75,6 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                     predictionComplete.setIdentifier(flagId);
                 }
             }
-
 
             advantageGained = Math.min(advantageGained, maxCeiling);
         } else {
@@ -84,9 +86,6 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
 
     private void giveOffsetLenienceNextTick(double offset) {
         // Don't let players carry more than 1 offset into the next tick
-        // (I was seeing cheats try to carry 1,000,000,000 offset into the next tick!)
-        //
-        // This value so that setting back with high ping doesn't allow players to gather high client velocity
         double minimizedOffset = Math.min(offset, 1);
 
         // Normalize offsets
@@ -106,8 +105,13 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         immediateSetbackThreshold = config.getDoubleElse("Simulation.immediate-setback-threshold", 0.1);
         maxAdvantage = config.getDoubleElse("Simulation.max-advantage", 1);
         maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
+        setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
+        vlScale = Math.max(1.0, config.getDoubleElse("Simulation.vl-scale", 10));
+        maxVlsPerFlag = config.getDoubleElse("Simulation.max-vls-per-flag", 5);
+
         if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
         if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;
+        if (maxVlsPerFlag == -1) maxVlsPerFlag = Double.MAX_VALUE;
     }
 
     public boolean doesOffsetFlag(double offset) {
