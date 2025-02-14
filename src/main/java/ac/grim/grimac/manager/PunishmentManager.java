@@ -195,6 +195,10 @@ public class PunishmentManager implements ConfigReloadable {
     public void resetAllViolations() {
         for (PunishGroup group : groups) {
             group.violations.clear();
+            // Reset command execute count so that commands can fire again.
+            for (ParsedCommand command : group.commands) {
+                command.executeCount = 0;
+            }
         }
         for (AbstractCheck absCheck : player.checkManager.allChecks.values()) {
             if (absCheck instanceof Check) {
@@ -208,6 +212,10 @@ public class PunishmentManager implements ConfigReloadable {
         for (PunishGroup group : groups) {
             if (group.checks.contains(check)) {
                 group.violations.entrySet().removeIf(entry -> entry.getValue() == check);
+                // Reset command execute count for groups that include the check.
+                for (ParsedCommand command : group.commands) {
+                    command.executeCount = 0;
+                }
             }
         }
         check.violations = 0;
