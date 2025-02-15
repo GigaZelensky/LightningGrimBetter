@@ -1,119 +1,222 @@
-package ac.grim.grimac.checks.impl.prediction;
+package ac.grim.grimac.manager;
 
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.api.events.CompletePredictionEvent;
+import ac.grim.grimac.api.config.ConfigReloadable;
+import ac.grim.grimac.api.events.CommandExecuteEvent;
 import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.*;
 
-@CheckData(name = "Simulation", decay = 0.02)
-public class OffsetHandler extends Check implements PostPredictionCheck {
-    // Config
-    double setbackDecayMultiplier;
-    double threshold;
-    double immediateSetbackThreshold;
-    double maxAdvantage;
-    double maxCeiling;
-    double setbackViolationThreshold;
+public class PunishmentManager implements ConfigReloadable {
+    GrimPlayer player;
+    List<PunishGroup> groups = new ArrayList<>();
+    String experimentalSymbol = "*";
+    private String alertString;
+    private boolean testMode;
+    private boolean printToConsole;
+    private String proxyAlertString = "";
 
-    // Current advantage gained
-    double advantageGained = 0;
-
-    private static final AtomicInteger flags = new AtomicInteger(0);
-
-    public OffsetHandler(GrimPlayer player) {
-        super(player);
-    }
-
-    public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        if (!predictionComplete.isChecked()) return;
-
-        double offset = predictionComplete.getOffset();
-
-        CompletePredictionEvent completePredictionEvent = new CompletePredictionEvent(player, this, "", offset);
-        Bukkit.getPluginManager().callEvent(completePredictionEvent);
-
-        if (completePredictionEvent.isCancelled()) return;
-
-        // Short circuit out flag call
-        if ((offset >= threshold || offset >= immediateSetbackThreshold) && flag()) {
-            advantageGained += offset;
-
-            boolean isSetback = (advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
-                                && !isNoSetbackPermission()
-                                && violations >= setbackViolationThreshold;
-            giveOffsetLenienceNextTick(offset);
-
-            if (isSetback) {
-                player.getSetbackTeleportUtil().executeViolationSetback();
-            }
-
-            violations++;
-
-            synchronized (flags) {
-                int flagId = (flags.get() & 255) + 1; // 1-256 as possible values
-
-                String humanFormattedOffset;
-                if (offset < 0.001) { // 1.129E-3
-                    humanFormattedOffset = String.format("%.4E", offset);
-                    // Squeeze out an extra digit here by E-03 to E-3
-                    humanFormattedOffset = humanFormattedOffset.replace("E-0", "E-");
-                } else {
-                    // 0.00112945678 -> .001129
-                    humanFormattedOffset = String.format("%6f", offset);
-                    // I like the leading zero, but removing it lets us add another digit to the end
-                    humanFormattedOffset = humanFormattedOffset.replace("0.", ".");
-                }
-
-                if (alert(humanFormattedOffset + " /gl " + flagId)) {
-                    flags.incrementAndGet(); // This debug was sent somewhere
-                    predictionComplete.setIdentifier(flagId);
-                }
-            }
-
-            advantageGained = Math.min(advantageGained, maxCeiling);
-        } else {
-            advantageGained *= setbackDecayMultiplier;
-        }
-
-        removeOffsetLenience();
-    }
-
-    private void giveOffsetLenienceNextTick(double offset) {
-        // Don't let players carry more than 1 offset into the next tick
-        // (I was seeing cheats try to carry 1,000,000,000 offset into the next tick!)
-        //
-        // This value so that setting back with high ping doesn't allow players to gather high client velocity
-        double minimizedOffset = Math.min(offset, 1);
-
-        // Normalize offsets
-        player.uncertaintyHandler.lastHorizontalOffset = minimizedOffset;
-        player.uncertaintyHandler.lastVerticalOffset = minimizedOffset;
-    }
-
-    private void removeOffsetLenience() {
-        player.uncertaintyHandler.lastHorizontalOffset = 0;
-        player.uncertaintyHandler.lastVerticalOffset = 0;
+    public PunishmentManager(GrimPlayer player) {
+        this.player = player;
     }
 
     @Override
-    public void onReload(ConfigManager config) {
-        setbackDecayMultiplier = config.getDoubleElse("Simulation.setback-decay-multiplier", 0.999);
-        threshold = config.getDoubleElse("Simulation.threshold", 0.001);
-        immediateSetbackThreshold = config.getDoubleElse("Simulation.immediate-setback-threshold", 0.1);
-        maxAdvantage = config.getDoubleElse("Simulation.max-advantage", 1);
-        maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
-        setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
-        if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
-        if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;
+    public void reload(ConfigManager config) {
+        List<String> punish = config.getStringListElse("Punishments", new ArrayList<>());
+        experimentalSymbol = config.getStringElse("experimental-symbol", "*");
+        alertString = config.getStringElse("alerts-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
+        testMode = config.getBooleanElse("test-mode", false);
+        printToConsole = config.getBooleanElse("verbose.print-to-console", false);
+        proxyAlertString = config.getStringElse("alerts-format-proxy", "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
+        try {
+            groups.clear();
+
+            // To support reloading
+            for (AbstractCheck check : player.checkManager.allChecks.values()) {
+                check.setEnabled(false);
+            }
+
+            for (Object s : punish) {
+                LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) s;
+
+                List<String> checks = (List<String>) map.getOrDefault("checks", new ArrayList<>());
+                List<String> commands = (List<String>) map.getOrDefault("commands", new ArrayList<>());
+                int removeViolationsAfter = (int) map.getOrDefault("remove-violations-after", 300);
+
+                List<ParsedCommand> parsed = new ArrayList<>();
+                List<AbstractCheck> checksList = new ArrayList<>();
+                List<AbstractCheck> excluded = new ArrayList<>();
+                for (String command : checks) {
+                    command = command.toLowerCase(Locale.ROOT);
+                    boolean exclude = false;
+                    if (command.startsWith("!")) {
+                        exclude = true;
+                        command = command.substring(1);
+                    }
+                    for (AbstractCheck check : player.checkManager.allChecks.values()) {
+                        if (check.getCheckName() != null &&
+                                (check.getCheckName().toLowerCase(Locale.ROOT).contains(command)
+                                        || check.getAlternativeName().toLowerCase(Locale.ROOT).contains(command))) {
+                            if (exclude) {
+                                excluded.add(check);
+                            } else {
+                                checksList.add(check);
+                                check.setEnabled(true);
+                            }
+                        }
+                    }
+                    for (AbstractCheck check : excluded) checksList.remove(check);
+                }
+
+                for (String command : commands) {
+                    String firstNum = command.substring(0, command.indexOf(":"));
+                    String secondNum = command.substring(command.indexOf(":"), command.indexOf(" "));
+
+                    int threshold = Integer.parseInt(firstNum);
+                    int interval = Integer.parseInt(secondNum.substring(1));
+                    String commandString = command.substring(command.indexOf(" ") + 1);
+
+                    parsed.add(new ParsedCommand(threshold, interval, commandString));
+                }
+
+                groups.add(new PunishGroup(checksList, parsed, removeViolationsAfter));
+            }
+        } catch (Exception e) {
+            LogUtil.error("Error while loading punishments.yml! This is likely your fault!");
+            e.printStackTrace();
+        }
     }
 
-    public boolean doesOffsetFlag(double offset) {
-        return offset >= threshold;
+    private String replaceAlertPlaceholders(String original, int vl, PunishGroup group, Check check, String alertString, String verbose) {
+
+        original = original
+                .replace("[alert]", alertString)
+                .replace("[proxy]", alertString)
+                .replace("%check_name%", check.getDisplayName())
+                .replace("%experimental%", check.isExperimental() ? experimentalSymbol : "")
+                .replace("%vl%", Integer.toString(vl))
+                .replace("%verbose%", verbose)
+                .replace("%description%", check.getDescription());
+
+        original = MessageUtil.replacePlaceholders(player, original);
+
+        return original;
+    }
+
+    public boolean handleAlert(GrimPlayer player, String verbose, Check check) {
+        boolean sentDebug = false;
+
+        // Check commands
+        for (PunishGroup group : groups) {
+            if (group.checks.contains(check)) {
+                final int vl = getViolations(group, check);
+                final int violationCount = group.violations.size();
+                for (ParsedCommand command : group.commands) {
+                    String cmd = replaceAlertPlaceholders(command.command, vl, group, check, alertString, verbose);
+
+                    // Verbose that prints all flags
+                    if (!GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose().isEmpty() && command.command.equals("[alert]")) {
+                        sentDebug = true;
+                        for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
+                            MessageUtil.sendMessage(bukkitPlayer, MessageUtil.miniMessage(cmd));
+                        }
+                        if (printToConsole) {
+                            LogUtil.console(MessageUtil.miniMessage(cmd)); // Print verbose to console
+                        }
+                    }
+
+                    // 0 means execute once
+                    // Any other number means execute every X interval
+                    for (; vl >= (command.threshold + (command.interval * command.executeCount)); command.executeCount++) {
+                        if (command.interval == 0 && command.executeCount > 0) break;
+
+                        CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, verbose, cmd);
+                        Bukkit.getPluginManager().callEvent(executeEvent);
+                        if (executeEvent.isCancelled()) continue;
+
+                        if (command.command.equals("[webhook]")) {
+                            GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
+                        } else if (command.command.equals("[log]")) {
+                            int vls = (int) group.violations.values().stream().filter((e) -> e == check).count();
+                            String verboseWithoutGl = verbose.replaceAll(" /gl .*", "");
+                            GrimAPI.INSTANCE.getViolationDatabaseManager().logAlert(player, verboseWithoutGl, check.getDisplayName(), vls);
+                        } else if (command.command.equals("[proxy]")) {
+                            ProxyAlertMessenger.sendPluginMessage(replaceAlertPlaceholders(command.command, vl, group, check, proxyAlertString, verbose));
+                        } else {
+                            if (command.command.equals("[alert]")) {
+                                sentDebug = true;
+                                if (testMode) {
+                                    player.user.sendMessage(MessageUtil.miniMessage(cmd));
+                                    continue;
+                                }
+                                cmd = "grim sendalert " + cmd;
+                            }
+
+                            String finalCmd = cmd;
+                            FoliaScheduler.getGlobalRegionScheduler().run(GrimAPI.INSTANCE.getPlugin(), (dummy) ->
+                                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));
+                        }
+                    }
+                }
+            }
+        }
+        return sentDebug;
+    }
+
+    public void handleViolation(Check check) {
+        for (PunishGroup group : groups) {
+            if (group.checks.contains(check)) {
+                long currentTime = System.currentTimeMillis();
+                group.violations.put(currentTime, check);
+
+                // Remove violations older than the defined time in the config
+                group.violations.entrySet().removeIf(time -> currentTime - time.getKey() > group.removeViolationsAfter);
+            }
+        }
+    }
+
+    private int getViolations(PunishGroup group, Check check) {
+        int vl = 0;
+        for (Check value : group.violations.values()) {
+            if (value == check) {
+                vl = Math.max(vl, (int) Math.ceil(value.getViolations()));
+            }
+        }
+        return vl;
+    }
+}
+
+class PunishGroup {
+    public final List<AbstractCheck> checks;
+    public final List<ParsedCommand> commands;
+    public final Map<Long, Check> violations = new HashMap<>();
+    public final int removeViolationsAfter;
+
+    public PunishGroup(List<AbstractCheck> checks, List<ParsedCommand> commands, int removeViolationsAfter) {
+        this.checks = checks;
+        this.commands = commands;
+        this.removeViolationsAfter = removeViolationsAfter * 1000;
+    }
+}
+
+class ParsedCommand {
+    public final int threshold;
+    public final int interval;
+    public final String command;
+    public int executeCount;
+
+    public ParsedCommand(int threshold, int interval, String command) {
+        this.threshold = threshold;
+        this.interval = interval;
+        this.command = command;
     }
 }
