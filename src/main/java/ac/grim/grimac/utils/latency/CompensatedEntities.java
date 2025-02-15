@@ -22,6 +22,8 @@ import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.Direction;
+import com.github.retrooper.packetevents.protocol.world.painting.PaintingVariant;
+import com.github.retrooper.packetevents.protocol.world.painting.PaintingVariants;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
@@ -189,7 +191,7 @@ public class CompensatedEntities {
         } else if (EntityTypes.ARMOR_STAND.equals(entityType)) {
             packetEntity = new PacketEntityArmorStand(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), data);
         } else if (EntityTypes.PAINTING.equals(entityType)) {
-            packetEntity = new PacketEntityPainting(player, uuid, position.x, position.y, position.z, Direction.getByHorizontalIndex(data));
+            packetEntity = new PacketEntityPainting(player, uuid, position.x, position.y, position.z, Direction.values()[data]);
         } else if (EntityTypes.GUARDIAN.equals(entityType)) {
             packetEntity = new PacketEntityGuardian(player, uuid, entityType, position.x, position.y, position.z, false); // can still be an Elder Guardian in 1.8-1.10.2 from entity metadata updates
         } else if (EntityTypes.ELDER_GUARDIAN.equals(entityType)) {
@@ -482,6 +484,27 @@ public class CompensatedEntities {
             if (guardianByte != null) {
                 int info = (Integer) guardianByte.getValue(); // wiki says this is a byte but testing on 1.8 shows its an integer
                 ((PacketEntityGuardian) entity).isElder = (info & isElderlyBitMask) != 0;
+            }
+        } else if (entity instanceof PacketEntityPainting) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
+                int index;
+
+                // per usual the MC wiki is wrong on the index of the passed data
+                index = 8;
+                EntityData paintingRegistryData =
+                    WatchableIndexUtil.getIndex(watchableObjects, index);
+                if (paintingRegistryData != null) {
+                    Integer paintingRegistryID = (Integer) paintingRegistryData.getValue();
+                    // if this is null that means there is a mapping error, just let it error out so we can fix it
+                    PaintingVariant paintingVariant =
+                        PaintingVariants.getById(player.getClientVersion(), paintingRegistryID - 1);
+                    if (paintingVariant != null) { // TODO add handling for every client version
+                        PacketEntityPainting packetEntityPainting = ((PacketEntityPainting) entity);
+                        packetEntityPainting.paintingHitBox =
+                            packetEntityPainting.calculateBoundingBoxDimensions(
+                                paintingVariant.getWidth(), paintingVariant.getHeight());
+                    }
+                }
             }
         }
 
