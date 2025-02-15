@@ -193,6 +193,28 @@ public class PunishmentManager implements ConfigReloadable {
         }
         return vl;
     }
+
+    // Resets all violations for this player.
+    public void resetAllViolations() {
+        for (PunishGroup group : groups) {
+            group.violations.clear();
+        }
+        for (AbstractCheck absCheck : player.checkManager.allChecks.values()) {
+            if (absCheck instanceof Check) {
+                ((Check) absCheck).violations = 0;
+            }
+        }
+    }
+
+    // Resets violations for a specific check.
+    public void resetViolationsForCheck(Check check) {
+        for (PunishGroup group : groups) {
+            if (group.checks.contains(check)) {
+                group.violations.entrySet().removeIf(entry -> entry.getValue() == check);
+            }
+        }
+        check.violations = 0;
+    }
 }
 
 class PunishGroup {
