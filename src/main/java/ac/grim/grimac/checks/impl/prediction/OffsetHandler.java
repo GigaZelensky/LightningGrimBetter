@@ -39,50 +39,56 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
 
         CompletePredictionEvent completePredictionEvent = new CompletePredictionEvent(player, this, "", offset);
         Bukkit.getPluginManager().callEvent(completePredictionEvent);
+
         if (completePredictionEvent.isCancelled()) return;
 
+        // Short circuit out flag call
         if ((offset >= threshold || offset >= immediateSetbackThreshold) && flag()) {
             advantageGained += offset;
 
-            // Use the PunishmentManager's total VL (math-scaled) for this check
-            int currentVl = GrimAPI.INSTANCE.getPunishmentManager(player).getViolationsForCheck(this);
             boolean isSetback = (advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
                     && !isNoSetbackPermission()
-                    && (currentVl >= setbackViolationThreshold);
+                    && violations >= setbackViolationThreshold;
             giveOffsetLenienceNextTick(offset);
 
             if (isSetback) {
                 player.getSetbackTeleportUtil().executeViolationSetback();
             }
 
-            // Compute the math-scaled VL to add (capped by maxVlsPerFlag)
-            double scaledVl = Math.min(maxVlsPerFlag, Math.ceil(offset * vlScale) - 1.0);
-            GrimAPI.INSTANCE.getPunishmentManager(player).handleViolation(this, scaledVl);
+            // Add scaled VL
+            violations += Math.min(maxVlsPerFlag, Math.ceil(offset * vlScale) - 1.0);
 
             synchronized (flags) {
-                int flagId = (flags.get() & 255) + 1;
+                int flagId = (flags.get() & 255) + 1; // 1-256 as possible values
+
                 String humanFormattedOffset;
-                if (offset < 0.001) {
+                if (offset < 0.001) { // 1.129E-3
                     humanFormattedOffset = String.format("%.4E", offset);
                     humanFormattedOffset = humanFormattedOffset.replace("E-0", "E-");
                 } else {
                     humanFormattedOffset = String.format("%6f", offset);
                     humanFormattedOffset = humanFormattedOffset.replace("0.", ".");
                 }
+
                 if (alert(humanFormattedOffset + " /gl " + flagId)) {
-                    flags.incrementAndGet();
+                    flags.incrementAndGet(); // This debug was sent somewhere
                     predictionComplete.setIdentifier(flagId);
                 }
             }
+
             advantageGained = Math.min(advantageGained, maxCeiling);
         } else {
             advantageGained *= setbackDecayMultiplier;
         }
+
         removeOffsetLenience();
     }
 
     private void giveOffsetLenienceNextTick(double offset) {
+        // Don't let players carry more than 1 offset into the next tick
         double minimizedOffset = Math.min(offset, 1);
+
+        // Normalize offsets
         player.uncertaintyHandler.lastHorizontalOffset = minimizedOffset;
         player.uncertaintyHandler.lastVerticalOffset = minimizedOffset;
     }
@@ -102,6 +108,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
         vlScale = Math.max(1.0, config.getDoubleElse("Simulation.vl-scale", 10));
         maxVlsPerFlag = config.getDoubleElse("Simulation.max-vls-per-flag", 5);
+
         if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
         if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;
         if (maxVlsPerFlag == -1) maxVlsPerFlag = Double.MAX_VALUE;
