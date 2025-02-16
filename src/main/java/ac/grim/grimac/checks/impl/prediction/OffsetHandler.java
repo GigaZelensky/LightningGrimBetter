@@ -44,20 +44,23 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         if ((offset >= threshold || offset >= immediateSetbackThreshold) && flag()) {
             advantageGained += offset;
 
+            // Use the PunishmentManager's total VL (math-scaled) for this check
+            int currentVl = GrimAPI.INSTANCE.getPunishmentManager(player).getViolationsForCheck(this);
             boolean isSetback = (advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
                     && !isNoSetbackPermission()
-                    && violations >= setbackViolationThreshold;
+                    && (currentVl >= setbackViolationThreshold);
             giveOffsetLenienceNextTick(offset);
 
             if (isSetback) {
                 player.getSetbackTeleportUtil().executeViolationSetback();
             }
 
-            // Math-based VL scaling: add a scaled amount per flag (capped by maxVlsPerFlag)
-            violations += Math.min(maxVlsPerFlag, Math.ceil(offset * vlScale) - 1.0);
+            // Compute the math-scaled VL to add (capped by maxVlsPerFlag)
+            double scaledVl = Math.min(maxVlsPerFlag, Math.ceil(offset * vlScale) - 1.0);
+            GrimAPI.INSTANCE.getPunishmentManager(player).handleViolation(this, scaledVl);
 
             synchronized (flags) {
-                int flagId = (flags.get() & 255) + 1; // 1-256 as possible values
+                int flagId = (flags.get() & 255) + 1;
                 String humanFormattedOffset;
                 if (offset < 0.001) {
                     humanFormattedOffset = String.format("%.4E", offset);
