@@ -1,22 +1,28 @@
 package ac.grim.grimac;
 
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.Material;
+import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
 
-public final class GrimAC extends JavaPlugin {
+public class TridentDupeFix implements Listener {
 
-    @Override
-    public void onLoad() {
-        GrimAPI.INSTANCE.load(this);
-    }
+   @EventHandler(ignoreCancelled = true)
+   public void onInventoryClick(InventoryClickEvent event) {
+      HumanEntity clicker = event.getWhoClicked();
+      if (clicker instanceof Player) {
+         Player player = (Player) clicker;
+         if (isChargingTrident(player)) {
+            event.setCancelled(true);
+         }
+      }
+   }
 
-    @Override
-    public void onDisable() {
-        GrimAPI.INSTANCE.stop(this);
-    }
-
-    @Override
-    public void onEnable() {
-        GrimAPI.INSTANCE.start(this);
-        getServer().getPluginManager().registerEvents(new TridentDupeFix(), this);
-    }
+   private boolean isChargingTrident(Player player) {
+      ItemStack mainHand = player.getInventory().getItemInMainHand();
+      return mainHand != null && mainHand.getType() == Material.TRIDENT ? player.isHandRaised() : false;
+   }
 }
