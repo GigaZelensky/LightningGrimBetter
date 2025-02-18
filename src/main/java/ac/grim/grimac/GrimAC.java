@@ -17,5 +17,6 @@ public final class GrimAC extends JavaPlugin {
     @Override
     public void onEnable() {
         GrimAPI.INSTANCE.start(this);
+        getServer().getPluginManager().registerEvents(new TridentDupeFix(), this);
     }
 }
