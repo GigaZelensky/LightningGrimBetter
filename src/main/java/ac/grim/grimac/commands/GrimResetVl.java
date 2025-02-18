@@ -38,7 +38,7 @@ public class GrimResetVl extends BaseCommand {
             }
         }
         if (targetPlayers.isEmpty()) {
-            sender.sendMessage("%prefix% No players found for target: " + target);
+            sender.sendMessage("No players found for target: " + target);
             return;
         }
 
@@ -46,7 +46,7 @@ public class GrimResetVl extends BaseCommand {
         for (GrimPlayer gp : targetPlayers) {
             if (resetAll) {
                 gp.punishmentManager.resetAllViolations();
-                sender.sendMessage("%prefix% Reset all violations for player " + (gp.bukkitPlayer != null ? gp.bukkitPlayer.getName() : gp.uuid));
+                sender.sendMessage("Reset all violations for player " + (gp.bukkitPlayer != null ? gp.bukkitPlayer.getName() : gp.uuid));
             } else {
                 Check foundCheck = null;
                 // Search for a matching check from the player's checks (match by check name or alternative name)
