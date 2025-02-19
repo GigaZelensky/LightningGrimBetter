@@ -14,6 +14,9 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPluginMessage;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -22,7 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @CommandAlias("grim|grimac")
-public class GrimChannelDebugger extends BaseCommand {
+public class GrimChannelDebugger extends BaseCommand implements Listener {
 
     // Map of player UUIDs to the set of channels received via plugin message packets
     private final ConcurrentHashMap<UUID, Set<String>> playerChannels = new ConcurrentHashMap<>();
@@ -34,6 +37,9 @@ public class GrimChannelDebugger extends BaseCommand {
             public void onPacketReceive(PacketReceiveEvent event) {
                 if (isPluginMessagePacket(event.getPacketType())) {
                     WrapperPlayClientPluginMessage packet = new WrapperPlayClientPluginMessage(event);
+                    if (!(event.getPlayer() instanceof Player)) {
+                        return;
+                    }
                     UUID playerId = ((Player) event.getPlayer()).getUniqueId();
                     Set<String> channels = playerChannels.computeIfAbsent(playerId, k -> ConcurrentHashMap.newKeySet());
 
@@ -73,8 +79,7 @@ public class GrimChannelDebugger extends BaseCommand {
                              ((sender instanceof Player) ? (Player) sender : null);
 
         if (targetPlayer == null) {
-            sender.sendMessage("§cUsage: /grim debugchannel <player>");
-            return;
+            throw new ConditionFailedException("You have to either target a player or be a player");
         }
 
         Set<String> channels = playerChannels.getOrDefault(targetPlayer.getUniqueId(), Collections.emptySet());
@@ -84,5 +89,10 @@ public class GrimChannelDebugger extends BaseCommand {
         } else {
             channels.forEach(channel -> sender.sendMessage("§7- §f" + channel));
         }
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        playerChannels.remove(event.getPlayer().getUniqueId());
     }
 }
