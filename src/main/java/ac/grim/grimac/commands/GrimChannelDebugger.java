@@ -79,8 +79,7 @@ public class GrimChannelDebugger extends BaseCommand implements Listener {
                              ((sender instanceof Player) ? (Player) sender : null);
 
         if (targetPlayer == null) {
-            sender.sendMessage("§cUsage: /grim debugchannel <player>");
-            return;
+            throw new ConditionFailedException("You have to either target a player or be a player");
         }
 
         Set<String> channels = playerChannels.getOrDefault(targetPlayer.getUniqueId(), Collections.emptySet());
