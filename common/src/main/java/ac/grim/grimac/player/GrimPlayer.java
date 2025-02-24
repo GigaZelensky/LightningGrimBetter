@@ -892,15 +892,7 @@ public class GrimPlayer implements GrimUser {
         this.resyncHandler = resyncHandler;
     }
 
-    public GameMode getGameMode() {
-        return platformPlayer.getGameMode();
-    }
-
     public Location getLocation() {
         return new Location(platformPlayer.getWorld(), this.x, this.y, this.z, this.xRot, this.yRot);
-    }
-
-    public void setGameMode(GameMode gameMode) {
-        platformPlayer.setGameMode(gameMode);
     }
 }
