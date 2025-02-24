@@ -223,6 +223,7 @@ public class GrimPlayer implements GrimUser {
     public Queue<BlockPlaceSnapshot> placeUseItemPackets = new LinkedBlockingQueue<>();
     public Queue<BlockBreak> queuedBreaks = new LinkedBlockingQueue<>();
     public PlayerBlockHistory blockHistory = new PlayerBlockHistory();
+    private ResyncHandler resyncHandler = new BukkitResyncHandler(this);
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
     public boolean disableGrim = false;
@@ -880,8 +881,6 @@ public class GrimPlayer implements GrimUser {
         if (platformPlayer != null) platformPlayer.sendMessage(message);
     }
 
-    private ResyncHandler resyncHandler = new BukkitResyncHandler(this);
-
     @Override
     public ResyncHandler getResyncHandler() {
         return resyncHandler;
@@ -892,6 +891,7 @@ public class GrimPlayer implements GrimUser {
         this.resyncHandler = resyncHandler;
     }
 
+    // TODO keep track of world at packet level
     public Location getLocation() {
         return new Location(platformPlayer.getWorld(), this.x, this.y, this.z, this.xRot, this.yRot);
     }
