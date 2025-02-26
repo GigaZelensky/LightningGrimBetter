@@ -397,6 +397,8 @@ public final class BoundingBoxSize {
             return 1.975F;
         } else if (EntityTypes.FALLING_BLOCK.equals(type)) {
             return 0.98F;
+        } else if (EntityTypes.VILLAGER.equals(type) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+            return 1.8F;
         }
         return 1.95f;
     }
