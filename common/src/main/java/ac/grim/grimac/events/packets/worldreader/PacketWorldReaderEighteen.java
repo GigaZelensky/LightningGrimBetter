@@ -24,7 +24,7 @@ public class PacketWorldReaderEighteen extends BasePacketWorldReader {
         // Skip past heightmaps
         wrapper.readNBT();
 
-        BaseChunk[] chunks = new ChunkReader_v1_18().read(DimensionTypes.OVERWORLD,null,
+        BaseChunk[] chunks = new ChunkReader_v1_18().read(DimensionTypes.OVERWORLD, null,
                 null, true, false, false,
                 event.getUser().getTotalWorldHeight() >> 4, null,
                 new NetStreamInput(new ByteArrayInputStream(wrapper.readByteArray())));
