@@ -122,6 +122,8 @@ public final class BoundingBoxSize {
             return 0.5F;
         } else if (EntityTypes.FALLING_BLOCK.equals(type)) {
             return 0.98F;
+        } else if (EntityTypes.FIREWORK_ROCKET.equals(type)) {
+            return 0.25F;
         }
         return 0.6f;
     }
@@ -399,6 +401,8 @@ public final class BoundingBoxSize {
             return 0.98F;
         } else if (EntityTypes.VILLAGER.equals(type) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
             return 1.8F;
+        } else if (EntityTypes.FIREWORK_ROCKET.equals(type)) {
+            return 0.25F;
         }
         return 1.95f;
     }
