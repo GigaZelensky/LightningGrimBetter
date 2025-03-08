@@ -190,6 +190,8 @@ public class CompensatedEntities {
             packetEntity = new PacketEntityArrow(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         } else if (EntityTypes.ARMOR_STAND.equals(entityType)) {
             packetEntity = new PacketEntityArmorStand(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), data);
+        } else if (EntityTypes.FIREWORK_ROCKET.equals(entityType)) {
+             packetEntity = new PacketEntityFireworkRocket(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         } else if (EntityTypes.PAINTING.equals(entityType)) {
             packetEntity = new PacketEntityPainting(player, uuid, position.x, position.y, position.z, Direction.values()[data]);
         } else if (EntityTypes.GUARDIAN.equals(entityType)) {
