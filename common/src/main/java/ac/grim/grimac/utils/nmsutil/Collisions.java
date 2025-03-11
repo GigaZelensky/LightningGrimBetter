@@ -30,7 +30,6 @@ import it.unimi.dsi.fastutil.floats.FloatArraySet;
 import it.unimi.dsi.fastutil.floats.FloatArrays;
 import it.unimi.dsi.fastutil.floats.FloatSet;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
-import org.bukkit.Location;
 
 import java.util.ArrayList;
 import java.util.Arrays;
