@@ -481,7 +481,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         });
     }
 
-    public void addEntity(int entityID, UUID uuid, EntityType type, Vector3d position, float xRot, float yRot, List<EntityData> entityMetadata, int extraData) {
+    public void addEntity(int entityID, UUID uuid, EntityType type, Vector3d position, float xRot, float yRot, List<EntityData<?>> entityMetadata, int extraData) {
         if (despawnedEntitiesThisTransaction.contains(entityID)) {
             player.sendTransaction();
         }
