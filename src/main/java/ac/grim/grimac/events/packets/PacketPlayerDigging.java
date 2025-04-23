@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.nmsutil.BukkitNMS;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -10,6 +11,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.component.builtin.item.FoodProperties;
+import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemConsumable;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
@@ -35,15 +37,24 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             return;
         }
 
-        final ItemType material = item.getType();
-
-        if (player.checkManager.getCompensatedCooldown().hasMaterial(material)) {
+        if (player.checkManager.getCompensatedCooldown().hasItem(item)) {
             player.packetStateData.setSlowedByUsingItem(false); // resync, not required
             return; // The player has a cooldown, and therefore cannot use this item!
         }
 
-        // Check for data component stuff on 1.20.5+
+        final ItemType material = item.getType();
+
+        // Check for data component stuff on 1.21.2+
+        final ItemConsumable consumable = item.getComponentOr(ComponentTypes.CONSUMABLE, null);
         final FoodProperties foodComponent = item.getComponentOr(ComponentTypes.FOOD, null);
+
+        // The food component can override the consumable component, as it provides conditions for using the item
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && consumable != null && foodComponent == null) {
+            player.packetStateData.setSlowedByUsingItem(true);
+            player.packetStateData.eatingHand = hand;
+        }
+
+        // Check for data component stuff on 1.20.5+
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && foodComponent != null) {
             if (foodComponent.isCanAlwaysEat() || player.food < 20 || player.gamemode == GameMode.CREATIVE) {
                 player.packetStateData.setSlowedByUsingItem(true);
@@ -195,9 +206,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             // Prevent issues if the player switches slots, while lagging, standing still, and is placing blocks
             CheckManagerListener.handleQueuedPlaces(player, false, 0, 0, System.currentTimeMillis());
 
-            if (player.packetStateData.lastSlotSelected != slot) {
+            if (player.packetStateData.lastSlotSelected != slot && player.packetStateData.eatingHand != InteractionHand.OFF_HAND) {
+                if (player.isResetItemUsageOnSlotChange()) {
+                    BukkitNMS.resetItemUsage(player.bukkitPlayer);
+                }
+
                 // just assume they tick after this
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && !player.supportsEndTick() && !player.isTickingReliablyFor(3) && player.packetStateData.eatingHand != InteractionHand.OFF_HAND) {
+                if (player.canSkipTicks() && !player.isTickingReliablyFor(3)) {
                     player.packetStateData.setSlowedByUsingItem(false);
                 }
             }

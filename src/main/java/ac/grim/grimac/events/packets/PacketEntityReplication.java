@@ -255,19 +255,23 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
 
             if (slot.getWindowId() == 0) {
-                if (player.isMitigateDesyncNoSlow() && player.packetStateData.lastSlotSelected + 36 == slot.getSlot()) {
-                    BukkitNMS.resetItemUsage(player.bukkitPlayer);
-                }
-
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
+                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected && (player.getInventory().getHeldItem().getType() == slot.getItem().getType() || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
                         player.packetStateData.setSlowedByUsingItem(false);
+
+                        if (player.isResetItemUsageOnItemUpdate()) {
+                            BukkitNMS.resetItemUsage(player.bukkitPlayer);
+                        }
                     }
                 });
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
-                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
+                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected && (player.getInventory().getHeldItem().getType() == slot.getItem().getType() || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
                         player.packetStateData.setSlowedByUsingItem(false);
+
+                        if (player.isResetItemUsageOnItemUpdate()) {
+                            BukkitNMS.resetItemUsage(player.bukkitPlayer);
+                        }
                     }
                 });
             }
@@ -371,7 +375,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
     }
 
     private void handleMountVehicle(PacketSendEvent event, int vehicleID, int[] passengers) {
-        boolean wasInVehicle = player.getRidingVehicleId() == vehicleID;
+        boolean wasInVehicle = player.compensatedEntities.serverPlayerVehicle != null && player.compensatedEntities.serverPlayerVehicle == vehicleID;
         boolean inThisVehicle = false;
 
         for (int passenger : passengers) {
@@ -483,7 +487,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         });
     }
 
-    public void addEntity(int entityID, UUID uuid, EntityType type, Vector3d position, float xRot, float yRot, List<EntityData> entityMetadata, int extraData) {
+    public void addEntity(int entityID, UUID uuid, EntityType type, Vector3d position, float xRot, float yRot, List<EntityData<?>> entityMetadata, int extraData) {
         if (despawnedEntitiesThisTransaction.contains(entityID)) {
             player.sendTransaction();
         }
