@@ -1,9 +1,8 @@
 package ac.grim.grimac.platform.fabric.mc1161.command;
 
-
-import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.platform.api.command.PlayerSelector;
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.GrimAPIProvider;
+import ac.grim.grimac.api.platform.command.PlayerSelector;
+import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.platform.fabric.sender.FabricSenderFactory;
 
 import java.util.Collection;
@@ -23,7 +22,7 @@ public class Fabric1161PlayerSelectorAdapter implements PlayerSelector {
 
     @Override
     public Sender getSinglePlayer() {
-        return ((FabricSenderFactory) GrimAPI.INSTANCE.getSenderFactory()).map(fabricSelector.single().getCommandSource());
+        return ((FabricSenderFactory) GrimAPIProvider.getDirect().getPlatformLoader().getSenderFactory()).map(fabricSelector.single().getCommandSource());
     }
 
     @Override

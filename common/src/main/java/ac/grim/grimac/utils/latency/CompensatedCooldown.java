@@ -1,5 +1,8 @@
 package ac.grim.grimac.utils.latency;
 
+import ac.grim.grimac.api.packet.ResourceLocationI;
+import ac.grim.grimac.api.packet.component.PacketComponentTypes;
+import ac.grim.grimac.api.packet.component.PacketComponentItemUseCooldown;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PositionCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -7,9 +10,7 @@ import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.data.CooldownData;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
-import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemUseCooldown;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import ac.grim.grimac.api.packet.item.PacketItemStack;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
 
 import java.util.Iterator;
@@ -24,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 // nor attempt to predict results (i.e block placing).
 public class CompensatedCooldown extends Check implements PositionCheck {
 
-    private final ConcurrentHashMap<ResourceLocation, CooldownData> itemCooldownMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<ResourceLocationI, CooldownData> itemCooldownMap = new ConcurrentHashMap<>();
 
     public CompensatedCooldown(GrimPlayer playerData) {
         super(playerData);
@@ -32,8 +33,8 @@ public class CompensatedCooldown extends Check implements PositionCheck {
 
     @Override
     public void onPositionUpdate(final PositionUpdate positionUpdate) {
-        for (Iterator<Map.Entry<ResourceLocation, CooldownData>> it = itemCooldownMap.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<ResourceLocation, CooldownData> entry = it.next();
+        for (Iterator<Map.Entry<ResourceLocationI, CooldownData>> it = itemCooldownMap.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<ResourceLocationI, CooldownData> entry = it.next();
 
             // Only tick if we have known that this packet has arrived
             if (entry.getValue().getTransaction() < player.lastTransactionReceived.get()) {
@@ -46,12 +47,12 @@ public class CompensatedCooldown extends Check implements PositionCheck {
     }
 
     // all the same to us... having a cooldown or not having one
-    public boolean hasItem(ItemStack item) {
+    public boolean hasItem(PacketItemStack item) {
         // 1.21.2+ uses this stupid logic of cooldown groups
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2)) {
-            ItemUseCooldown cooldown = item.getComponentOr(ComponentTypes.USE_COOLDOWN, null);
+            PacketComponentItemUseCooldown cooldown = item.getComponentOr(PacketComponentTypes.USE_COOLDOWN, null);
             if (cooldown != null) {
-                final Optional<ResourceLocation> cooldownGroup = cooldown.getCooldownGroup();
+                final Optional<ResourceLocationI> cooldownGroup = cooldown.getCooldownGroup();
                 // If the cooldown group is present, it uses that.
                 // Otherwise, it uses the id of the item.
                 if (cooldownGroup.isPresent()) {

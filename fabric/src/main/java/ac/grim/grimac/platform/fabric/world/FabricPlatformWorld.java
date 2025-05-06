@@ -1,11 +1,9 @@
 package ac.grim.grimac.platform.fabric.world;
 
-import ac.grim.grimac.platform.api.world.PlatformChunk;
-import ac.grim.grimac.platform.api.world.PlatformWorld;
+import ac.grim.grimac.api.platform.world.PlatformChunk;
+import ac.grim.grimac.api.platform.world.PlatformWorld;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import lombok.Getter;
-import net.minecraft.block.Block;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
@@ -27,11 +25,14 @@ public class FabricPlatformWorld implements PlatformWorld {
         return fabricWorld.isChunkLoaded(chunkX, chunkZ);
     }
 
+//    @Override
+//    public  getBlockAt(int x, int y, int z) {
+//        return Block.getRawIdFromState(fabricWorld.getBlockState(new BlockPos(x, y, z)));
+//    }
+
     @Override
-    public WrappedBlockState getBlockAt(int x, int y, int z) {
-        return WrappedBlockState.getByGlobalId(
-                Block.getRawIdFromState(fabricWorld.getBlockState(new BlockPos(x, y, z)))
-        );
+    public boolean isAirAt(int x, int y, int z) {
+        return fabricWorld.getBlockState(new BlockPos(x, y, z)).isAir();
     }
 
     @Override

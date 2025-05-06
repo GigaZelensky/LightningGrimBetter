@@ -1,13 +1,13 @@
 package ac.grim.grimac.platform.bukkit.initables;
 
-import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.manager.init.start.AbstractTickEndEvent;
-import ac.grim.grimac.platform.api.Platform;
+import ac.grim.grimac.api.GrimAPIProvider;
+import ac.grim.grimac.api.GrimUser;
+import ac.grim.grimac.api.platform.Platform;
+import ac.grim.grimac.api.platform.init.AbstractTickEndEvent;
+import ac.grim.grimac.api.util.LogUtil;
 import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
+import ac.grim.grimac.platform.bukkit.utils.list.HookedListWrapper;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
-import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.LogUtil;
-import ac.grim.grimac.utils.lists.HookedListWrapper;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
@@ -34,7 +34,7 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
             LogUtil.warn("Reach.enable-post-packet=true but paper.explicit-flush=false, add \"-Dpaper.explicit-flush=true\" to your server's startup flags for fully functional extra reach accuracy.");
         }
         // this is necessary for folia
-        if (GrimAPI.INSTANCE.getPlatform() == Platform.FOLIA) {
+        if (GrimAPIProvider.getDirect().getPlatform() == Platform.FOLIA) {
             PaperUtils.registerTickEndEvent(this, this::tickAllFoliaPlayers);
             return;
         }
@@ -45,19 +45,19 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
     }
 
     private void tickAllPlayers() {
-        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            if (player.disableGrim) continue;
-            super.onEndOfTick(player);
+        for (GrimUser player : GrimAPIProvider.getDirect().getGrimUsers()) {
+            if (player.isGrimDisabled()) continue;
+            player.onEndOfTick();
         }
     }
 
     private void tickAllFoliaPlayers() {
-        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            if (player.disableGrim) continue;
-            if (player.platformPlayer == null) continue;
-            Player p = ((BukkitPlatformPlayer) player.platformPlayer).getNative();
+        for (GrimUser player : GrimAPIProvider.getDirect().getGrimUsers()) {
+            if (player.isGrimDisabled()) continue;
+            if (player.getPlatformPlayer() == null) continue;
+            Player p = ((BukkitPlatformPlayer) player.getPlatformPlayer()).getNative();
             if (!Bukkit.isOwnedByCurrentRegion(p)) continue;
-            super.onEndOfTick(player);
+            player.onEndOfTick();
         }
     }
 

@@ -1,8 +1,8 @@
 package ac.grim.grimac.utils.inventory;
 
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import ac.grim.grimac.api.packet.item.PacketItemStack;
+import ac.grim.grimac.api.packet.item.PacketItemType;
+import ac.grim.grimac.api.packet.item.PacketItemTypes;
 
 public enum EquipmentType {
     MAINHAND,
@@ -22,36 +22,37 @@ public enum EquipmentType {
         };
     }
 
-    public static EquipmentType getEquipmentSlotForItem(ItemStack itemStack) {
-        ItemType item = itemStack.getType();
-        if (item == ItemTypes.CARVED_PUMPKIN || (item.getName().getKey().contains("SKULL") ||
+    // TODO make this data driven and moddable
+    public static EquipmentType getEquipmentSlotForItem(PacketItemStack itemStack) {
+        PacketItemType item = itemStack.getType();
+        if (item == PacketItemTypes.CARVED_PUMPKIN || (item.getName().getKey().contains("SKULL") ||
                 (item.getName().getKey().contains("HEAD") && !item.getName().getKey().contains("PISTON")))) {
             return HEAD;
         }
-        if (item == ItemTypes.ELYTRA) {
+        if (item == PacketItemTypes.ELYTRA) {
             return CHEST;
         }
-        if (item == ItemTypes.LEATHER_BOOTS || item == ItemTypes.CHAINMAIL_BOOTS
-                || item == ItemTypes.IRON_BOOTS || item == ItemTypes.DIAMOND_BOOTS
-                || item == ItemTypes.GOLDEN_BOOTS || item == ItemTypes.NETHERITE_BOOTS) {
+        if (item == PacketItemTypes.LEATHER_BOOTS || item == PacketItemTypes.CHAINMAIL_BOOTS
+                || item == PacketItemTypes.IRON_BOOTS || item == PacketItemTypes.DIAMOND_BOOTS
+                || item == PacketItemTypes.GOLDEN_BOOTS || item == PacketItemTypes.NETHERITE_BOOTS) {
             return FEET;
         }
-        if (item == ItemTypes.LEATHER_LEGGINGS || item == ItemTypes.CHAINMAIL_LEGGINGS
-                || item == ItemTypes.IRON_LEGGINGS || item == ItemTypes.DIAMOND_LEGGINGS
-                || item == ItemTypes.GOLDEN_LEGGINGS || item == ItemTypes.NETHERITE_LEGGINGS) {
+        if (item == PacketItemTypes.LEATHER_LEGGINGS || item == PacketItemTypes.CHAINMAIL_LEGGINGS
+                || item == PacketItemTypes.IRON_LEGGINGS || item == PacketItemTypes.DIAMOND_LEGGINGS
+                || item == PacketItemTypes.GOLDEN_LEGGINGS || item == PacketItemTypes.NETHERITE_LEGGINGS) {
             return LEGS;
         }
-        if (item == ItemTypes.LEATHER_CHESTPLATE || item == ItemTypes.CHAINMAIL_CHESTPLATE
-                || item == ItemTypes.IRON_CHESTPLATE || item == ItemTypes.DIAMOND_CHESTPLATE
-                || item == ItemTypes.GOLDEN_CHESTPLATE || item == ItemTypes.NETHERITE_CHESTPLATE) {
+        if (item == PacketItemTypes.LEATHER_CHESTPLATE || item == PacketItemTypes.CHAINMAIL_CHESTPLATE
+                || item == PacketItemTypes.IRON_CHESTPLATE || item == PacketItemTypes.DIAMOND_CHESTPLATE
+                || item == PacketItemTypes.GOLDEN_CHESTPLATE || item == PacketItemTypes.NETHERITE_CHESTPLATE) {
             return CHEST;
         }
-        if (item == ItemTypes.LEATHER_HELMET || item == ItemTypes.CHAINMAIL_HELMET
-                || item == ItemTypes.IRON_HELMET || item == ItemTypes.DIAMOND_HELMET
-                || item == ItemTypes.GOLDEN_HELMET || item == ItemTypes.NETHERITE_HELMET) {
+        if (item == PacketItemTypes.LEATHER_HELMET || item == PacketItemTypes.CHAINMAIL_HELMET
+                || item == PacketItemTypes.IRON_HELMET || item == PacketItemTypes.DIAMOND_HELMET
+                || item == PacketItemTypes.GOLDEN_HELMET || item == PacketItemTypes.NETHERITE_HELMET) {
             return HEAD;
         }
-        return ItemTypes.SHIELD == item ? OFFHAND : MAINHAND;
+        return PacketItemTypes.SHIELD == item ? OFFHAND : MAINHAND;
     }
 
     public boolean isArmor() {

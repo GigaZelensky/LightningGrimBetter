@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -9,7 +10,6 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
@@ -196,7 +196,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
                             // Player has gotten this packet
                             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
-                                ItemStack item = isOffhand ? player.getInventory().getOffHand() : player.getInventory().getHeldItem();
+                                PacketItemStack item = isOffhand ? player.getInventory().getOffHand() : player.getInventory().getHeldItem();
 
                                 // If the player hasn't overridden this packet by using or stopping using an item
                                 // Vanilla update order: Receive this -> process new interacts

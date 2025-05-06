@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.math;
 
+import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import lombok.Getter;

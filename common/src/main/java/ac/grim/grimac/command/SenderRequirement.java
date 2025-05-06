@@ -1,6 +1,6 @@
 package ac.grim.grimac.command;
 
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.platform.sender.Sender;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.processors.requirements.Requirement;

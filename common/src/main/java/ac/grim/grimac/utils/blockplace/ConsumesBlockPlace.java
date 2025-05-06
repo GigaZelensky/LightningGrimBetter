@@ -1,11 +1,11 @@
 package ac.grim.grimac.utils.blockplace;
 
+import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.AxisUtil;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -54,7 +54,7 @@ public class ConsumesBlockPlace {
             return false;
         }
         if (state.getType() == StateTypes.SWEET_BERRY_BUSH) {
-            if (state.getAge() != 3 && place.getItemStack().getType() == ItemTypes.BONE_MEAL) {
+            if (state.getAge() != 3 && place.getItemStack().getType() == PacketItemTypes.BONE_MEAL) {
                 return false;
             } else if (state.getAge() > 1) {
                 state.setAge(1);
@@ -65,14 +65,14 @@ public class ConsumesBlockPlace {
             }
         }
         if (state.getType() == StateTypes.TNT) {
-            if (place.getItemStack().getType() == ItemTypes.FIRE_CHARGE || place.getItemStack().getType() == ItemTypes.FLINT_AND_STEEL) {
+            if (place.getItemStack().getType() == PacketItemTypes.FIRE_CHARGE || place.getItemStack().getType() == PacketItemTypes.FLINT_AND_STEEL) {
                 player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), StateTypes.AIR.createBlockState(CompensatedWorld.blockVersion));
                 return true;
             }
         }
         if (state.getType() == StateTypes.RESPAWN_ANCHOR) {
-            if (place.getItemStack().getType() == ItemTypes.GLOWSTONE) return true;
-            return !place.isBlock() && player.getInventory().getOffHand().getType() == ItemTypes.GLOWSTONE;
+            if (place.getItemStack().getType() == PacketItemTypes.GLOWSTONE) return true;
+            return !place.isBlock() && player.getInventory().getOffHand().getType() == PacketItemTypes.GLOWSTONE;
         }
         if (state.getType() == StateTypes.COMMAND_BLOCK || state.getType() == StateTypes.CHAIN_COMMAND_BLOCK ||
                 state.getType() == StateTypes.REPEATING_COMMAND_BLOCK || state.getType() == StateTypes.JIGSAW

@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.platform.init.StartableInitable;
 import ac.grim.grimac.player.GrimPlayer;
 
 public class PacketLimiter implements StartableInitable {

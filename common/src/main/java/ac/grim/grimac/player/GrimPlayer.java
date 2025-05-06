@@ -4,7 +4,14 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.data.IBlockFace;
+import ac.grim.grimac.api.data.world.ICompensatedWorld;
 import ac.grim.grimac.api.handler.ResyncHandler;
+import ac.grim.grimac.api.math.Location;
+import ac.grim.grimac.api.packet.component.PacketComponentItemEquippable;
+import ac.grim.grimac.api.packet.component.PacketComponentTypes;
+import ac.grim.grimac.api.packet.inventory.PacketEquipmentSlot;
+import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
@@ -18,15 +25,15 @@ import ac.grim.grimac.manager.PunishmentManager;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.manager.player.features.FeatureManagerImpl;
 import ac.grim.grimac.manager.player.handlers.DefaultResyncHandler;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.api.platform.player.PlatformPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
-import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.api.util.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.change.PlayerBlockHistory;
-import ac.grim.grimac.utils.chat.ChatUtil;
+import ac.grim.grimac.api.util.ChatUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -40,9 +47,8 @@ import ac.grim.grimac.utils.latency.CompensatedInventory;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.latency.LatencyUtils;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.math.Location;
 import ac.grim.grimac.utils.math.TrigHandler;
-import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
@@ -52,16 +58,11 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
-import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemEquippable;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import ac.grim.grimac.api.packet.item.PacketItemStack;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import com.github.retrooper.packetevents.protocol.player.EquipmentSlot;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.User;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.dimension.DimensionType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -357,7 +358,7 @@ public class GrimPlayer implements GrimUser {
         // Knockback takes precedence over piston pushing in my testing
         // It's very difficult to test precedence so if there's issues with this bouncy implementation let me know
         for (VectorData data : new HashSet<>(possibleMovements)) {
-            for (BlockFace direction : uncertaintyHandler.slimePistonBounces) {
+            for (IBlockFace direction : uncertaintyHandler.slimePistonBounces) {
                 if (direction.getModX() != 0) {
                     possibleMovements.add(data.returnNewModified(data.vector.clone().setX(direction.getModX()), VectorData.VectorType.SlimePistonBounce));
                 } else if (direction.getModY() != 0) {
@@ -734,26 +735,26 @@ public class GrimPlayer implements GrimUser {
         // Servers older than 1.21.2 don't have this component
         if (getClientVersion().isOlderThan(ClientVersion.V_1_21_2)
                 || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)) {
-            final ItemStack chestPlate = getInventory().getChestplate();
-            return chestPlate.getType() == ItemTypes.ELYTRA && chestPlate.getDamageValue() < chestPlate.getMaxDamage();
+            final PacketItemStack chestPlate = getInventory().getChestplate();
+            return chestPlate.getType() == PacketItemTypes.ELYTRA && chestPlate.getDamageValue() < chestPlate.getMaxDamage();
         }
 
         final CompensatedInventory inventory = getInventory();
         // PacketEvents mappings are wrong
         // TODO https://github.com/retrooper/packetevents/pull/1125
-        return isGlider(inventory.getHelmet(), EquipmentSlot.CHEST_PLATE)
-                || isGlider(inventory.getChestplate(), EquipmentSlot.LEGGINGS)
-                || isGlider(inventory.getLeggings(), EquipmentSlot.BOOTS)
-                || isGlider(inventory.getBoots(), EquipmentSlot.OFF_HAND);
+        return isGlider(inventory.getHelmet(), PacketEquipmentSlot.CHEST_PLATE)
+                || isGlider(inventory.getChestplate(), PacketEquipmentSlot.LEGGINGS)
+                || isGlider(inventory.getLeggings(), PacketEquipmentSlot.BOOTS)
+                || isGlider(inventory.getBoots(), PacketEquipmentSlot.OFF_HAND);
     }
 
-    private static boolean isGlider(ItemStack stack, EquipmentSlot slot) {
-        if (!stack.hasComponent(ComponentTypes.GLIDER) || stack.getDamageValue() >= stack.getMaxDamage()) {
+    private static boolean isGlider(PacketItemStack stack, PacketEquipmentSlot slot) {
+        if (!stack.hasComponent(PacketComponentTypes.GLIDER) || stack.getDamageValue() >= stack.getMaxDamage()) {
             return false;
         }
-
-        Optional<ItemEquippable> equippable = stack.getComponent(ComponentTypes.EQUIPPABLE);
-        return equippable.isPresent() && equippable.get().getSlot() == slot;
+        // TODO (Packet Rewrite) fix this
+        Optional<PacketComponentItemEquippable> equippable = stack.getComponent(PacketComponentTypes.EQUIPPABLE);
+        return equippable.isPresent() && equippable.get().getPacketEquipmentSlot() == slot;
     }
 
     public void resyncPose() {
@@ -883,6 +884,26 @@ public class GrimPlayer implements GrimUser {
     @Override
     public boolean hasPermission(String s) {
         return platformPlayer != null && platformPlayer.hasPermission(s);
+    }
+
+    @Override
+    public ICompensatedWorld getCompensatedWorld() {
+        return compensatedWorld;
+    }
+
+    @Override
+    public boolean isGrimDisabled() {
+        return disableGrim;
+    }
+
+    @Override
+    public @Nullable PlatformPlayer getPlatformPlayer() {
+        return platformPlayer;
+    }
+
+    @Override
+    public void onEndOfTick() {
+        this.checkManager.getEntityReplication().onEndOfTickEvent();
     }
 
     public boolean hasPermission(String s, boolean defaultIfUnset) {

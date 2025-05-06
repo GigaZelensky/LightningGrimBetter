@@ -2,7 +2,7 @@ package ac.grim.grimac.platform.fabric.mc1161.entity;
 
 import ac.grim.grimac.platform.fabric.entity.AbstractFabricGrimEntity;
 import ac.grim.grimac.platform.fabric.utils.thread.FabricFutureUtil;
-import ac.grim.grimac.utils.math.Location;
+import ac.grim.grimac.api.math.Location;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.world.ServerWorld;

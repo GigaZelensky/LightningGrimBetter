@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.bukkit.manager;
 
-import ac.grim.grimac.platform.api.manager.ItemResetHandler;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.api.platform.manager.ItemResetHandler;
+import ac.grim.grimac.api.platform.player.PlatformPlayer;
 import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import com.github.retrooper.packetevents.PacketEvents;

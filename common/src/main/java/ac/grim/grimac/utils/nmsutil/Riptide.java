@@ -1,23 +1,23 @@
 package ac.grim.grimac.utils.nmsutil;
 
+import ac.grim.grimac.api.packet.item.PacketItemStack;
+import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import ac.grim.grimac.api.packet.item.PacketEnchantmentTypes;
 
 public class Riptide {
     public static Vector3dm getRiptideVelocity(GrimPlayer player) {
-        ItemStack main = player.getInventory().getHeldItem();
-        ItemStack off = player.getInventory().getOffHand();
+        PacketItemStack main = player.getInventory().getHeldItem();
+        PacketItemStack off = player.getInventory().getOffHand();
 
         int j;
-        if (main.getType() == ItemTypes.TRIDENT) {
-            j = main.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
-        } else if (off.getType() == ItemTypes.TRIDENT) {
-            j = off.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+        if (main.getType() == PacketItemTypes.TRIDENT) {
+            j = main.getEnchantmentLevel(PacketEnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion().getProtocolVersion());
+        } else if (off.getType() == PacketItemTypes.TRIDENT) {
+            j = off.getEnchantmentLevel(PacketEnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion().getProtocolVersion());
         } else {
             return new Vector3dm(); // Can't riptide
         }

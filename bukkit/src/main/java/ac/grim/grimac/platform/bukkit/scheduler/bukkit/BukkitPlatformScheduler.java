@@ -1,10 +1,10 @@
 package ac.grim.grimac.platform.bukkit.scheduler.bukkit;
 
-import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
-import ac.grim.grimac.platform.api.scheduler.EntityScheduler;
-import ac.grim.grimac.platform.api.scheduler.GlobalRegionScheduler;
-import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
-import ac.grim.grimac.platform.api.scheduler.RegionScheduler;
+import ac.grim.grimac.api.platform.scheduler.AsyncScheduler;
+import ac.grim.grimac.api.platform.scheduler.EntityScheduler;
+import ac.grim.grimac.api.platform.scheduler.GlobalRegionScheduler;
+import ac.grim.grimac.api.platform.scheduler.PlatformScheduler;
+import ac.grim.grimac.api.platform.scheduler.RegionScheduler;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class BukkitPlatformScheduler implements PlatformScheduler {

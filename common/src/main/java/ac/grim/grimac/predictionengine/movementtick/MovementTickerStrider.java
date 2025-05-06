@@ -3,12 +3,12 @@ package ac.grim.grimac.predictionengine.movementtick;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
-import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
@@ -43,8 +43,8 @@ public class MovementTickerStrider extends MovementTickerRideable {
     public void livingEntityAIStep() {
         super.livingEntityAIStep();
 
-        StateType posMaterial = player.compensatedWorld.getBlockType(player.x, player.y, player.z);
-        StateType belowMaterial = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
+        PacketStateType posMaterial = player.compensatedWorld.getBlockType(player.x, player.y, player.z);
+        PacketStateType belowMaterial = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
 
         final PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.self.getRiding();
         strider.isShaking = !BlockTags.STRIDER_WARM_BLOCKS.contains(posMaterial) &&

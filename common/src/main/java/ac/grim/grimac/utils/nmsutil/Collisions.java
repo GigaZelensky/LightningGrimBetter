@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.nmsutil;
 
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.events.packets.PacketWorldBorder;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
@@ -11,8 +12,8 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.math.Location;
-import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.api.math.Location;
+import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -22,7 +23,6 @@ import com.github.retrooper.packetevents.protocol.world.Direction;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -329,7 +329,7 @@ public class Collisions {
                                     ((y == minBlockY || y == maxBlockY) ? 1 : 0) +
                                     ((z == minBlockZ || z == maxBlockZ) ? 1 : 0);
 
-                            final StateType type = data.getType();
+                            final PacketStateType type = data.getType();
                             if (edgeCount != 3 && (edgeCount != 1 || Materials.isShapeExceedsCube(type))
                                     && (edgeCount != 2 || type == StateTypes.PISTON_HEAD)) {
                                 final CollisionBox collisionBox = CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
@@ -460,7 +460,7 @@ public class Collisions {
             for (int blockY = blockPos.getBlockY(); blockY <= blockPos2.getBlockY(); ++blockY) {
                 for (int blockZ = blockPos.getBlockZ(); blockZ <= blockPos2.getBlockZ(); ++blockZ) {
                     WrappedBlockState block = player.compensatedWorld.getBlock(blockX, blockY, blockZ);
-                    StateType blockType = block.getType();
+                    PacketStateType blockType = block.getType();
 
                     if (blockType.isAir()) {
                         continue;
@@ -472,7 +472,7 @@ public class Collisions {
         }
     }
 
-    public static void onInsideBlock(GrimPlayer player, StateType blockType, WrappedBlockState block, int blockX, int blockY, int blockZ) {
+    public static void onInsideBlock(GrimPlayer player, PacketStateType blockType, WrappedBlockState block, int blockX, int blockY, int blockZ) {
         if (blockType == StateTypes.COBWEB) {
             if (player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
                 player.stuckSpeedMultiplier = new Vector3dm(0.5, 0.25, 0.5);
@@ -563,7 +563,7 @@ public class Collisions {
 
             for (Vector3i blockPos : boxTraverseBlocks(player, from, to, boundingBox)) {
                 WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
-                StateType blockType = blockState.getType();
+                PacketStateType blockType = blockState.getType();
 
                 if (blockType.isAir()) {
                     continue;
@@ -792,7 +792,7 @@ public class Collisions {
             for (int j = blockPos.getBlockY(); j <= blockPos2.getBlockY(); ++j) {
                 for (int k = blockPos.getBlockZ(); k <= blockPos2.getBlockZ(); ++k) {
                     WrappedBlockState block = player.compensatedWorld.getBlock(i, j, k);
-                    StateType blockType = block.getType();
+                    PacketStateType blockType = block.getType();
 
                     if (blockType == StateTypes.COBWEB) {
                         return true;
@@ -838,7 +838,7 @@ public class Collisions {
 
     public static boolean doesBlockSuffocate(GrimPlayer player, int x, int y, int z) {
         WrappedBlockState data = player.compensatedWorld.getBlock(x, y, z);
-        StateType mat = data.getType();
+        PacketStateType mat = data.getType();
 
         // Optimization - all blocks that can suffocate must have a hitbox
         if (!mat.isSolid()) return false;
@@ -1005,7 +1005,7 @@ public class Collisions {
                                     ((y == minBlockY || y == maxBlockY) ? 1 : 0) +
                                     ((z == minBlockZ || z == maxBlockZ) ? 1 : 0);
 
-                            final StateType type = data.getType();
+                            final PacketStateType type = data.getType();
                             if (edgeCount != 3 && (edgeCount != 1 || Materials.isShapeExceedsCube(type))
                                     && (edgeCount != 2 || type == StateTypes.PISTON_HEAD)) {
                                 final CollisionBox collisionBox = CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
@@ -1023,7 +1023,7 @@ public class Collisions {
 
     public static boolean onClimbable(GrimPlayer player, double x, double y, double z) {
         WrappedBlockState blockState = player.compensatedWorld.getBlock(x, y, z);
-        StateType blockMaterial = blockState.getType();
+        PacketStateType blockMaterial = blockState.getType();
 
         // ViaVersion replacement block -> glow berry vines (cave vines) -> fern
         if (blockMaterial == StateTypes.CAVE_VINES || blockMaterial == StateTypes.CAVE_VINES_PLANT) {

@@ -19,6 +19,12 @@ public class PlayerDataManager {
     public final Collection<User> exemptUsers = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
 
+    private final GrimAPI grimAPI;
+
+    public PlayerDataManager(GrimAPI grimAPI) {
+        this.grimAPI = grimAPI;
+    }
+
     @Nullable
     public GrimPlayer getPlayer(final @NonNull UUID uuid) {
         // Is it safe to interact with this, or is this internal PacketEvents code?
@@ -48,7 +54,7 @@ public class PlayerDataManager {
             }
 
             // Has exempt permission
-            GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
+            GrimPlayer grimPlayer = grimAPI.getPlayerDataManager().getPlayer(user);
             if (grimPlayer != null && grimPlayer.hasPermission("grim.exempt")) {
                 exemptUsers.add(user);
                 return false;
@@ -69,7 +75,7 @@ public class PlayerDataManager {
         if (shouldCheck(user)) {
             GrimPlayer player = new GrimPlayer(user);
             playerDataMap.put(user, player);
-            GrimAPI.INSTANCE.getEventBus().post(new GrimJoinEvent(player));
+            grimAPI.getEventBus().post(new GrimJoinEvent(player));
         }
     }
 

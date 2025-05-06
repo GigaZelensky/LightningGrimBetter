@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.fabric;
 
-import ac.grim.grimac.platform.api.PlatformPlugin;
+import ac.grim.grimac.api.platform.PlatformPlugin;
 import net.fabricmc.loader.api.ModContainer;
 
 public class FabricPlatformPlugin implements PlatformPlugin {

@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.fabric.world;
 
-import ac.grim.grimac.platform.api.world.PlatformChunk;
+import ac.grim.grimac.api.platform.world.PlatformChunk;
 import net.minecraft.block.Block;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.WorldChunk;

@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.collisions;
 
+import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
@@ -25,8 +27,7 @@ import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import ac.grim.grimac.api.packet.item.PacketItemStack;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -43,7 +44,6 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.Tilt;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Type;
 import com.github.retrooper.packetevents.protocol.world.states.enums.VerticalDirection;
 import com.github.retrooper.packetevents.protocol.world.states.enums.West;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.viaversion.viaversion.api.Via;
 
@@ -177,9 +177,9 @@ public enum CollisionData implements CollisionFactory {
                 return new SimpleCollisionBox(0.0F, 0.0F, 0.125F, 1.0F, 1.0F, 0.875F, false);
             }
         }
-    }, BlockTags.ANVIL.getStates().toArray(new StateType[0])),
+    }, BlockTags.ANVIL.getStates().toArray(new PacketStateType[0])),
 
-    WALL(new DynamicCollisionWall(), BlockTags.WALLS.getStates().toArray(new StateType[0])),
+    WALL(new DynamicCollisionWall(), BlockTags.WALLS.getStates().toArray(new PacketStateType[0])),
 
     SLAB((player, version, data, x, y, z) -> {
         Type slabType = data.getTypeData();
@@ -192,7 +192,7 @@ public enum CollisionData implements CollisionFactory {
         return new SimpleCollisionBox(0, 0.5, 0, 1, 1, 1, false);
         // 1.13 can handle double slabs as it's in the block data
         // 1.12 has double slabs as a separate block, no block data to differentiate it
-    }, BlockTags.SLABS.getStates().toArray(new StateType[0])),
+    }, BlockTags.SLABS.getStates().toArray(new PacketStateType[0])),
 
     SKULL(new SimpleCollisionBox(0.25F, 0.0F, 0.25F, 0.75F, 0.5F, 0.75F, false),
             StateTypes.CREEPER_HEAD, StateTypes.ZOMBIE_HEAD, StateTypes.DRAGON_HEAD, StateTypes.PLAYER_HEAD,
@@ -216,7 +216,7 @@ public enum CollisionData implements CollisionFactory {
         default -> new HexCollisionBox(3.0D, 4.0D, 8.0D, 13.0D, 12.0D, 16.0D);
     }, StateTypes.PIGLIN_WALL_HEAD),
 
-    DOOR(new DoorHandler(), BlockTags.DOORS.getStates().toArray(new StateType[0])),
+    DOOR(new DoorHandler(), BlockTags.DOORS.getStates().toArray(new PacketStateType[0])),
 
     HOPPER((player, version, data, x, y, z) -> {
         if (version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
@@ -278,19 +278,19 @@ public enum CollisionData implements CollisionFactory {
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D);
     }, StateTypes.STONECUTTER),
 
-    CORAL_FAN(NoCollisionBox.INSTANCE, BlockTags.CORALS.getStates().toArray(new StateType[0])),
+    CORAL_FAN(NoCollisionBox.INSTANCE, BlockTags.CORALS.getStates().toArray(new PacketStateType[0])),
 
-    RAILS(NoCollisionBox.INSTANCE, BlockTags.RAILS.getStates().toArray(new StateType[0])),
+    RAILS(NoCollisionBox.INSTANCE, BlockTags.RAILS.getStates().toArray(new PacketStateType[0])),
 
-    BANNER(NoCollisionBox.INSTANCE, BlockTags.BANNERS.getStates().toArray(new StateType[0])),
+    BANNER(NoCollisionBox.INSTANCE, BlockTags.BANNERS.getStates().toArray(new PacketStateType[0])),
 
-    SMALL_FLOWER(NoCollisionBox.INSTANCE, BlockTags.SMALL_FLOWERS.getStates().toArray(new StateType[0])),
+    SMALL_FLOWER(NoCollisionBox.INSTANCE, BlockTags.SMALL_FLOWERS.getStates().toArray(new PacketStateType[0])),
 
-    TALL_FLOWER(NoCollisionBox.INSTANCE, BlockTags.TALL_FLOWERS.getStates().toArray(new StateType[0])),
+    TALL_FLOWER(NoCollisionBox.INSTANCE, BlockTags.TALL_FLOWERS.getStates().toArray(new PacketStateType[0])),
 
-    SAPLING(NoCollisionBox.INSTANCE, BlockTags.SAPLINGS.getStates().toArray(new StateType[0])),
+    SAPLING(NoCollisionBox.INSTANCE, BlockTags.SAPLINGS.getStates().toArray(new PacketStateType[0])),
 
-    BUTTON(NoCollisionBox.INSTANCE, BlockTags.BUTTONS.getStates().toArray(new StateType[0])),
+    BUTTON(NoCollisionBox.INSTANCE, BlockTags.BUTTONS.getStates().toArray(new PacketStateType[0])),
 
     // All states that unconditionally have no collision and are not in a group where every member also has no collision.
     NO_COLLISION(NoCollisionBox.INSTANCE, StateTypes.TWISTING_VINES_PLANT, StateTypes.WEEPING_VINES_PLANT,
@@ -531,7 +531,7 @@ public enum CollisionData implements CollisionFactory {
 
     }, StateTypes.GRINDSTONE),
 
-    PANE(new DynamicCollisionPane(), Materials.getPanes().toArray(new StateType[0])),
+    PANE(new DynamicCollisionPane(), Materials.getPanes().toArray(new PacketStateType[0])),
 
     CHAIN_BLOCK((player, version, data, x, y, z) -> {
         if (version.isOlderThan(ClientVersion.V_1_16)) {
@@ -562,9 +562,9 @@ public enum CollisionData implements CollisionFactory {
             default -> // This code is unreachable but the compiler does not know this
                     NoCollisionBox.INSTANCE;
         };
-    }, BlockTags.FENCE_GATES.getStates().toArray(new StateType[0])),
+    }, BlockTags.FENCE_GATES.getStates().toArray(new PacketStateType[0])),
 
-    FENCE(new DynamicCollisionFence(), BlockTags.FENCES.getStates().toArray(new StateType[0])),
+    FENCE(new DynamicCollisionFence(), BlockTags.FENCES.getStates().toArray(new PacketStateType[0])),
 
     SNOW((player, version, data, x, y, z) -> {
         int layers = data.getLayers();
@@ -580,7 +580,7 @@ public enum CollisionData implements CollisionFactory {
         return new SimpleCollisionBox(0, 0, 0, 1, (layers - 1) * 0.125, 1);
     }, StateTypes.SNOW),
 
-    STAIR(new DynamicStair(), BlockTags.STAIRS.getStates().toArray(new StateType[0])),
+    STAIR(new DynamicStair(), BlockTags.STAIRS.getStates().toArray(new PacketStateType[0])),
 
     CHEST(new DynamicChest(), StateTypes.CHEST, StateTypes.TRAPPED_CHEST),
 
@@ -611,7 +611,7 @@ public enum CollisionData implements CollisionFactory {
             return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F, false);
 
         return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F, false);
-    }, BlockTags.WOOL_CARPETS.getStates().toArray(new StateType[0])),
+    }, BlockTags.WOOL_CARPETS.getStates().toArray(new PacketStateType[0])),
 
     MOSS_CARPET(CARPET, StateTypes.MOSS_CARPET),
 
@@ -692,9 +692,9 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return baseBox;
-    }, BlockTags.BEDS.getStates().toArray(new StateType[0])),
+    }, BlockTags.BEDS.getStates().toArray(new PacketStateType[0])),
 
-    TRAPDOOR(new TrapDoorHandler(), BlockTags.TRAPDOORS.getStates().toArray(new StateType[0])),
+    TRAPDOOR(new TrapDoorHandler(), BlockTags.TRAPDOORS.getStates().toArray(new PacketStateType[0])),
 
 
     DIODES(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F, false),
@@ -737,7 +737,7 @@ public enum CollisionData implements CollisionFactory {
                     new SimpleCollisionBox(0, height, 0, 1, 1, 0.125, false),
                     new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1, false));
         }
-    }, BlockTags.CAULDRONS.getStates().toArray(new StateType[0])),
+    }, BlockTags.CAULDRONS.getStates().toArray(new PacketStateType[0])),
 
     CACTUS(new SimpleCollisionBox(0.0625, 0, 0.0625,
             1 - 0.0625, 1 - 0.0625, 1 - 0.0625, false), StateTypes.CACTUS),
@@ -774,7 +774,7 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.CONDUIT),
 
     POT(new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D),
-            BlockTags.FLOWER_POTS.getStates().toArray(new StateType[0])),
+            BlockTags.FLOWER_POTS.getStates().toArray(new PacketStateType[0])),
 
     WALL_SIGN((player, version, data, x, y, z) -> switch (data.getFacing()) {
         case NORTH -> new HexCollisionBox(0.0D, 4.5D, 14.0D, 16.0D, 12.5D, 16.0D);
@@ -782,26 +782,26 @@ public enum CollisionData implements CollisionFactory {
         case WEST -> new HexCollisionBox(14.0D, 4.5D, 0.0D, 16.0D, 12.5D, 16.0D);
         case EAST -> new HexCollisionBox(0.0D, 4.5D, 0.0D, 2.0D, 12.5D, 16.0D);
         default -> NoCollisionBox.INSTANCE;
-    }, BlockTags.WALL_SIGNS.getStates().toArray(new StateType[0])),
+    }, BlockTags.WALL_SIGNS.getStates().toArray(new PacketStateType[0])),
 
     WALL_FAN((player, version, data, x, y, z) -> switch (data.getFacing()) {
         case NORTH -> new HexCollisionBox(0.0D, 4.0D, 5.0D, 16.0D, 12.0D, 16.0D);
         case SOUTH -> new HexCollisionBox(0.0D, 4.0D, 0.0D, 16.0D, 12.0D, 11.0D);
         case WEST -> new HexCollisionBox(5.0D, 4.0D, 0.0D, 16.0D, 12.0D, 16.0D);
         default -> new HexCollisionBox(0.0D, 4.0D, 0.0D, 11.0D, 12.0D, 16.0D);
-    }, BlockTags.WALL_CORALS.getStates().toArray(new StateType[0])),
+    }, BlockTags.WALL_CORALS.getStates().toArray(new PacketStateType[0])),
 
     CORAL_PLANT((player, version, data, x, y, z) -> new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 15.0D, 14.0D), Stream.concat(
-                    Arrays.stream(BlockTags.CORAL_PLANTS.getStates().toArray(new StateType[0])),
+                    Arrays.stream(BlockTags.CORAL_PLANTS.getStates().toArray(new PacketStateType[0])),
                     Stream.of(StateTypes.DEAD_HORN_CORAL, StateTypes.DEAD_TUBE_CORAL, StateTypes.DEAD_BRAIN_CORAL,
                             StateTypes.DEAD_BUBBLE_CORAL, StateTypes.DEAD_FIRE_CORAL)
             )
             .distinct()  // This will remove duplicates
-            .toArray(StateType[]::new)
+            .toArray(PacketStateType[]::new)
     ),
 
     SIGN(new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 1.0, 0.75, false),
-            BlockTags.STANDING_SIGNS.getStates().toArray(new StateType[0])),
+            BlockTags.STANDING_SIGNS.getStates().toArray(new PacketStateType[0])),
 
     STONE_PRESSURE_PLATE((player, version, data, x, y, z) -> {
         if (data.isPowered()) { // Pressed
@@ -809,7 +809,7 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.0D, 15.0D);
-    }, BlockTags.STONE_PRESSURE_PLATES.getStates().toArray(new StateType[0])),
+    }, BlockTags.STONE_PRESSURE_PLATES.getStates().toArray(new PacketStateType[0])),
 
     WOOD_PRESSURE_PLATE((player, version, data, x, y, z) -> {
         if (data.isPowered()) { // Pressed
@@ -817,7 +817,7 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.0D, 15.0D);
-    }, BlockTags.WOODEN_PRESSURE_PLATES.getStates().toArray(new StateType[0])),
+    }, BlockTags.WOODEN_PRESSURE_PLATES.getStates().toArray(new PacketStateType[0])),
 
     OTHER_PRESSURE_PLATE((player, version, data, x, y, z) -> {
         if (data.getPower() > 0) { // Pressed
@@ -865,7 +865,7 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return getPicklesBox(version, data.getCandles());
-    }, BlockTags.CANDLES.getStates().toArray(new StateType[0])),
+    }, BlockTags.CANDLES.getStates().toArray(new PacketStateType[0])),
 
     CANDLE_CAKE((player, version, data, x, y, z) -> {
         SimpleCollisionBox cake = new HexCollisionBox(1.0, 0.0, 1.0, 15.0, 8.0, 15.0);
@@ -876,7 +876,7 @@ public enum CollisionData implements CollisionFactory {
                     cake,
                     new HexCollisionBox(7.0, 8.0, 7.0, 9.0, 14.0, 9.0));
         }
-    }, BlockTags.CANDLE_CAKES.getStates().toArray(new StateType[0])),
+    }, BlockTags.CANDLE_CAKES.getStates().toArray(new PacketStateType[0])),
 
     SCULK_SENSOR(new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 8.0, 16.0), StateTypes.SCULK_SENSOR, StateTypes.CALIBRATED_SCULK_SENSOR),
 
@@ -944,8 +944,8 @@ public enum CollisionData implements CollisionFactory {
                     : new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 0.9, 1.0, false);
         }
 
-        ItemStack boots = player.getInventory().getBoots();
-        if (player.lastY > y + 1 - 1e-5 && boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS && !player.isSneaking && !player.inVehicle())
+        PacketItemStack boots = player.getInventory().getBoots();
+        if (player.lastY > y + 1 - 1e-5 && boots != null && boots.getType() == PacketItemTypes.LEATHER_BOOTS && !player.isSneaking && !player.inVehicle())
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return NoCollisionBox.INSTANCE;
@@ -1026,37 +1026,37 @@ public enum CollisionData implements CollisionFactory {
         case NORTH, SOUTH -> new HexCollisionBox(0.0, 14.0, 6.0, 16.0, 16.0, 10.0);
         case WEST, EAST -> new HexCollisionBox(6.0, 14.0, 0.0, 10.0, 16.0, 16.0);
         default -> NoCollisionBox.INSTANCE;
-    }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new StateType[0])),
+    }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new PacketStateType[0])),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
 
     // This should be an array... but a hashmap will do for now...
-    private static final Map<StateType, CollisionData> rawLookupMap = new IdentityHashMap<>();
+    private static final Map<PacketStateType, CollisionData> rawLookupMap = new IdentityHashMap<>();
 
     static {
         for (CollisionData data : values()) {
-            for (StateType type : data.materials) {
+            for (PacketStateType type : data.materials) {
                 rawLookupMap.put(type, data);
             }
         }
     }
 
-    public final StateType[] materials;
+    public final PacketStateType[] materials;
     public CollisionBox box;
     public CollisionFactory dynamic;
 
-    CollisionData(CollisionBox box, StateType... states) {
+    CollisionData(CollisionBox box, PacketStateType... states) {
         this.box = box;
-        Set<StateType> mList = new HashSet<>(Arrays.asList(states));
+        Set<PacketStateType> mList = new HashSet<>(Arrays.asList(states));
         mList.remove(null); // Sets can contain one null
-        this.materials = mList.toArray(new StateType[0]);
+        this.materials = mList.toArray(new PacketStateType[0]);
     }
 
-    CollisionData(CollisionFactory dynamic, StateType... states) {
+    CollisionData(CollisionFactory dynamic, PacketStateType... states) {
         this.dynamic = dynamic;
-        Set<StateType> mList = new HashSet<>(Arrays.asList(states));
+        Set<PacketStateType> mList = new HashSet<>(Arrays.asList(states));
         mList.remove(null); // Sets can contain one null
-        this.materials = mList.toArray(new StateType[0]);
+        this.materials = mList.toArray(new PacketStateType[0]);
     }
 
     private static CollisionBox getAmethystBox(ClientVersion version, com.github.retrooper.packetevents.protocol.world.BlockFace facing, int param_0, int param_1) {
@@ -1154,13 +1154,13 @@ public enum CollisionData implements CollisionFactory {
     }
 
     // Would pre-computing all states be worth the memory cost? I doubt it
-    public static CollisionData getData(StateType state) { // TODO: Find a better hack for lava and scaffolding
+    public static CollisionData getData(PacketStateType state) { // TODO: Find a better hack for lava and scaffolding
         // What the fuck mojang, why put noCollision() and then give PITCHER_CROP collision?
         return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING || state == StateTypes.PITCHER_CROP || state == StateTypes.HEAVY_CORE || state == StateTypes.PALE_MOSS_CARPET || BlockTags.WALL_HANGING_SIGNS.contains(state) ? rawLookupMap.getOrDefault(state, DEFAULT) : NO_COLLISION;
     }
 
     // TODO: This is wrong if a block doesn't have any hitbox and isn't specified, light block?
-    public static CollisionData getRawData(StateType state) {
+    public static CollisionData getRawData(PacketStateType state) {
         return rawLookupMap.getOrDefault(state, DEFAULT);
     }
 

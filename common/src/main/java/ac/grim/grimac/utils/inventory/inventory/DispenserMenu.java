@@ -1,10 +1,10 @@
 package ac.grim.grimac.utils.inventory.inventory;
 
+import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.slot.Slot;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
 
 public class DispenserMenu extends AbstractContainerMenu {
     public DispenserMenu(GrimPlayer player, Inventory playerInventory) {
@@ -20,26 +20,26 @@ public class DispenserMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public ItemStack quickMoveStack(int slotID) {
-        ItemStack itemstack = ItemStack.EMPTY;
+    public PacketItemStack quickMoveStack(int slotID) {
+        PacketItemStack itemstack = PacketItemStack.EMPTY;
         Slot slot = this.slots.get(slotID);
         if (slot != null && slot.hasItem()) {
-            ItemStack itemstack1 = slot.getItem();
+            PacketItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
             if (slotID < 9) {
                 if (!this.moveItemStackTo(itemstack1, 9, 45, true)) {
-                    return ItemStack.EMPTY;
+                    return PacketItemStack.EMPTY;
                 }
             } else if (!this.moveItemStackTo(itemstack1, 0, 9, false)) {
-                return ItemStack.EMPTY;
+                return PacketItemStack.EMPTY;
             }
 
             if (itemstack1.isEmpty()) {
-                slot.set(ItemStack.EMPTY);
+                slot.set(PacketItemStack.EMPTY);
             }
 
             if (itemstack1.getAmount() == itemstack.getAmount()) {
-                return ItemStack.EMPTY;
+                return PacketItemStack.EMPTY;
             }
 
             slot.onTake(player, itemstack1);

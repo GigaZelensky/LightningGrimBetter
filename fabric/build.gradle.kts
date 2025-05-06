@@ -30,6 +30,9 @@ dependencies {
     compileOnly("org.apache.logging.log4j:log4j-api:2.24.3")
 
     modApi(libs.packetevents.fabric)
+    implementation(libs.snakeyaml)
+
+    jijDependencies(project(":common"))
 }
 
 // The configurations below will only apply to :fabric and its submodules, not its siblings or the root project
@@ -74,7 +77,8 @@ allprojects {
         }
         modImplementation(libsx.findLibrary("fabric-loader").get())
 
-        implementation(project(":common"))
+        api(project(":api"))
+        api(project(":api:packet"))
     }
 
     publishing.publications.create<MavenPublication>("maven") {

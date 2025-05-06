@@ -4,9 +4,9 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.command.requirements.PlayerSenderRequirement;
 import ac.grim.grimac.manager.init.start.CommandRegister;
-import ac.grim.grimac.platform.api.command.PlayerSelector;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.platform.command.PlayerSelector;
+import ac.grim.grimac.api.platform.player.PlatformPlayer;
+import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -50,7 +50,7 @@ public class GrimSpectate implements BuildableCommand {
             sender.sendMessage(MessageUtil.getParsedComponent(sender, "spectate-return", "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &fClick here to return to previous location\n</hover></click>"));
         }
 
-        platformPlayer.setGameMode(GameMode.SPECTATOR);
+        platformPlayer.setGameMode(GameMode.SPECTATOR.getId());
         platformPlayer.teleportAsync(targetPlatformPlayer.getLocation());
     }
 }

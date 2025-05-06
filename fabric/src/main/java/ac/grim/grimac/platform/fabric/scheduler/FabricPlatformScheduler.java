@@ -1,12 +1,12 @@
 package ac.grim.grimac.platform.fabric.scheduler;
 
-import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.GrimAPIProvider;
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.platform.api.scheduler.AsyncScheduler;
-import ac.grim.grimac.platform.api.scheduler.EntityScheduler;
-import ac.grim.grimac.platform.api.scheduler.GlobalRegionScheduler;
-import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
-import ac.grim.grimac.platform.api.scheduler.RegionScheduler;
+import ac.grim.grimac.api.platform.scheduler.AsyncScheduler;
+import ac.grim.grimac.api.platform.scheduler.EntityScheduler;
+import ac.grim.grimac.api.platform.scheduler.GlobalRegionScheduler;
+import ac.grim.grimac.api.platform.scheduler.PlatformScheduler;
+import ac.grim.grimac.api.platform.scheduler.RegionScheduler;
 import net.minecraft.server.MinecraftServer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -22,7 +22,7 @@ public class FabricPlatformScheduler implements PlatformScheduler {
     private final FabricRegionScheduler regionScheduler;
 
     public FabricPlatformScheduler() {
-        GrimPlugin plugin = GrimAPI.INSTANCE.getGrimPlugin();
+        GrimPlugin plugin = GrimAPIProvider.getDirect().getPlatformLoader().getPlugin();
         this.asyncScheduler = new FabricAsyncScheduler(plugin);
         this.globalRegionScheduler = new FabricGlobalRegionScheduler(plugin);
         this.entityScheduler = new FabricEntityScheduler(plugin);

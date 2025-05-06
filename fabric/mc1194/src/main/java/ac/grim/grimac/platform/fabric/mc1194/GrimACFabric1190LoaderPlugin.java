@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.fabric.mc1194;
 
-import ac.grim.grimac.platform.api.PlatformServer;
-import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
+import ac.grim.grimac.api.platform.PlatformServer;
+import ac.grim.grimac.api.platform.manager.ParserDescriptorFactory;
 import ac.grim.grimac.platform.fabric.mc1161.command.Fabric1161PlayerSelectorAdapter;
 import ac.grim.grimac.platform.fabric.command.FabricPlayerSelectorParser;
 import ac.grim.grimac.platform.fabric.manager.FabricParserDescriptorFactory;

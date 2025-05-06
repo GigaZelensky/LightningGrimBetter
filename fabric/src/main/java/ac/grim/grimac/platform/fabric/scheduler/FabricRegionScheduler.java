@@ -1,11 +1,11 @@
 package ac.grim.grimac.platform.fabric.scheduler;
 
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.platform.api.scheduler.RegionScheduler;
-import ac.grim.grimac.platform.api.scheduler.TaskHandle;
-import ac.grim.grimac.platform.api.world.PlatformWorld;
+import ac.grim.grimac.api.platform.scheduler.RegionScheduler;
+import ac.grim.grimac.api.platform.scheduler.TaskHandle;
+import ac.grim.grimac.api.platform.world.PlatformWorld;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
-import ac.grim.grimac.utils.math.Location;
+import ac.grim.grimac.api.math.Location;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;

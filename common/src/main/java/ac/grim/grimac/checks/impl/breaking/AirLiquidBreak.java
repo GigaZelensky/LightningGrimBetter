@@ -1,15 +1,15 @@
 package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -21,7 +21,7 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
     private boolean didLastFlag;
     // Initialize to non-null values to prevent NPE when checking for blockType properties and if position equals old position
     private @NonNull Vector3i lastBreakLoc = new Vector3i();
-    private @NonNull StateType lastBlockType = StateTypes.AIR;
+    private @NonNull PacketStateType lastBlockType = StateTypes.AIR;
 
     public AirLiquidBreak(GrimPlayer player) {
         super(player);
@@ -32,7 +32,7 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
         if (blockBreak.action != DiggingAction.START_DIGGING && blockBreak.action != DiggingAction.FINISHED_DIGGING)
             return;
 
-        final StateType block = blockBreak.block.getType();
+        final PacketStateType block = blockBreak.block.getType();
 
         // Fixes false from breaking kelp underwater
         // The client sends two start digging packets to the server both in the same tick. AirLiquidBreak gets called twice, doesn't false the first time, but falses the second
@@ -51,7 +51,7 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
         lastBlockType = block;
 
         // the block does not have a hitbox
-        boolean invalid = (block == StateTypes.LIGHT && !(player.getInventory().getHeldItem().is(ItemTypes.LIGHT) || player.getInventory().getOffHand().is(ItemTypes.LIGHT)))
+        boolean invalid = (block == StateTypes.LIGHT && !(player.getInventory().getHeldItem() == PacketItemTypes.LIGHT || player.getInventory().getOffHand() == PacketItemTypes.LIGHT))
                 || block.isAir()
                 || block == StateTypes.WATER
                 || block == StateTypes.LAVA

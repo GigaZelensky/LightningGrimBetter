@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.collisions.blocks;
 
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
@@ -14,7 +15,6 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.East;
 import com.github.retrooper.packetevents.protocol.world.states.enums.North;
 import com.github.retrooper.packetevents.protocol.world.states.enums.South;
 import com.github.retrooper.packetevents.protocol.world.states.enums.West;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 import java.util.HashSet;
@@ -104,14 +104,14 @@ public class DynamicChorusPlant implements CollisionFactory {
         Set<BlockFace> faces = new HashSet<>();
 
         // 1.13 clients on 1.12 servers don't see chorus flowers attached to chorus because of a ViaVersion bug
-        StateType versionFlower = version.isOlderThanOrEquals(ClientVersion.V_1_12_2) ? StateTypes.CHORUS_FLOWER : null;
+        PacketStateType versionFlower = version.isOlderThanOrEquals(ClientVersion.V_1_12_2) ? StateTypes.CHORUS_FLOWER : null;
 
-        StateType downBlock = player.compensatedWorld.getBlockType(x, y - 1, z);
-        StateType upBlock = player.compensatedWorld.getBlockType(x, y + 1, z);
-        StateType northBlock = player.compensatedWorld.getBlockType(x, y, z - 1);
-        StateType eastBlock = player.compensatedWorld.getBlockType(x + 1, y, z);
-        StateType southBlock = player.compensatedWorld.getBlockType(x, y, z + 1);
-        StateType westBlock = player.compensatedWorld.getBlockType(x - 1, y, z);
+        PacketStateType downBlock = player.compensatedWorld.getBlockType(x, y - 1, z);
+        PacketStateType upBlock = player.compensatedWorld.getBlockType(x, y + 1, z);
+        PacketStateType northBlock = player.compensatedWorld.getBlockType(x, y, z - 1);
+        PacketStateType eastBlock = player.compensatedWorld.getBlockType(x + 1, y, z);
+        PacketStateType southBlock = player.compensatedWorld.getBlockType(x, y, z + 1);
+        PacketStateType westBlock = player.compensatedWorld.getBlockType(x - 1, y, z);
 
         if (downBlock == StateTypes.CHORUS_PLANT || downBlock == versionFlower || downBlock == StateTypes.END_STONE) {
             faces.add(BlockFace.DOWN);

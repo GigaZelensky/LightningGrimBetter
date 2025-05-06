@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager.init.start;
 
-import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.api.platform.init.StartableInitable;
+import ac.grim.grimac.api.util.LogUtil;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

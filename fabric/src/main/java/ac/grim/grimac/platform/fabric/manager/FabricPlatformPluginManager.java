@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.fabric.manager;
 
-import ac.grim.grimac.platform.api.PlatformPlugin;
-import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
+import ac.grim.grimac.api.platform.PlatformPlugin;
+import ac.grim.grimac.api.platform.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.fabric.FabricPlatformPlugin;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;

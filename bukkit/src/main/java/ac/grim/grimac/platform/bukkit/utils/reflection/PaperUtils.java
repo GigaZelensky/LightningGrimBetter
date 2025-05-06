@@ -1,8 +1,8 @@
 package ac.grim.grimac.platform.bukkit.utils.reflection;
 
+import ac.grim.grimac.api.reflection.ReflectionUtils;
+import ac.grim.grimac.api.util.LogUtil;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
-import ac.grim.grimac.utils.anticheat.LogUtil;
-import ac.grim.grimac.utils.reflection.ReflectionUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Event;

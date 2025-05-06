@@ -1,12 +1,12 @@
 package ac.grim.grimac.platform.bukkit.scheduler.folia;
 
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.platform.api.scheduler.RegionScheduler;
-import ac.grim.grimac.platform.api.scheduler.TaskHandle;
-import ac.grim.grimac.platform.api.world.PlatformWorld;
+import ac.grim.grimac.api.platform.scheduler.RegionScheduler;
+import ac.grim.grimac.api.platform.scheduler.TaskHandle;
+import ac.grim.grimac.api.platform.world.PlatformWorld;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.platform.bukkit.world.BukkitPlatformWorld;
-import ac.grim.grimac.utils.math.Location;
+import ac.grim.grimac.api.math.Location;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 

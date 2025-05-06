@@ -1,10 +1,10 @@
 package ac.grim.grimac.platform.fabric.mc1205.convert;
 
+import ac.grim.grimac.api.packet.item.PacketItemStack;
+import ac.grim.grimac.api.util.LogUtil;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.utils.convert.IFabricConversionUtil;
-import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentSerializer;
 import io.netty.buffer.ByteBuf;
@@ -15,9 +15,9 @@ import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.text.Text;
 
 public class Fabric1205ConversionUtil implements IFabricConversionUtil {
-    public ItemStack fromFabricItemStack(net.minecraft.item.ItemStack fabricStack) {
+    public PacketItemStack fromFabricItemStack(net.minecraft.item.ItemStack fabricStack) {
         if (fabricStack.isEmpty()) {
-            return ItemStack.EMPTY;
+            return PacketItemStack.EMPTY;
         }
 
         // Allocate a ByteBuf
@@ -37,8 +37,8 @@ public class Fabric1205ConversionUtil implements IFabricConversionUtil {
             return wrapper.readItemStack();
         } catch (Exception e) {
             // Handle encoding errors
-            LogUtil.error("Failed to encode ItemStack: {}" + fabricStack, e);
-            return ItemStack.EMPTY;
+            LogUtil.exception("Failed to encode ItemStack: {}" + fabricStack, e);
+            return PacketItemStack.EMPTY;
         } finally {
             // Release the ByteBuf to prevent memory leaks
             ByteBufHelper.release(buffer);

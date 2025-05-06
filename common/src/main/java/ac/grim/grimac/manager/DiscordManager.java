@@ -1,10 +1,10 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.manager.init.ReloadableInitable;
-import ac.grim.grimac.manager.init.start.StartableInitable;
+import ac.grim.grimac.api.platform.init.ReloadableInitable;
+import ac.grim.grimac.api.platform.init.StartableInitable;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.api.util.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.webhook.Embed;
 import ac.grim.grimac.utils.webhook.EmbedField;
@@ -37,6 +37,12 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
     private int embedColor;
     private String staticContent = "";
     private String embedTitle = "";
+    
+    private final GrimAPI grimAPI;
+    
+    public DiscordManager(GrimAPI grimAPI) {
+        this.grimAPI = grimAPI;
+    }
 
     @Override
     public void start() {
@@ -46,12 +52,12 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
     @Override
     public void reload() {
         try {
-            if (!GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("enabled", false)) {
+            if (!grimAPI.getConfigManager().getConfig().getBooleanElse("enabled", false)) {
                 url = null;
                 return;
             }
 
-            String webhook = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("webhook", "");
+            String webhook = grimAPI.getConfigManager().getConfig().getStringElse("webhook", "");
 
             if (!WEBHOOK_REGEX.test(webhook)) {
                 LogUtil.error("Discord webhook url does not follow expected format (https://discord.com/api/webhooks/<id>/<token>): " + webhook);
@@ -60,16 +66,16 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
                 url = new URI(webhook);
             }
 
-            embedTitle = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("embed-title", "**Grim Alert**");
+            embedTitle = grimAPI.getConfigManager().getConfig().getStringElse("embed-title", "**Grim Alert**");
 
             try {
-                embedColor = Color.decode(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("embed-color", "#00FFFF")).getRGB();
+                embedColor = Color.decode(grimAPI.getConfigManager().getConfig().getStringElse("embed-color", "#00FFFF")).getRGB();
             } catch (NumberFormatException e) {
                 LogUtil.warn("Discord embed color is invalid");
             }
 
             StringBuilder sb = new StringBuilder();
-            for (String string : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringListElse("violation-content", getDefaultContents())) {
+            for (String string : grimAPI.getConfigManager().getConfig().getStringListElse("violation-content", getDefaultContents())) {
                 sb.append(string).append("\n");
             }
             staticContent = sb.toString();
@@ -126,7 +132,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
 
         if (!taskStarted.getAndSet(true)) {
             // there's probably a better way to handle rate limits, but this works, so whatever.
-            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runAtFixedRate(GrimAPI.INSTANCE.getGrimPlugin(), DiscordManager::tick, 0, 1);
+            grimAPI.getScheduler().getAsyncScheduler().runAtFixedRate(grimAPI.getGrimPlugin(), DiscordManager::tick, 0, 1);
         }
     }
 

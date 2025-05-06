@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.bukkit.scheduler.folia;
 
-import ac.grim.grimac.platform.api.scheduler.TaskHandle;
+import ac.grim.grimac.api.platform.scheduler.TaskHandle;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 
 public class FoliaTaskHandle implements TaskHandle {

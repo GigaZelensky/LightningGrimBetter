@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.fabric.manager;
 
-import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.api.platform.manager.MessagePlaceHolderManager;
+import ac.grim.grimac.api.platform.player.PlatformPlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 

@@ -3,12 +3,12 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
-import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 public class FluidTypeFlowing {
@@ -28,7 +28,7 @@ public class FluidTypeFlowing {
                 float f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9D);
                 float f1 = 0.0F;
                 if (f == 0.0F) {
-                    StateType mat = player.compensatedWorld.getBlockType(modifiedX, originalY, modifiedZ);
+                    PacketStateType mat = player.compensatedWorld.getBlockType(modifiedX, originalY, modifiedZ);
 
                     // Grim's definition of solid is whether the block has a hitbox
                     // Minecraft is... it's whatever Mojang was feeling like, but it's very consistent
@@ -78,7 +78,7 @@ public class FluidTypeFlowing {
         int z = originalZ + direction.getModZ();
 
         WrappedBlockState data = player.compensatedWorld.getBlock(x, y, z);
-        StateType type = data.getType();
+        PacketStateType type = data.getType();
 
         if (isSame(player, x, y, z, originalX, y, originalZ)) return false;
         if (type == StateTypes.ICE) return false;

@@ -9,11 +9,11 @@ plugins {
 val shadowCommon: Configuration by project.configurations.creating {
     isCanBeResolved = true
     isCanBeConsumed = false
+    // Extend from the "implementation" configuration of the current project
     extendsFrom(project.configurations.getByName("implementation"))
 }
 
 tasks.named<ShadowJar>("shadowJar") {
-    minimize()
     archiveFileName.set("${rootProject.name}-${project.name}-${rootProject.version}.jar")
     from(shadowCommon) // Use from() instead of direct assignment
 
@@ -40,6 +40,7 @@ tasks.named<ShadowJar>("shadowJar") {
         relocate("io.leangen.geantyref", "ac.grim.grimac.shaded.geantyref") // Required by cloud
     }
     mergeServiceFiles()
+    minimize()
 }
 
 tasks.named("assemble") {

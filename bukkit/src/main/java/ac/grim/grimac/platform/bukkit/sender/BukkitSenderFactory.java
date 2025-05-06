@@ -1,8 +1,8 @@
 package ac.grim.grimac.platform.bukkit.sender;
 
-import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.platform.api.sender.SenderFactory;
+import ac.grim.grimac.api.GrimAPIProvider;
+import ac.grim.grimac.api.platform.sender.Sender;
+import ac.grim.grimac.api.platform.sender.SenderFactory;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
@@ -45,8 +45,8 @@ public class BukkitSenderFactory extends SenderFactory<CommandSender> implements
         if (sender instanceof Player || sender instanceof ConsoleCommandSender || sender instanceof RemoteConsoleCommandSender) {
             this.audiences.sender(sender).sendMessage(message);
         } else {
-            GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(
-                    GrimAPI.INSTANCE.getGrimPlugin(),
+            GrimAPIProvider.getDirect().getPlatformLoader().getScheduler().getGlobalRegionScheduler().run(
+                    GrimAPIProvider.getDirect().getPlatformLoader().getPlugin(),
                     () -> this.audiences.sender(sender).sendMessage(message)
             );
         }

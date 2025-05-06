@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.bukkit.manager;
 
-import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.api.platform.manager.MessagePlaceHolderManager;
+import ac.grim.grimac.api.platform.player.PlatformPlayer;
 import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayer;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
 import me.clip.placeholderapi.PlaceholderAPI;

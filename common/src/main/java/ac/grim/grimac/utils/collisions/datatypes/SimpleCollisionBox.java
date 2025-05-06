@@ -1,9 +1,9 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
+import ac.grim.grimac.api.data.boxes.BaseSCB;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.math.Location;
-import ac.grim.grimac.utils.math.Vector3dm;
-import ac.grim.grimac.utils.nmsutil.Ray;
+import ac.grim.grimac.api.math.Location;
+import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -14,38 +14,14 @@ import it.unimi.dsi.fastutil.doubles.DoubleList;
 
 import java.util.List;
 
-public class SimpleCollisionBox implements CollisionBox {
+public class SimpleCollisionBox extends BaseSCB implements CollisionBox {
 
     public static final double COLLISION_EPSILON = 1.0E-7;
 
-    public double minX, minY, minZ, maxX, maxY, maxZ;
     SimpleCollisionBox[] boxes = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];
-    private boolean isFullBlock = false;
 
-    public SimpleCollisionBox() {
-        this(0, 0, 0, 0, 0, 0, false);
-    }
-
-    /**
-     * Creates a box defined by two points in 3d space; used to represent hitboxes and collision boxes.
-     * If your min/max values are > 1 you should probably check out {@link HexCollisionBox}
-     *
-     * @param minX      x position of first corner
-     * @param minY      y position of first corner
-     * @param minZ      z position of first corner
-     * @param maxX      x position of second corner
-     * @param maxY      y position of second corner
-     * @param maxZ      z position of second corner
-     * @param fullBlock - whether on not the box is a perfect 1x1x1 sized block
-     */
     public SimpleCollisionBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, boolean fullBlock) {
-        this.minX = minX;
-        this.maxX = maxX;
-        this.minY = minY;
-        this.maxY = maxY;
-        this.minZ = minZ;
-        this.maxZ = maxZ;
-        isFullBlock = fullBlock;
+        super(minX, minY, minZ, maxX, maxY, maxZ, fullBlock);
     }
 
     public SimpleCollisionBox(Vector3dm min, Vector3dm max) {
@@ -58,7 +34,7 @@ public class SimpleCollisionBox implements CollisionBox {
 
     // If you want to set a full block from a point
     public SimpleCollisionBox(double minX, double minY, double minZ) {
-        this(minX, minY, minZ, minX + 1, minY + 1, minZ + 1, true);
+        super(minX, minY, minZ, minX + 1, minY + 1, minZ + 1, true);
     }
 
     /**
@@ -101,6 +77,10 @@ public class SimpleCollisionBox implements CollisionBox {
 
     public SimpleCollisionBox(BoundingBox box) {
         this(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
+    }
+
+    public SimpleCollisionBox() {
+        super();
     }
 
     public SimpleCollisionBox expand(double x, double y, double z) {
@@ -261,14 +241,9 @@ public class SimpleCollisionBox implements CollisionBox {
         return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ, isFullBlock);
     }
 
+    @Override
     public SimpleCollisionBox offset(double x, double y, double z) {
-        this.minX += x;
-        this.minY += y;
-        this.minZ += z;
-        this.maxX += x;
-        this.maxY += y;
-        this.maxZ += z;
-        return this;
+        return (SimpleCollisionBox) super.offset(x ,y, z);
     }
 
     @Override

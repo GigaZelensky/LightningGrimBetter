@@ -1,11 +1,11 @@
 package ac.grim.grimac.platform.fabric.mc1161.player;
 
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.player.AbstractFabricPlatformPlayer;
 import ac.grim.grimac.platform.fabric.utils.thread.FabricFutureUtil;
 import ac.grim.grimac.platform.fabric.world.FabricPlatformWorld;
-import ac.grim.grimac.utils.math.Location;
+import ac.grim.grimac.api.math.Location;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 

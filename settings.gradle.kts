@@ -26,6 +26,8 @@ plugins {
 }
 
 rootProject.name = "grimac"
+include("api")
+include(":api:packet")
 include("common")
 include("bukkit")
 include("fabric")

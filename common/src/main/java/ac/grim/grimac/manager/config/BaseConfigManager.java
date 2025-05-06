@@ -1,7 +1,7 @@
 package ac.grim.grimac.manager.config;
 
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.api.util.LogUtil;
 import lombok.Getter;
 
 import java.util.ArrayList;

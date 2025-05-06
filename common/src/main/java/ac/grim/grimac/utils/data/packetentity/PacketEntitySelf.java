@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
-import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
+import ac.grim.grimac.api.packet.item.PacketEnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
@@ -103,7 +103,7 @@ public class PacketEntitySelf extends PacketEntity {
                     }
 
                     // On clients < 1.21, use depth strider enchant level always
-                    final double depthStrider = EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+                    final double depthStrider = EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), PacketEnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion().getProtocolVersion());
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)) {
                         return depthStrider;
                     }
@@ -126,7 +126,7 @@ public class PacketEntitySelf extends PacketEntity {
                         return (double) 0.3f;
                     }
 
-                    final int swiftSneak = player.getInventory().getLeggings().getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion());
+                    final int swiftSneak = player.getInventory().getLeggings().getEnchantmentLevel(PacketEnchantmentTypes.SWIFT_SNEAK, player.getClientVersion().getProtocolVersion());
                     final double clamped = GrimMath.clamp(0.3f + swiftSneak * 0.15f, 0f, 1f);
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)) {
                         return clamped;

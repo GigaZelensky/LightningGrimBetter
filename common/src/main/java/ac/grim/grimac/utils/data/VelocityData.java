@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.data;
 
-import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.api.math.Vector3dm;
 
 public class VelocityData {
     public final Vector3dm vector;

@@ -1,8 +1,9 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.platform.api.Platform;
-import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.api.platform.Platform;
+import ac.grim.grimac.api.platform.init.StartableInitable;
+import ac.grim.grimac.api.util.LogUtil;
 
 public class TickRunner implements StartableInitable {
     @Override

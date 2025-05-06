@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.nmsutil;
 
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.MainSupportingBlockData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
@@ -8,11 +9,10 @@ import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
-import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
+import ac.grim.grimac.api.packet.item.PacketEnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -59,7 +59,7 @@ public class BlockProperties {
      * For soul speed (server-sided only)
      * (we don't account for this and instead remove this debuff) And powder snow block attribute
      */
-    public static StateType getOnPos(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
+    public static PacketStateType getOnPos(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_19_4)) {
             return BlockProperties.getOnBlock(player, playerPos.getX(), playerPos.getY(), playerPos.getZ());
         }
@@ -75,11 +75,11 @@ public class BlockProperties {
             if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15))
                 searchBelowAmount = 1;
 
-            StateType type = player.compensatedWorld.getBlockType(playerPos.getX(), playerPos.getY() - searchBelowAmount, playerPos.getZ());
+            PacketStateType type = player.compensatedWorld.getBlockType(playerPos.getX(), playerPos.getY() - searchBelowAmount, playerPos.getZ());
             return getMaterialFriction(player, type);
         }
 
-        StateType underPlayer = getBlockPosBelowThatAffectsMyMovement(player, mainSupportingBlockData, playerPos);
+        PacketStateType underPlayer = getBlockPosBelowThatAffectsMyMovement(player, mainSupportingBlockData, playerPos);
         return getMaterialFriction(player, underPlayer);
     }
 
@@ -98,14 +98,14 @@ public class BlockProperties {
             return getModernVelocityMultiplier(player, inBlockSpeedFactor);
         }
 
-        StateType underPlayer = getBlockPosBelowThatAffectsMyMovement(player, mainSupportingBlockData, playerPos);
+        PacketStateType underPlayer = getBlockPosBelowThatAffectsMyMovement(player, mainSupportingBlockData, playerPos);
         return getModernVelocityMultiplier(player, getBlockSpeedFactor(player, underPlayer));
     }
 
     public static boolean onHoneyBlock(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) return false;
 
-        StateType inBlock = player.compensatedWorld.getBlockType(playerPos.getX(), playerPos.getY(), playerPos.getZ());
+        PacketStateType inBlock = player.compensatedWorld.getBlockType(playerPos.getX(), playerPos.getY(), playerPos.getZ());
         return inBlock == StateTypes.HONEY_BLOCK || getOnPos(player, mainSupportingBlockData, playerPos) == StateTypes.HONEY_BLOCK;
     }
 
@@ -116,7 +116,7 @@ public class BlockProperties {
      * <p>
      * On soul speed block (server-sided only)
      */
-    private static StateType getBlockPosBelowThatAffectsMyMovement(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
+    private static PacketStateType getBlockPosBelowThatAffectsMyMovement(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
         Vector3i pos = getOnPos(player, playerPos, mainSupportingBlockData, 0.500001F);
         return player.compensatedWorld.getBlockType(pos.x, pos.y, pos.z);
     }
@@ -124,7 +124,7 @@ public class BlockProperties {
     private static Vector3i getOnPos(GrimPlayer player, Vector3d playerPos, MainSupportingBlockData mainSupportingBlockData, float searchBelowPlayer) {
         Vector3i mainBlockPos = mainSupportingBlockData.getBlockPos();
         if (mainBlockPos != null) {
-            StateType blockstate = player.compensatedWorld.getBlockType(mainBlockPos.x, mainBlockPos.y, mainBlockPos.z);
+            PacketStateType blockstate = player.compensatedWorld.getBlockType(mainBlockPos.x, mainBlockPos.y, mainBlockPos.z);
 
             // I genuinely don't understand this code, or why fences are special
             boolean shouldReturn = (!((double) searchBelowPlayer <= 0.5D) || !BlockTags.FENCES.contains(blockstate)) &&
@@ -137,7 +137,7 @@ public class BlockProperties {
         }
     }
 
-    public static float getMaterialFriction(GrimPlayer player, StateType material) {
+    public static float getMaterialFriction(GrimPlayer player, PacketStateType material) {
         float friction = 0.6f;
 
         if (material == StateTypes.ICE) friction = 0.98f;
@@ -157,11 +157,11 @@ public class BlockProperties {
         return friction;
     }
 
-    private static StateType getOnBlock(GrimPlayer player, double x, double y, double z) {
-        StateType block1 = player.compensatedWorld.getBlockType(GrimMath.floor(x), GrimMath.floor(y - 0.2F), GrimMath.floor(z));
+    private static PacketStateType getOnBlock(GrimPlayer player, double x, double y, double z) {
+        PacketStateType block1 = player.compensatedWorld.getBlockType(GrimMath.floor(x), GrimMath.floor(y - 0.2F), GrimMath.floor(z));
 
         if (block1.isAir()) {
-            StateType block2 = player.compensatedWorld.getBlockType(GrimMath.floor(x), GrimMath.floor(y - 1.2F), GrimMath.floor(z));
+            PacketStateType block2 = player.compensatedWorld.getBlockType(GrimMath.floor(x), GrimMath.floor(y - 1.2F), GrimMath.floor(z));
 
             if (Materials.isFence(block2) || Materials.isWall(block2) || Materials.isGate(block2)) {
                 return block2;
@@ -172,12 +172,12 @@ public class BlockProperties {
     }
 
     private static float getBlockSpeedFactorLegacy(GrimPlayer player, Vector3d pos) {
-        StateType block = player.compensatedWorld.getBlockType(pos.getX(), pos.getY(), pos.getZ());
+        PacketStateType block = player.compensatedWorld.getBlockType(pos.getX(), pos.getY(), pos.getZ());
 
         // This is the 1.16.0 and 1.16.1 method for detecting if the player is on soul speed
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_1)) {
-            StateType onBlock = BlockProperties.getOnBlock(player, pos.getX(), pos.getY(), pos.getZ());
-            if (onBlock == StateTypes.SOUL_SAND && player.getInventory().getBoots().getEnchantmentLevel(EnchantmentTypes.SOUL_SPEED, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0)
+            PacketStateType onBlock = BlockProperties.getOnBlock(player, pos.getX(), pos.getY(), pos.getZ());
+            if (onBlock == StateTypes.SOUL_SAND && player.getInventory().getBoots().getEnchantmentLevel(PacketEnchantmentTypes.SOUL_SPEED, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion().getProtocolVersion()) > 0)
                 return 1.0f;
         }
 
@@ -185,11 +185,11 @@ public class BlockProperties {
         if (speed != 1.0f || block == StateTypes.SOUL_SAND || block == StateTypes.WATER || block == StateTypes.BUBBLE_COLUMN)
             return speed;
 
-        StateType block2 = player.compensatedWorld.getBlockType(pos.getX(), pos.getY() - 0.5000001, pos.getZ());
+        PacketStateType block2 = player.compensatedWorld.getBlockType(pos.getX(), pos.getY() - 0.5000001, pos.getZ());
         return getBlockSpeedFactor(player, block2);
     }
 
-    private static float getBlockSpeedFactor(GrimPlayer player, StateType type) {
+    private static float getBlockSpeedFactor(GrimPlayer player, PacketStateType type) {
         if (type == StateTypes.HONEY_BLOCK) return 0.4f;
         if (type == StateTypes.SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
@@ -197,7 +197,7 @@ public class BlockProperties {
             // On 1.21, let attributes handle this
             if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)
                     && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2)
-                    && player.getInventory().getBoots().getEnchantmentLevel(EnchantmentTypes.SOUL_SPEED, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0)
+                    && player.getInventory().getBoots().getEnchantmentLevel(PacketEnchantmentTypes.SOUL_SPEED, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion().getProtocolVersion()) > 0)
                 return 1.0f;
             return 0.4f;
         }

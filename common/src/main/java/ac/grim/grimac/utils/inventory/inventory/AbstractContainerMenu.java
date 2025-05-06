@@ -1,12 +1,12 @@
 package ac.grim.grimac.utils.inventory.inventory;
 
+import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.ClickAction;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.slot.ResultSlot;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 import ac.grim.grimac.utils.math.GrimMath;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.google.common.collect.Sets;
@@ -33,16 +33,16 @@ public abstract class AbstractContainerMenu {
     List<Slot> slots = new ArrayList<>();
     @Getter
     @NotNull
-    ItemStack carriedItem;
+    PacketItemStack carriedItem;
 
     public AbstractContainerMenu(GrimPlayer player, Inventory playerInventory) {
         this.player = player;
         this.playerInventory = playerInventory;
-        this.carriedItem = ItemStack.EMPTY;
+        this.carriedItem = PacketItemStack.EMPTY;
     }
 
     public AbstractContainerMenu() {
-        this.carriedItem = ItemStack.EMPTY;
+        this.carriedItem = PacketItemStack.EMPTY;
     }
 
     public static int calculateQuickcraftHeader(int p_38948_) {
@@ -57,16 +57,16 @@ public abstract class AbstractContainerMenu {
         return p_38929_ >> 2 & 3;
     }
 
-    public static boolean canItemQuickReplace(@Nullable Slot p_38900_, ItemStack p_38901_, boolean p_38902_) {
+    public static boolean canItemQuickReplace(@Nullable Slot p_38900_, PacketItemStack p_38901_, boolean p_38902_) {
         boolean flag = p_38900_ == null || !p_38900_.hasItem();
-        if (!flag && ItemStack.isSameItemSameTags(p_38901_, p_38900_.getItem())) {
+        if (!flag && p_38901_.isSameItemSameTags(p_38900_.getItem())) {
             return p_38900_.getItem().getAmount() + (p_38902_ ? 0 : p_38901_.getAmount()) <= p_38901_.getMaxStackSize();
         } else {
             return flag;
         }
     }
 
-    public static void getQuickCraftSlotCount(Set<Slot> p_38923_, int p_38924_, ItemStack p_38925_, int p_38926_) {
+    public static void getQuickCraftSlotCount(Set<Slot> p_38923_, int p_38924_, PacketItemStack p_38925_, int p_38926_) {
         switch (p_38924_) {
             case 0:
                 p_38925_.setAmount(GrimMath.floor((float) p_38925_.getAmount() / (float) p_38923_.size()));
@@ -109,20 +109,20 @@ public abstract class AbstractContainerMenu {
         }
     }
 
-    public ItemStack getCarried() {
+    public PacketItemStack getCarried() {
         return getCarriedItem();
     }
 
-    public void setCarried(ItemStack stack) {
+    public void setCarried(PacketItemStack stack) {
         // Cannot be null
-        carriedItem = stack == null ? ItemStack.EMPTY : stack;
+        carriedItem = stack == null ? PacketItemStack.EMPTY : stack;
     }
 
-    public ItemStack getPlayerInventoryItem(int slot) {
+    public PacketItemStack getPlayerInventoryItem(int slot) {
         return playerInventory.getInventoryStorage().getItem(slot);
     }
 
-    public void setPlayerInventoryItem(int slot, ItemStack stack) {
+    public void setPlayerInventoryItem(int slot, PacketItemStack stack) {
         playerInventory.getInventoryStorage().setItem(slot, stack);
     }
 
@@ -145,7 +145,7 @@ public abstract class AbstractContainerMenu {
             } else if (this.quickcraftStatus == 1) {
                 if (slotID < 0) return;
                 Slot slot = slots.get(slotID);
-                ItemStack itemstack = this.getCarried();
+                PacketItemStack itemstack = this.getCarried();
                 if (canItemQuickReplace(slot, itemstack, true) && slot.mayPlace(itemstack) && (this.quickcraftType == 2 || itemstack.getAmount() > this.quickcraftSlots.size()) && this.canDragTo(slot)) {
                     this.quickcraftSlots.add(slot);
                 }
@@ -158,13 +158,13 @@ public abstract class AbstractContainerMenu {
                         return;
                     }
 
-                    ItemStack itemstack3 = this.getCarried().copy();
+                    PacketItemStack itemstack3 = this.getCarried().copy();
                     int j1 = this.getCarried().getAmount();
 
                     for (Slot slot1 : this.quickcraftSlots) {
-                        ItemStack itemstack1 = this.getCarried();
+                        PacketItemStack itemstack1 = this.getCarried();
                         if (slot1 != null && canItemQuickReplace(slot1, itemstack1, true) && slot1.mayPlace(itemstack1) && (this.quickcraftType == 2 || itemstack1.getAmount() >= this.quickcraftSlots.size()) && this.canDragTo(slot1)) {
-                            ItemStack itemstack2 = itemstack3.copy();
+                            PacketItemStack itemstack2 = itemstack3.copy();
                             int j = slot1.hasItem() ? slot1.getItem().getAmount() : 0;
                             getQuickCraftSlotCount(this.quickcraftSlots, this.quickcraftType, itemstack2, j);
                             int k = Math.min(itemstack2.getMaxStackSize(), slot1.getMaxStackSize(itemstack2));
@@ -192,7 +192,7 @@ public abstract class AbstractContainerMenu {
             if (slotID == -999) { // Drop item
                 if (!getCarried().isEmpty()) {
                     if (clickAction == ClickAction.PRIMARY) { // Drops the entire stack
-                        setCarried(ItemStack.EMPTY);
+                        setCarried(PacketItemStack.EMPTY);
                     } else { // Drops a single item
                         getCarried().split(1);
                     }
@@ -205,14 +205,14 @@ public abstract class AbstractContainerMenu {
                     return;
                 }
 
-                for (ItemStack itemstack9 = this.quickMoveStack(slotID); !itemstack9.isEmpty() && ItemStack.isSameItemSameTags(stack.getItem(), itemstack9); itemstack9 = this.quickMoveStack(slotID)) {
+                for (PacketItemStack itemstack9 = this.quickMoveStack(slotID); !itemstack9.isEmpty() && stack.getItem().isSameItemSameTags(itemstack9); itemstack9 = this.quickMoveStack(slotID)) {
                 }
             } else {
                 if (slotID < 0) return;
 
                 Slot slot = getSlot(slotID);
-                ItemStack slotItem = slot.getItem();
-                ItemStack carriedItem = getCarried();
+                PacketItemStack slotItem = slot.getItem();
+                PacketItemStack carriedItem = getCarried();
 
                 // TODO: What do we do with crafting? I think this is overkill and we shouldn't attempt to track crafting, and just resync inventory.
                 // 1.17+ clients send changed itemstacks anyways, so just hack around stuff until people stop using decade old versions.
@@ -230,21 +230,21 @@ public abstract class AbstractContainerMenu {
                 } else if (slot.mayPickup()) {
                     if (carriedItem.isEmpty()) {
                         int i3 = clickAction == ClickAction.PRIMARY ? slotItem.getAmount() : (slotItem.getAmount() + 1) / 2;
-                        Optional<ItemStack> optional1 = slot.tryRemove(i3, Integer.MAX_VALUE, player);
+                        Optional<PacketItemStack> optional1 = slot.tryRemove(i3, Integer.MAX_VALUE, player);
                         optional1.ifPresent((p_150421_) -> {
                             this.setCarried(p_150421_);
                             slot.onTake(player, p_150421_);
                         });
                     } else if (slot.mayPlace(carriedItem)) {
-                        if (ItemStack.isSameItemSameTags(slotItem, carriedItem)) {
+                        if (slotItem.isSameItemSameTags(carriedItem)) {
                             int j3 = clickAction == ClickAction.PRIMARY ? carriedItem.getAmount() : 1;
                             this.setCarried(slot.safeInsert(carriedItem, j3));
                         } else if (carriedItem.getAmount() <= slot.getMaxStackSize(carriedItem)) {
                             slot.set(carriedItem);
                             this.setCarried(slotItem);
                         }
-                    } else if (ItemStack.isSameItemSameTags(slotItem, carriedItem)) {
-                        Optional<ItemStack> optional = slot.tryRemove(slotItem.getAmount(), carriedItem.getMaxStackSize() - carriedItem.getAmount(), player);
+                    } else if (slotItem.isSameItemSameTags(carriedItem)) {
+                        Optional<PacketItemStack> optional = slot.tryRemove(slotItem.getAmount(), carriedItem.getMaxStackSize() - carriedItem.getAmount(), player);
                         optional.ifPresent((p_150428_) -> {
                             carriedItem.grow(p_150428_.getAmount());
                             slot.onTake(player, p_150428_);
@@ -264,14 +264,14 @@ public abstract class AbstractContainerMenu {
             button = button == 40 ? Inventory.SLOT_OFFHAND : button + Inventory.HOTBAR_OFFSET;
 
             // 40 is offhand
-            ItemStack hotbarKeyStack = getPlayerInventoryItem(button);
-            ItemStack hoveringItem2 = hoveringSlot.getItem();
+            PacketItemStack hotbarKeyStack = getPlayerInventoryItem(button);
+            PacketItemStack hoveringItem2 = hoveringSlot.getItem();
 
             if (!hotbarKeyStack.isEmpty() || !hoveringItem2.isEmpty()) {
                 if (hotbarKeyStack.isEmpty()) {
                     if (hoveringSlot.mayPickup(player)) {
                         setPlayerInventoryItem(button, hoveringItem2);
-                        hoveringSlot.set(ItemStack.EMPTY);
+                        hoveringSlot.set(PacketItemStack.EMPTY);
                         hoveringSlot.onTake(player, hoveringItem2);
                     }
                 } else if (hoveringItem2.isEmpty()) {
@@ -281,7 +281,7 @@ public abstract class AbstractContainerMenu {
                             hoveringSlot.set(hotbarKeyStack.split(l1));
                         } else {
                             hoveringSlot.set(hotbarKeyStack);
-                            setPlayerInventoryItem(button, ItemStack.EMPTY);
+                            setPlayerInventoryItem(button, PacketItemStack.EMPTY);
                         }
                     }
                 } else if (hoveringSlot.mayPickup(player) && hoveringSlot.mayPlace(hotbarKeyStack)) {
@@ -300,14 +300,14 @@ public abstract class AbstractContainerMenu {
         } else if (clickType == WrapperPlayClientClickWindow.WindowClickType.CLONE && player.gamemode == GameMode.CREATIVE && slotID >= 0 && carriedItem.isEmpty()) {
             Slot slot5 = getSlot(slotID);
             if (slot5.hasItem()) {
-                ItemStack itemstack6 = slot5.getItem().copy();
+                PacketItemStack itemstack6 = slot5.getItem().copy();
                 itemstack6.setAmount(itemstack6.getMaxStackSize());
                 this.setCarried(itemstack6);
             }
         } else if (clickType == WrapperPlayClientClickWindow.WindowClickType.THROW && getCarried().isEmpty() && slotID >= 0) {
             Slot slot4 = getSlot(slotID);
             int i1 = button == 0 ? 1 : slot4.getItem().getAmount();
-            ItemStack itemstack8 = slot4.safeTake(i1, Integer.MAX_VALUE, player);
+            PacketItemStack itemstack8 = slot4.safeTake(i1, Integer.MAX_VALUE, player);
         } else if (clickType == WrapperPlayClientClickWindow.WindowClickType.PICKUP_ALL && slotID >= 0) {
             Slot slot3 = getSlot(slotID);
 
@@ -319,9 +319,9 @@ public abstract class AbstractContainerMenu {
                     for (int k3 = k1; k3 >= 0 && k3 < this.slots.size() && getCarried().getAmount() < getCarried().getMaxStackSize(); k3 += j2) {
                         Slot slot8 = this.slots.get(k3);
                         if (slot8.hasItem() && canItemQuickReplace(slot8, getCarried(), true) && slot8.mayPickup(player) && this.canTakeItemForPickAll(getCarried(), slot8)) {
-                            ItemStack itemstack12 = slot8.getItem();
+                            PacketItemStack itemstack12 = slot8.getItem();
                             if (k2 != 0 || itemstack12.getAmount() != itemstack12.getMaxStackSize()) {
-                                ItemStack itemstack13 = slot8.safeTake(itemstack12.getAmount(), getCarried().getMaxStackSize() - getCarried().getAmount(), player);
+                                PacketItemStack itemstack13 = slot8.safeTake(itemstack12.getAmount(), getCarried().getMaxStackSize() - getCarried().getAmount(), player);
                                 getCarried().grow(itemstack13.getAmount());
                             }
                         }
@@ -331,7 +331,7 @@ public abstract class AbstractContainerMenu {
         }
     }
 
-    protected boolean moveItemStackTo(ItemStack toMove, int min, int max, boolean reverse) {
+    protected boolean moveItemStackTo(PacketItemStack toMove, int min, int max, boolean reverse) {
         boolean flag = false;
         int i = min;
         if (reverse) {
@@ -349,8 +349,8 @@ public abstract class AbstractContainerMenu {
                 }
 
                 Slot slot = this.slots.get(i);
-                ItemStack itemstack = slot.getItem();
-                if (!itemstack.isEmpty() && ItemStack.isSameItemSameTags(toMove, itemstack)) {
+                PacketItemStack itemstack = slot.getItem();
+                if (!itemstack.isEmpty() && toMove.isSameItemSameTags(itemstack)) {
                     int j = itemstack.getAmount() + toMove.getAmount();
                     if (j <= toMove.getMaxStackSize()) {
                         toMove.setAmount(0);
@@ -388,7 +388,7 @@ public abstract class AbstractContainerMenu {
                 }
 
                 Slot slot1 = this.slots.get(i);
-                ItemStack itemstack1 = slot1.getItem();
+                PacketItemStack itemstack1 = slot1.getItem();
                 if (itemstack1.isEmpty() && slot1.mayPlace(toMove)) {
                     if (toMove.getAmount() > slot1.getMaxStackSize()) {
                         slot1.set(toMove.split(slot1.getMaxStackSize()));
@@ -411,11 +411,11 @@ public abstract class AbstractContainerMenu {
         return flag;
     }
 
-    public boolean canTakeItemForPickAll(ItemStack p_38908_, Slot p_38909_) {
+    public boolean canTakeItemForPickAll(PacketItemStack p_38908_, Slot p_38909_) {
         return true;
     }
 
-    public ItemStack quickMoveStack(int slotID) {
+    public PacketItemStack quickMoveStack(int slotID) {
         return this.slots.get(slotID).getItem();
     }
 

@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.bukkit;
 
-import ac.grim.grimac.platform.api.PlatformServer;
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.platform.PlatformServer;
+import ac.grim.grimac.api.platform.sender.Sender;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;

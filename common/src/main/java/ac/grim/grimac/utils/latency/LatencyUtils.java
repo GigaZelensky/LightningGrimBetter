@@ -1,8 +1,9 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.util.ILatencyUtils;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.api.util.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.data.Pair;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-public class LatencyUtils {
+public class LatencyUtils implements ILatencyUtils {
     private final LinkedList<Pair<Integer, Runnable>> transactionMap = new LinkedList<>();
     private final GrimPlayer player;
 

@@ -1,12 +1,12 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.api.packet.item.PacketItemStack;
+import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
@@ -60,7 +60,7 @@ public class BadPacketsU extends Check implements PacketCheck {
         }
     }
 
-    private boolean isEmpty(ItemStack itemStack) {
-        return itemStack.getType() == null || itemStack.getType() == ItemTypes.AIR;
+    private boolean isEmpty(PacketItemStack itemStack) {
+        return itemStack.getType() == null || itemStack.getType() == PacketItemTypes.AIR;
     }
 }

@@ -1,21 +1,14 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.manager.init.Initable;
-import ac.grim.grimac.manager.init.load.LoadableInitable;
+import ac.grim.grimac.api.platform.init.Initable;
+import ac.grim.grimac.api.platform.init.LoadableInitable;
+import ac.grim.grimac.api.platform.init.StoppableInitable;
 import ac.grim.grimac.manager.init.load.PacketEventsInit;
-import ac.grim.grimac.manager.init.start.CommandRegister;
-import ac.grim.grimac.manager.init.start.JavaVersion;
-import ac.grim.grimac.manager.init.start.PacketLimiter;
-import ac.grim.grimac.manager.init.start.PacketManager;
-import ac.grim.grimac.manager.init.start.StartableInitable;
-import ac.grim.grimac.manager.init.start.TAB;
-import ac.grim.grimac.manager.init.start.TickRunner;
-import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
-import ac.grim.grimac.manager.init.start.ViaVersion;
-import ac.grim.grimac.manager.init.stop.StoppableInitable;
+import ac.grim.grimac.manager.init.start.*;
+import ac.grim.grimac.api.platform.init.StartableInitable;
 import ac.grim.grimac.manager.init.stop.TerminatePacketEvents;
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.platform.sender.Sender;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
@@ -37,7 +30,7 @@ public class InitManager {
     @Getter
     private boolean stopped = false;
 
-    public InitManager(PacketEventsAPI<?> packetEventsAPI, Supplier<CommandManager<Sender>> commandManager, Initable... platformSpecificInitables) {
+    public InitManager(GrimAPI api, PacketEventsAPI<?> packetEventsAPI, Supplier<CommandManager<Sender>> commandManager, Initable... platformSpecificInitables) {
         ArrayList<LoadableInitable> extraLoadableInitables = new ArrayList<>();
         ArrayList<StartableInitable> extraStartableInitables = new ArrayList<>();
         ArrayList<StoppableInitable> extraStoppableInitables = new ArrayList<>();
@@ -48,21 +41,22 @@ public class InitManager {
         }
 
         initializersOnLoad = ImmutableList.<LoadableInitable>builder()
+                .add(() -> api.getExternalAPI().load())
                 .add(new PacketEventsInit(packetEventsAPI))
-                .add(() -> GrimAPI.INSTANCE.getExternalAPI().load())
+                .add(new CommandRegister(commandManager))
                 .addAll(extraLoadableInitables)
                 .build();
 
         initializersOnStart = ImmutableList.<StartableInitable>builder()
-                .add(GrimAPI.INSTANCE.getExternalAPI())
-                .add(new PacketManager())
+                .add(api.getExternalAPI())
+                .add(new ExemptOnlinePlayersOnReload())
+                .add(new PacketManager(api))
                 .add(new ViaBackwardsManager())
                 .add(new TickRunner())
-                .add(new CommandRegister(commandManager))
                 .add(new PacketLimiter())
-                .add(GrimAPI.INSTANCE.getAlertManager())
-                .add(GrimAPI.INSTANCE.getDiscordManager())
-                .add(GrimAPI.INSTANCE.getSpectateManager())
+                .add(api.getAlertManager())
+                .add(api.getDiscordManager())
+                .add(api.getSpectateManager())
                 .add(new JavaVersion())
                 .add(new ViaVersion())
                 .add(new TAB())

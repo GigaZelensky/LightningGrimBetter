@@ -1,8 +1,8 @@
 package ac.grim.grimac.platform.fabric.sender;
 
-import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
-import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.platform.api.sender.SenderFactory;
+import ac.grim.grimac.api.platform.permissions.PermissionDefaultValue;
+import ac.grim.grimac.api.platform.sender.Sender;
+import ac.grim.grimac.api.platform.sender.SenderFactory;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
 import me.lucko.fabric.api.permissions.v0.Permissions;

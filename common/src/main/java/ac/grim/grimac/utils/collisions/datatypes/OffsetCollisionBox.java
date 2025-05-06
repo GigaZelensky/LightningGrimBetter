@@ -1,16 +1,16 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 import java.util.HashSet;
 
 public class OffsetCollisionBox extends SimpleCollisionBox {
 
-    private static final HashSet<StateType> XZ_OFFSET_BLOCKSTATES = new HashSet<>();
-    private static final HashSet<StateType> XYZ_OFFSET_BLOCKSTATES = new HashSet<>();
+    private static final HashSet<PacketStateType> XZ_OFFSET_BLOCKSTATES = new HashSet<>();
+    private static final HashSet<PacketStateType> XYZ_OFFSET_BLOCKSTATES = new HashSet<>();
 
     static {
         // Can we add a hasOffSet to StateType() ?
@@ -44,7 +44,7 @@ public class OffsetCollisionBox extends SimpleCollisionBox {
     double offsetZ = 0;
     OffsetType offsetType;
 
-    public OffsetCollisionBox(StateType block, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+    public OffsetCollisionBox(PacketStateType block, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         super(minX, minY, minZ, maxX, maxY, maxZ);
         if (block.equals(StateTypes.POINTED_DRIPSTONE)) {
             maxHorizontalModelOffset = 0.125F;

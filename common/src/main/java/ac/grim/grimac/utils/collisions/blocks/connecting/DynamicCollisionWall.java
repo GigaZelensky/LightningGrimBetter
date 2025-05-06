@@ -17,7 +17,7 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.East;
 import com.github.retrooper.packetevents.protocol.world.states.enums.North;
 import com.github.retrooper.packetevents.protocol.world.states.enums.South;
 import com.github.retrooper.packetevents.protocol.world.states.enums.West;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import ac.grim.grimac.api.packet.item.PacketStateType;
 
 public class DynamicCollisionWall extends DynamicConnecting implements CollisionFactory {
     // https://bugs.mojang.com/browse/MC-9565
@@ -154,7 +154,7 @@ public class DynamicCollisionWall extends DynamicConnecting implements Collision
 
             if (!up) {
                 WrappedBlockState currBlock = player.compensatedWorld.getBlock(x, y, z);
-                StateType currType = currBlock.getType();
+                PacketStateType currType = currBlock.getType();
 
                 boolean selfNorth = currType == player.compensatedWorld.getBlock(x, y, z + 1).getType();
                 boolean selfSouth = currType == player.compensatedWorld.getBlock(x, y, z - 1).getType();
@@ -192,7 +192,7 @@ public class DynamicCollisionWall extends DynamicConnecting implements Collision
     }
 
     @Override
-    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, StateType one, StateType two, BlockFace direction) {
+    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, PacketStateType one, PacketStateType two, BlockFace direction) {
         return BlockTags.WALLS.contains(one) || CollisionData.getData(one).getMovementCollisionBox(player, player.getClientVersion(), state, 0, 0, 0).isSideFullBlock(direction);
     }
 }

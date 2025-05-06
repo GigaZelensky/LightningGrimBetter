@@ -2,10 +2,10 @@ package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
-import ac.grim.grimac.platform.api.PlatformPlugin;
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.platform.PlatformPlugin;
+import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
-import ac.grim.grimac.utils.reflection.ReflectionUtils;
+import ac.grim.grimac.api.reflection.ReflectionUtils;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.google.gson.Gson;

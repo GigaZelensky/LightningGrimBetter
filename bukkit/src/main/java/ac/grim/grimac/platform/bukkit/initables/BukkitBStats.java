@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.bukkit.initables;
 
-import ac.grim.grimac.manager.init.start.StartableInitable;
+import ac.grim.grimac.api.platform.init.StartableInitable;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import io.github.retrooper.packetevents.bstats.bukkit.Metrics;
 

@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.fabric.player;
 
-import ac.grim.grimac.platform.api.entity.GrimEntity;
-import ac.grim.grimac.platform.api.player.AbstractPlatformPlayerFactory;
+import ac.grim.grimac.api.platform.entity.GrimEntity;
+import ac.grim.grimac.api.platform.player.AbstractPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;

@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.fabric.utils.convert;
 
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import ac.grim.grimac.api.packet.item.PacketItemStack;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import net.kyori.adventure.text.Component;
 //import net.minecraft.network.RegistryByteBuf;
@@ -15,7 +15,7 @@ public abstract class FabricConversionUtil implements IFabricConversionUtil {
     private IFabricConversionUtil fabricConversionUtilSupplier;
 
 
-    private Function<net.minecraft.item.ItemStack, ItemStack> itemStackMapperFunction = (fabricStack) -> {
+    private Function<net.minecraft.item.ItemStack, PacketItemStack> itemStackMapperFunction = (fabricStack) -> {
 //        if (fabricStack.isEmpty()) {
 //            return ItemStack.EMPTY;
 //        }
@@ -51,7 +51,7 @@ public abstract class FabricConversionUtil implements IFabricConversionUtil {
     };
 //
 
-    public ItemStack fromFabricItemStack(net.minecraft.item.ItemStack fabricStack) {
+    public PacketItemStack fromFabricItemStack(net.minecraft.item.ItemStack fabricStack) {
 //        return itemStackMapperFunction.apply(fabricStack);
         return fabricConversionUtilSupplier.fromFabricItemStack(fabricStack);
     }

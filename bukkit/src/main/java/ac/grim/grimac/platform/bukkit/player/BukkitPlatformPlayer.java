@@ -1,21 +1,20 @@
 package ac.grim.grimac.platform.bukkit.player;
 
-import ac.grim.grimac.platform.api.entity.GrimEntity;
-import ac.grim.grimac.platform.api.player.PlatformInventory;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.math.Vector3dm;
+import ac.grim.grimac.api.platform.entity.GrimEntity;
+import ac.grim.grimac.api.platform.player.PlatformPlayer;
+import ac.grim.grimac.api.platform.player.PlatformPlayerInventory;
+import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import ac.grim.grimac.platform.bukkit.entity.BukkitGrimEntity;
 import ac.grim.grimac.platform.bukkit.utils.anticheat.MultiLibUtil;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
-import ac.grim.grimac.utils.math.Location;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.util.Vector3d;
-import io.github.retrooper.packetevents.util.SpigotConversionUtil;
+import ac.grim.grimac.api.math.Location;
 import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
+import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
@@ -31,7 +30,7 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
 
     @Getter
     private final Player bukkitPlayer;
-    private final PlatformInventory inventory;
+    private final PlatformPlayerInventory inventory;
 
     public BukkitPlatformPlayer(Player bukkitPlayer) {
         super(bukkitPlayer);
@@ -90,13 +89,13 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     }
 
     @Override
-    public Vector3d getPosition() {
+    public Vector3dm getPosition() {
         org.bukkit.Location location = this.bukkitPlayer.getLocation();
-        return new Vector3d(location.getX(), location.getY(), location.getZ());
+        return new Vector3dm(location.getX(), location.getY(), location.getZ());
     }
 
     @Override
-    public PlatformInventory getInventory() {
+    public PlatformPlayerInventory getInventory() {
         return inventory;
     }
 
@@ -106,13 +105,13 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     }
 
     @Override
-    public GameMode getGameMode() {
-        return SpigotConversionUtil.fromBukkitGameMode(bukkitPlayer.getGameMode());
+    public int getGameModeID() {
+        return bukkitPlayer.getGameMode().getValue();
     }
 
     @Override
-    public void setGameMode(GameMode gameMode) {
-        bukkitPlayer.setGameMode(SpigotConversionUtil.toBukkitGameMode(gameMode));
+    public void setGameMode(int gameModeID) {
+        bukkitPlayer.setGameMode(GameMode.getByValue(gameModeID));
     }
 
     public World getBukkitWorld() {

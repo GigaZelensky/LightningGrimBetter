@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.blockstate.helper;
 
-import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
 public class BlockFaceHelper {

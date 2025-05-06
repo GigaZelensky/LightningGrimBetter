@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.bukkit.manager;
 
-import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
-import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
+import ac.grim.grimac.api.platform.manager.PermissionRegistrationManager;
+import ac.grim.grimac.api.platform.permissions.PermissionDefaultValue;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;

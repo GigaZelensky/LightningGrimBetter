@@ -2,13 +2,13 @@ package ac.grim.grimac.manager.player.handlers;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.handler.ResyncHandler;
-import ac.grim.grimac.platform.api.world.PlatformChunk;
-import ac.grim.grimac.platform.api.world.PlatformWorld;
+import ac.grim.grimac.api.math.Vector3dm;
+import ac.grim.grimac.api.platform.world.PlatformChunk;
+import ac.grim.grimac.api.platform.world.PlatformWorld;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
-import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
@@ -117,7 +117,7 @@ public class DefaultResyncHandler implements ResyncHandler {
         GrimAPI.INSTANCE.getScheduler().getRegionScheduler().execute(GrimAPI.INSTANCE.getGrimPlugin(), world, chunkX, chunkZ, () -> {
             if (!player.platformPlayer.isOnline() || !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport)
                 return;
-            if (player.platformPlayer.getPosition().distance(new Vector3d(x, y, z)) >= 64)
+            if (player.platformPlayer.getPosition().distance(new Vector3dm(x, y, z)) >= 64)
                 return;
             if (!world.isChunkLoaded(chunkX, chunkZ)) return; // Don't load chunks sync
 

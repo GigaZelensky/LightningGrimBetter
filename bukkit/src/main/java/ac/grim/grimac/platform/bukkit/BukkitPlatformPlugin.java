@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.bukkit;
 
-import ac.grim.grimac.platform.api.PlatformPlugin;
+import ac.grim.grimac.api.platform.PlatformPlugin;
 import org.bukkit.plugin.Plugin;
 
 public class BukkitPlatformPlugin implements PlatformPlugin {

@@ -1,6 +1,10 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.item.PacketItemStack;
+import ac.grim.grimac.api.packet.item.PacketItemType;
+import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -24,8 +28,6 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
@@ -35,7 +37,6 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.Location;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -58,13 +59,13 @@ import java.util.function.Function;
 public class CheckManagerListener extends PacketListenerAbstract {
 
     // Manual filter on FINISH_DIGGING to prevent clients setting non-breakable blocks to air
-    private static final Function<StateType, Boolean> BREAKABLE = type -> !type.isAir() && type.getHardness() != -1.0f && type != StateTypes.WATER && type != StateTypes.LAVA;
+    private static final Function<PacketStateType, Boolean> BREAKABLE = type -> !type.isAir() && type.getHardness() != -1.0f && type != StateTypes.WATER && type != StateTypes.LAVA;
 
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
     }
 
-    private static void placeWaterLavaSnowBucket(GrimPlayer player, ItemStack held, StateType toPlace, InteractionHand hand, int sequence) {
+    private static void placeWaterLavaSnowBucket(GrimPlayer player, PacketItemStack held, PacketStateType toPlace, InteractionHand hand, int sequence) {
         HitData data = WorldRayTrace.getNearestBlockHitResult(player, StateTypes.AIR, false, true, true);
         if (data != null) {
             BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), held, data, sequence);
@@ -92,9 +93,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (player.gamemode != GameMode.CREATIVE) {
                 player.getInventory().markSlotAsResyncing(blockPlace);
                 if (hand == InteractionHand.MAIN_HAND) {
-                    player.getInventory().inventory.setHeldItem(ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
+                    player.getInventory().inventory.setHeldItem(PacketItemStack.builder().type(PacketItemTypes.BUCKET).amount(1).build());
                 } else {
-                    player.getInventory().inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
+                    player.getInventory().inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, PacketItemStack.builder().type(PacketItemTypes.BUCKET).amount(1).build());
                 }
             }
         }
@@ -175,19 +176,19 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private static void handleUseItem(GrimPlayer player, ItemStack placedWith, InteractionHand hand, int sequence) {
+    private static void handleUseItem(GrimPlayer player, PacketItemStack placedWith, InteractionHand hand, int sequence) {
         // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
-        if (placedWith.getType() == ItemTypes.LILY_PAD) {
+        if (placedWith.getType() == PacketItemTypes.LILY_PAD) {
             placeLilypad(player, hand, sequence); // Pass a block place because lily pads have a hitbox
             return;
         }
 
-        StateType toBucketMat = Materials.transformBucketMaterial(placedWith.getType());
+        PacketStateType toBucketMat = Materials.transformBucketMaterial(placedWith.getType());
         if (toBucketMat != null) {
             placeWaterLavaSnowBucket(player, placedWith, toBucketMat, hand, sequence);
         }
 
-        if (placedWith.getType() == ItemTypes.BUCKET) {
+        if (placedWith.getType() == PacketItemTypes.BUCKET) {
             placeBucket(player, hand, sequence);
         }
     }
@@ -201,7 +202,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 return;
 
             if (place.getFace() == BlockFace.OTHER) {
-                ItemStack placedWith = player.getInventory().getHeldItem();
+                PacketItemStack placedWith = player.getInventory().getHeldItem();
                 if (place.getHand() == InteractionHand.OFF_HAND) {
                     placedWith = player.getInventory().getOffHand();
                 }
@@ -215,7 +216,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (player.gamemode == GameMode.SPECTATOR || player.gamemode == GameMode.ADVENTURE)
                 return;
 
-            ItemStack placedWith = player.getInventory().getHeldItem();
+            PacketItemStack placedWith = player.getInventory().getHeldItem();
             if (place.getHand() == InteractionHand.OFF_HAND) {
                 placedWith = player.getInventory().getOffHand();
             }
@@ -225,8 +226,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         // Check for interactable first (door, etc)
         if (packet instanceof WrapperPlayClientPlayerBlockPlacement place) {
-            ItemStack placedWith = player.getInventory().getHeldItem();
-            ItemStack offhand = player.getInventory().getOffHand();
+            PacketItemStack placedWith = player.getInventory().getHeldItem();
+            PacketItemStack offhand = player.getInventory().getOffHand();
 
             boolean onlyAir = placedWith.isEmpty() && offhand.isEmpty();
 
@@ -236,7 +237,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 BlockPlace blockPlace = new BlockPlace(player, place.getHand(), blockPosition, place.getFaceId(), place.getFace(), placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false), place.getSequence());
 
                 // Right-clicking a trapdoor/door/etc.
-                StateType placedAgainst = blockPlace.getPlacedAgainstMaterial();
+                PacketStateType placedAgainst = blockPlace.getPlacedAgainstMaterial();
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_11) && (placedAgainst == StateTypes.IRON_TRAPDOOR
                         || placedAgainst == StateTypes.IRON_DOOR || BlockTags.FENCES.contains(placedAgainst))
                         || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) && BlockTags.CAULDRONS.contains(placedAgainst)
@@ -263,7 +264,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             Vector3i blockPosition = place.getBlockPosition();
             BlockFace face = place.getFace();
-            ItemStack placedWith = player.getInventory().getHeldItem();
+            PacketItemStack placedWith = player.getInventory().getHeldItem();
             if (place.getHand() == InteractionHand.OFF_HAND) {
                 placedWith = player.getInventory().getOffHand();
             }
@@ -274,7 +275,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             blockPlace.setInside(place.getInsideBlock().orElse(false));
 
-            if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FLINT_AND_STEEL || placedWith.getType() == ItemTypes.FIRE_CHARGE) {
+            if (placedWith.getType().getPlacedType() != null || placedWith.getType() == PacketItemTypes.FLINT_AND_STEEL || placedWith.getType() == PacketItemTypes.FIRE_CHARGE) {
                 BlockPlaceResult.getMaterialData(placedWith.getType()).applyBlockPlaceToWorld(player, blockPlace);
             }
         }
@@ -284,21 +285,21 @@ public class CheckManagerListener extends PacketListenerAbstract {
         HitData data = WorldRayTrace.getNearestBlockHitResult(player, null, true, false, true);
 
         if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), ItemStack.EMPTY, data, sequence);
+            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), PacketItemStack.EMPTY, data, sequence);
             blockPlace.setReplaceClicked(true); // Replace the block clicked, not the block in the direction
 
             boolean placed = false;
-            ItemType type = null;
+            PacketItemType type = null;
 
             if (data.getState().getType() == StateTypes.POWDER_SNOW) {
                 blockPlace.set(StateTypes.AIR);
-                type = ItemTypes.POWDER_SNOW_BUCKET;
+                type = PacketItemTypes.POWDER_SNOW_BUCKET;
                 placed = true;
             }
 
             if (data.getState().getType() == StateTypes.LAVA) {
                 blockPlace.set(StateTypes.AIR);
-                type = ItemTypes.LAVA_BUCKET;
+                type = PacketItemTypes.LAVA_BUCKET;
                 placed = true;
             }
 
@@ -312,7 +313,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             if (!placed) {
-                type = ItemTypes.WATER_BUCKET;
+                type = PacketItemTypes.WATER_BUCKET;
             }
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
@@ -336,22 +337,22 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    public static void setPlayerItem(GrimPlayer player, InteractionHand hand, ItemType type) {
+    public static void setPlayerItem(GrimPlayer player, InteractionHand hand, PacketItemType type) {
         // Give the player a water bucket
         if (player.gamemode != GameMode.CREATIVE) {
             if (hand == InteractionHand.MAIN_HAND) {
                 if (player.getInventory().getHeldItem().getAmount() == 1) {
-                    player.getInventory().inventory.setHeldItem(ItemStack.builder().type(type).amount(1).build());
+                    player.getInventory().inventory.setHeldItem(PacketItemStack.builder().type(type).amount(1).build());
                 } else { // Give the player a water bucket
-                    player.getInventory().inventory.add(ItemStack.builder().type(type).amount(1).build());
+                    player.getInventory().inventory.add(PacketItemStack.builder().type(type).amount(1).build());
                     // and reduce the held item
                     player.getInventory().getHeldItem().setAmount(player.getInventory().getHeldItem().getAmount() - 1);
                 }
             } else {
                 if (player.getInventory().getOffHand().getAmount() == 1) {
-                    player.getInventory().inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, ItemStack.builder().type(type).amount(1).build());
+                    player.getInventory().inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, PacketItemStack.builder().type(type).amount(1).build());
                 } else { // Give the player a water bucket
-                    player.getInventory().inventory.add(Inventory.SLOT_OFFHAND, ItemStack.builder().type(type).amount(1).build());
+                    player.getInventory().inventory.add(Inventory.SLOT_OFFHAND, PacketItemStack.builder().type(type).amount(1).build());
                     // and reduce the held item
                     player.getInventory().getOffHand().setAmount(player.getInventory().getOffHand().getAmount() - 1);
                 }
@@ -367,7 +368,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY() + 1, data.getPosition().getZ()) > 0)
                 return;
 
-            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), ItemStack.EMPTY, data, sequence);
+            BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), PacketItemStack.EMPTY, data, sequence);
             blockPlace.setReplaceClicked(false); // Not possible with use item
 
             // We checked for a full fluid block below here.
@@ -617,7 +618,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             WrapperPlayClientPlayerBlockPlacement packet = new WrapperPlayClientPlayerBlockPlacement(event);
             player.lastBlockPlaceUseItem = System.currentTimeMillis();
 
-            ItemStack placedWith = player.getInventory().getHeldItem();
+            PacketItemStack placedWith = player.getInventory().getHeldItem();
             if (packet.getHand() == InteractionHand.OFF_HAND) {
                 placedWith = player.getInventory().getOffHand();
             }
@@ -665,11 +666,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     // Stop inventory desync from cancelling place
                     if (player.platformPlayer != null) {
                         if (packet.getHand() == InteractionHand.MAIN_HAND) {
-                            ItemStack mainHand = player.platformPlayer.getInventory().getItemInHand();
-                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, mainHand));
+                            PacketItemStack mainHand = player.platformPlayer.getInventory().getItemInHand();
+                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, (ItemStack) mainHand)); // TODO (Packet Rewrite) replace PE Wrappers with Packet API don't cast ItemStack
                         } else {
-                            ItemStack offHand = player.platformPlayer.getInventory().getItemInOffHand();
-                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, offHand));
+                            PacketItemStack offHand = player.platformPlayer.getInventory().getItemInOffHand();
+                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, (ItemStack) offHand)); // TODO (Packet Rewrite) replace PE Wrappers with Packet API don't cast ItemStack
                         }
                     }
 

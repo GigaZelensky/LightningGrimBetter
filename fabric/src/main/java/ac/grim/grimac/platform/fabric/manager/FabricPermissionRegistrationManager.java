@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.fabric.manager;
 
-import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
-import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
+import ac.grim.grimac.api.platform.manager.PermissionRegistrationManager;
+import ac.grim.grimac.api.platform.permissions.PermissionDefaultValue;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.sender.FabricSenderFactory;
 import me.lucko.fabric.api.permissions.v0.Permissions;

@@ -1,8 +1,8 @@
 package ac.grim.grimac.platform.bukkit.scheduler.bukkit;
 
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.platform.api.scheduler.GlobalRegionScheduler;
-import ac.grim.grimac.platform.api.scheduler.TaskHandle;
+import ac.grim.grimac.api.platform.scheduler.GlobalRegionScheduler;
+import ac.grim.grimac.api.platform.scheduler.TaskHandle;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitScheduler;

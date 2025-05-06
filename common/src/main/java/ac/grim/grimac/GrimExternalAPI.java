@@ -1,6 +1,8 @@
 package ac.grim.grimac;
 
 import ac.grim.grimac.api.GrimAbstractAPI;
+import ac.grim.grimac.api.platform.Platform;
+import ac.grim.grimac.api.platform.PlatformLoader;
 import ac.grim.grimac.api.plugin.GrimPluginDescription;
 import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.alerts.AlertManager;
@@ -8,16 +10,17 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.event.EventBus;
 import ac.grim.grimac.api.event.events.GrimReloadEvent;
 import ac.grim.grimac.manager.config.ConfigManagerFileImpl;
-import ac.grim.grimac.manager.init.start.StartableInitable;
+import ac.grim.grimac.api.platform.init.StartableInitable;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.LogUtil;
-import ac.grim.grimac.utils.chat.ChatUtil;
+import ac.grim.grimac.api.util.LogUtil;
+import ac.grim.grimac.api.util.ChatUtil;
 import ac.grim.grimac.utils.common.ConfigReloadObserver;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -34,12 +37,13 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
     @Getter
     private final Map<String, String> staticReplacements = new ConcurrentHashMap<>();
     private final Map<String, Function<Object, Object>> functions = new ConcurrentHashMap<>();
-    private final ConfigManagerFileImpl configManagerFile = new ConfigManagerFileImpl();
+    private final ConfigManagerFileImpl configManagerFile;
     private ConfigManager configManager = null;
     private boolean started = false;
 
     public GrimExternalAPI(GrimAPI api) {
         this.api = api;
+        this.configManagerFile = new ConfigManagerFileImpl(api);
     }
 
     @Override
@@ -50,6 +54,11 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
     @Override
     public @Nullable GrimUser getGrimUser(UUID uuid) {
         return api.getPlayerDataManager().getPlayer(uuid);
+    }
+
+    @Override
+    public Collection<GrimUser> getGrimUsers() {
+        return (Collection) api.getPlayerDataManager().getEntries();
     }
 
     @Override
@@ -72,7 +81,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
 
     @Override
     public String getGrimVersion() {
-        GrimPluginDescription description = GrimAPI.INSTANCE.getGrimPlugin().getDescription();
+        GrimPluginDescription description = api.getGrimPlugin().getDescription();
         return description.getVersion();
     }
 
@@ -92,7 +101,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
 
     @Override
     public AlertManager getAlertManager() {
-        return GrimAPI.INSTANCE.getAlertManager();
+        return api.getAlertManager();
     }
 
     @Override
@@ -107,7 +116,17 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
 
     @Override
     public int getCurrentTick() {
-        return GrimAPI.INSTANCE.getTickManager().currentTick;
+        return api.getTickManager().currentTick;
+    }
+
+    @Override
+    public PlatformLoader getPlatformLoader() {
+        return api.getLoader();
+    }
+
+    @Override
+    public Platform getPlatform() {
+        return api.getPlatform();
     }
 
     // on load, load the config & register the service
@@ -121,7 +140,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
     public void start() {
         started = true;
         try {
-            GrimAPI.INSTANCE.getConfigManager().start();
+            api.getConfigManager().start();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -130,7 +149,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
     @Override
     public void reload(ConfigManager config) {
         if (config.isLoadedAsync() && started) {
-            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
+            api.getScheduler().getAsyncScheduler().runNow(api.getGrimPlugin(),
                     () -> successfulReload(config));
         } else {
             successfulReload(config);
@@ -141,7 +160,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
     public CompletableFuture<Boolean> reloadAsync(ConfigManager config) {
         if (config.isLoadedAsync() && started) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
-            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
+            api.getScheduler().getAsyncScheduler().runNow(api.getGrimPlugin(),
                     () -> future.complete(successfulReload(config)));
             return future;
         }
@@ -151,19 +170,19 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
     private boolean successfulReload(ConfigManager config) {
         try {
             config.reload();
-            GrimAPI.INSTANCE.getConfigManager().load(config);
-            if (started) GrimAPI.INSTANCE.getConfigManager().start();
+            api.getConfigManager().load(config);
+            if (started) api.getConfigManager().start();
             onReload(config);
             if (started)
-                GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
-                        () -> GrimAPI.INSTANCE.getEventBus().post(new GrimReloadEvent(true)));
+                api.getScheduler().getAsyncScheduler().runNow(api.getGrimPlugin(),
+                        () -> api.getEventBus().post(new GrimReloadEvent(true)));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
         if (started)
-            GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(GrimAPI.INSTANCE.getGrimPlugin(),
-                    () -> GrimAPI.INSTANCE.getEventBus().post(new GrimReloadEvent(false)));
+            api.getScheduler().getAsyncScheduler().runNow(api.getGrimPlugin(),
+                    () -> api.getEventBus().post(new GrimReloadEvent(false)));
         return false;
     }
 
@@ -178,13 +197,13 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
         // Update variables
         updateVariables();
         // Restart
-        GrimAPI.INSTANCE.getAlertManager().reload(configManager);
-        GrimAPI.INSTANCE.getDiscordManager().reload();
-        GrimAPI.INSTANCE.getSpectateManager().reload();
+        api.getAlertManager().reload(configManager);
+        api.getDiscordManager().reload();
+        api.getSpectateManager().reload();
         // Don't reload players if the plugin hasn't started yet
         if (!started) return;
         // Reload checks for all players
-        for (GrimPlayer grimPlayer : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
+        for (GrimPlayer grimPlayer : api.getPlayerDataManager().getEntries()) {
             ChannelHelper.runInEventLoop(grimPlayer.user.getChannel(), () -> {
                 grimPlayer.updatePermissions();
                 grimPlayer.reload(configManager);
@@ -200,10 +219,10 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
         variableReplacements.putIfAbsent("%h_sensitivity%", user -> ((int) Math.round(user.getHorizontalSensitivity() * 200)) + "");
         variableReplacements.putIfAbsent("%v_sensitivity%", user -> ((int) Math.round(user.getVerticalSensitivity() * 200)) + "");
         variableReplacements.putIfAbsent("%fast_math%", user -> !user.isVanillaMath() + "");
-        variableReplacements.putIfAbsent("%tps%", user -> String.format("%.2f", GrimAPI.INSTANCE.getPlatformServer().getTPS()));
+        variableReplacements.putIfAbsent("%tps%", user -> String.format("%.2f", api.getPlatformServer().getTPS()));
         variableReplacements.putIfAbsent("%version%", GrimUser::getVersionName);
         // static variables
-        staticReplacements.put("%prefix%", ChatUtil.translateAlternateColorCodes('&', GrimAPI.INSTANCE.getConfigManager().getPrefix()));
+        staticReplacements.put("%prefix%", ChatUtil.translateAlternateColorCodes('&', api.getConfigManager().getPrefix()));
         staticReplacements.putIfAbsent("%grim_version%", getGrimVersion());
     }
 }

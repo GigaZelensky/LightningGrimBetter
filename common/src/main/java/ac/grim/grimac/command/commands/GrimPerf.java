@@ -1,6 +1,6 @@
 package ac.grim.grimac.command.commands;
 
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

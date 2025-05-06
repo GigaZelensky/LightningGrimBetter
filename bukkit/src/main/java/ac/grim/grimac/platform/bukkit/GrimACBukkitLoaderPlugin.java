@@ -1,25 +1,27 @@
 package ac.grim.grimac.platform.bukkit;
 
+import ac.grim.grimac.api.lazy.LazyHolder;
+import ac.grim.grimac.api.packet.manager.PacketItemManager;
+import ac.grim.grimac.api.platform.CoreLoader;
+import ac.grim.grimac.api.platform.init.Initable;
 import ac.grim.grimac.api.plugin.BasicGrimPlugin;
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimAPIProvider;
 import ac.grim.grimac.api.GrimAbstractAPI;
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.manager.init.Initable;
-import ac.grim.grimac.manager.init.start.ExemptOnlinePlayersOnReload;
-import ac.grim.grimac.manager.init.start.StartableInitable;
-import ac.grim.grimac.platform.api.Platform;
-import ac.grim.grimac.platform.api.PlatformLoader;
-import ac.grim.grimac.platform.api.PlatformServer;
-import ac.grim.grimac.platform.api.manager.ItemResetHandler;
-import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
-import ac.grim.grimac.platform.api.manager.ParserDescriptorFactory;
-import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
-import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
-import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
-import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
-import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.platform.api.sender.SenderFactory;
+import ac.grim.grimac.api.platform.init.StartableInitable;
+import ac.grim.grimac.api.platform.Platform;
+import ac.grim.grimac.api.platform.PlatformLoader;
+import ac.grim.grimac.api.platform.PlatformServer;
+import ac.grim.grimac.api.platform.manager.ItemResetHandler;
+import ac.grim.grimac.api.platform.manager.MessagePlaceHolderManager;
+import ac.grim.grimac.api.platform.manager.ParserDescriptorFactory;
+import ac.grim.grimac.api.platform.manager.PermissionRegistrationManager;
+import ac.grim.grimac.api.platform.manager.PlatformPluginManager;
+import ac.grim.grimac.api.platform.player.PlatformPlayerFactory;
+import ac.grim.grimac.api.platform.scheduler.PlatformScheduler;
+import ac.grim.grimac.api.platform.sender.Sender;
+import ac.grim.grimac.api.platform.sender.SenderFactory;
+import ac.grim.grimac.packet.api.impl.pe.PEItemManager;
 import ac.grim.grimac.platform.bukkit.initables.BukkitBStats;
 import ac.grim.grimac.platform.bukkit.initables.BukkitEventManager;
 import ac.grim.grimac.platform.bukkit.initables.BukkitTickEndEvent;
@@ -33,7 +35,6 @@ import ac.grim.grimac.platform.bukkit.scheduler.bukkit.BukkitPlatformScheduler;
 import ac.grim.grimac.platform.bukkit.scheduler.folia.FoliaPlatformScheduler;
 import ac.grim.grimac.platform.bukkit.sender.BukkitSenderFactory;
 import ac.grim.grimac.platform.bukkit.utils.placeholder.PlaceholderAPIExpansion;
-import ac.grim.grimac.utils.lazy.LazyHolder;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bukkit.Bukkit;
@@ -66,6 +67,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     private final PlatformServer platformServer = new BukkitPlatformServer();
     private final MessagePlaceHolderManager messagePlaceHolderManager = new BukkitMessagePlaceHolderManager();
     private final BukkitPermissionRegistrationManager bukkitPermissionRegistrationManager = new BukkitPermissionRegistrationManager();
+    private final PacketItemManager peItemManager = new PEItemManager();
 
     public GrimACBukkitLoaderPlugin() {
         this.plugin = new BasicGrimPlugin(
@@ -80,12 +82,11 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     @Override
     public void onLoad() {
         LOADER = this;
-        GrimAPI.INSTANCE.load(this, this.getBukkitInitTasks());
+        CoreLoader.Manager.loadAll(this, this.getBukkitInitTasks());
     }
 
     private Initable[] getBukkitInitTasks() {
         return new Initable[] {
-                new ExemptOnlinePlayersOnReload(),
                 new BukkitEventManager(),
                 new BukkitTickEndEvent(),
                 new BukkitBStats(),
@@ -99,12 +100,12 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
 
     @Override
     public void onEnable() {
-        GrimAPI.INSTANCE.start();
+        CoreLoader.Manager.startAll();
     }
 
     @Override
     public void onDisable() {
-        GrimAPI.INSTANCE.stop();
+        CoreLoader.Manager.stopAll();
     }
 
     @Override
@@ -123,7 +124,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     @Override
-    public PacketEventsAPI<?> getPacketEvents() {
+    public PacketEventsAPI<?> getPacketAPI() {
         return packetEvents.get();
     }
 
@@ -159,8 +160,8 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
 
     @Override
     public void registerAPIService() {
-        GrimAPIProvider.init(GrimAPI.INSTANCE.getExternalAPI());
-        Bukkit.getServicesManager().register(GrimAbstractAPI.class, GrimAPI.INSTANCE.getExternalAPI(), GrimACBukkitLoaderPlugin.LOADER, ServicePriority.Normal);
+        GrimAPIProvider.init(GrimAPIProvider.getDirect());
+        Bukkit.getServicesManager().register(GrimAbstractAPI.class, GrimAPIProvider.getDirect(), GrimACBukkitLoaderPlugin.LOADER, ServicePriority.Normal);
     }
 
     @Override
@@ -173,8 +174,13 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
         return bukkitPermissionRegistrationManager;
     }
 
+    @Override
+    public PacketItemManager getPacketItemManager() {
+        return peItemManager;
+    }
+
     private PlatformScheduler createScheduler() {
-        return GrimAPI.INSTANCE.getPlatform() == Platform.FOLIA ? new FoliaPlatformScheduler() : new BukkitPlatformScheduler();
+        return GrimAPIProvider.getDirect().getPlatform() == Platform.FOLIA ? new FoliaPlatformScheduler() : new BukkitPlatformScheduler();
     }
 
     private CommandManager<Sender> createCommandManager() {

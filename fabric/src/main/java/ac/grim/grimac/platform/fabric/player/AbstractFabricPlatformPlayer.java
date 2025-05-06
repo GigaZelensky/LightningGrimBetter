@@ -1,17 +1,16 @@
 package ac.grim.grimac.platform.fabric.player;
 
-import ac.grim.grimac.platform.api.entity.GrimEntity;
-import ac.grim.grimac.platform.api.player.PlatformInventory;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.api.math.Vector3dm;
+import ac.grim.grimac.api.platform.entity.GrimEntity;
+import ac.grim.grimac.api.platform.player.PlatformPlayer;
+import ac.grim.grimac.api.platform.player.PlatformPlayerInventory;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import ac.grim.grimac.platform.fabric.entity.AbstractFabricGrimEntity;
-import ac.grim.grimac.platform.fabric.utils.convert.FabricConversionUtil;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.world.GameMode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.UUID;
@@ -68,12 +67,12 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
     }
 
     @Override
-    public Vector3d getPosition() {
-        return new Vector3d(fabricPlayer.getX(), fabricPlayer.getY(), fabricPlayer.getZ());
+    public Vector3dm getPosition() {
+        return new Vector3dm(fabricPlayer.getX(), fabricPlayer.getY(), fabricPlayer.getZ());
     }
 
     @Override
-    public PlatformInventory getInventory() {
+    public PlatformPlayerInventory getInventory() {
         return inventory;
     }
 
@@ -84,13 +83,13 @@ public abstract class AbstractFabricPlatformPlayer extends AbstractFabricGrimEnt
     }
 
     @Override
-    public GameMode getGameMode() {
-        return FabricConversionUtil.fromFabricGameMode(fabricPlayer.interactionManager.getGameMode());
+    public int getGameModeID() {
+        return fabricPlayer.interactionManager.getGameMode().getId();
     }
 
     @Override
-    public void setGameMode(GameMode gameMode) {
-        fabricPlayer.setGameMode(FabricConversionUtil.toFabricGameMode(gameMode));
+    public void setGameMode(int gameModeID) {
+        fabricPlayer.setGameMode(GameMode.byId(gameModeID));
     }
 
     @Override

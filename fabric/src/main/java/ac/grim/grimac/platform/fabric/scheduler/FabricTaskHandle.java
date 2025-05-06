@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.fabric.scheduler;
 
-import ac.grim.grimac.platform.api.scheduler.TaskHandle;
+import ac.grim.grimac.api.platform.scheduler.TaskHandle;
 import lombok.Getter;
 
 public class FabricTaskHandle implements TaskHandle {

@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.bukkit.player;
 
-import ac.grim.grimac.platform.api.player.AbstractPlatformPlayerFactory;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.api.platform.player.AbstractPlatformPlayerFactory;
+import ac.grim.grimac.api.platform.player.PlatformPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

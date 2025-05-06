@@ -44,8 +44,9 @@ dependencies {
     implementation(libs.cloud.paper)
     implementation(libs.adventure.platform.bukkit)
 
-    implementation(project(":common"))
-    shadow(project(":common"))
+    shadowCommon(project(":common", "default"))
+    api(project(":api"))
+    api(project(":api:packet"))
 }
 
 bukkit {

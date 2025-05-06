@@ -1,0 +1,6 @@
+[submodule "GrimAPI"]
+	path = GrimAPI
+	url = https://github.com/GrimAnticheat/GrimAPI
+[submodule "api"]
+	path = api
+	url = https://github.com/GrimAnticheat/GrimAPI

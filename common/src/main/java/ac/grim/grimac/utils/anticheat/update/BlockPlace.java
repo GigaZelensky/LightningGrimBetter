@@ -1,7 +1,9 @@
 package ac.grim.grimac.utils.anticheat.update;
 
+import ac.grim.grimac.api.packet.item.PacketItemStack;
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.api.util.LogUtil;
 import ac.grim.grimac.utils.collisions.AxisSelect;
 import ac.grim.grimac.utils.collisions.AxisUtil;
 import ac.grim.grimac.utils.collisions.CollisionData;
@@ -13,7 +15,7 @@ import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -21,7 +23,6 @@ import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
@@ -65,9 +66,9 @@ public class BlockPlace {
     boolean isCancelled = false;
     GrimPlayer player;
     @Getter
-    ItemStack itemStack;
+    PacketItemStack itemStack;
     @Getter
-    StateType material;
+    PacketStateType material;
     @Getter
     @Nullable HitData hitData;
     @Getter
@@ -81,7 +82,7 @@ public class BlockPlace {
     Vector3f cursor;
     public final int sequence;
 
-    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i blockPosition, int faceId, BlockFace face, ItemStack itemStack, HitData hitData, int sequence) {
+    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i blockPosition, int faceId, BlockFace face, PacketItemStack itemStack, HitData hitData, int sequence) {
         this.player = player;
         this.hand = hand;
         this.blockPosition = blockPosition;
@@ -106,6 +107,10 @@ public class BlockPlace {
         return BY_2D;
     }
 
+    public static WrappedBlockState createBlockState(PacketStateType material, ClientVersion blockVersion) {
+        return ((StateType) material).createBlockState(blockVersion);
+    }
+
     public Vector3i getPlacedAgainstBlockLocation() {
         return blockPosition;
     }
@@ -114,7 +119,7 @@ public class BlockPlace {
         return player.compensatedWorld.getBlock(getPlacedBlockPos());
     }
 
-    public StateType getPlacedAgainstMaterial() {
+    public PacketStateType getPlacedAgainstMaterial() {
         return player.compensatedWorld.getBlock(getPlacedAgainstBlockLocation()).getType();
     }
 
@@ -141,7 +146,7 @@ public class BlockPlace {
         return state.getType().isBlocking();
     }
 
-    private boolean canBeReplaced(StateType heldItem, WrappedBlockState state, BlockFace face) {
+    private boolean canBeReplaced(PacketStateType heldItem, WrappedBlockState state, BlockFace face) {
         // Cave vines and weeping vines have a special case... that always returns false (just like the base case for it!)
         boolean baseReplaceable = state.getType() != heldItem && state.getType().isReplaceable();
 
@@ -269,7 +274,7 @@ public class BlockPlace {
 
         CollisionBox box = CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state);
 
-        StateType blockMaterial = state.getType();
+        PacketStateType blockMaterial = state.getType();
 
         if (BlockTags.LEAVES.contains(blockMaterial)) {
             // Leaves can't support blocks
@@ -390,12 +395,12 @@ public class BlockPlace {
         return Materials.isWater(player.getClientVersion(), data) || data.getType() == StateTypes.LAVA;
     }
 
-    public StateType getBelowMaterial() {
+    public PacketStateType getBelowMaterial() {
         return getBelowState().getType();
     }
 
-    public boolean isOn(StateType... mat) {
-        StateType lookingFor = getBelowMaterial();
+    public boolean isOn(PacketStateType... mat) {
+        PacketStateType lookingFor = getBelowMaterial();
         return Arrays.stream(mat).anyMatch(m -> m == lookingFor);
     }
 
@@ -556,8 +561,8 @@ public class BlockPlace {
         };
     }
 
-    public void set(StateType material) {
-        set(material.createBlockState(CompensatedWorld.blockVersion));
+    public void set(PacketStateType material) {
+        set(createBlockState(material, CompensatedWorld.blockVersion));
     }
 
     public void set(BlockFace face, WrappedBlockState state) {
@@ -703,7 +708,7 @@ public class BlockPlace {
     public void setAbove() {
         Vector3i placed = getPlacedBlockPos();
         placed = placed.add(0, 1, 0);
-        set(placed, material.createBlockState(CompensatedWorld.blockVersion));
+        set(placed, createBlockState(material, CompensatedWorld.blockVersion));
     }
 
     public void setAbove(WrappedBlockState toReplaceWith) {

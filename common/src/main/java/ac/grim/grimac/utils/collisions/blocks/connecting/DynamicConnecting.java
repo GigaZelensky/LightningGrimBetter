@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.collisions.blocks.connecting;
 
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
@@ -13,7 +14,6 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 public class DynamicConnecting {
@@ -53,8 +53,8 @@ public class DynamicConnecting {
     public boolean connectsTo(GrimPlayer player, ClientVersion v, int currX, int currY, int currZ, BlockFace direction) {
         WrappedBlockState targetBlock = player.compensatedWorld.getBlock(currX + direction.getModX(), currY + direction.getModY(), currZ + direction.getModZ());
         WrappedBlockState currBlock = player.compensatedWorld.getBlock(currX, currY, currZ);
-        StateType target = targetBlock.getType();
-        StateType fence = currBlock.getType();
+        PacketStateType target = targetBlock.getType();
+        PacketStateType fence = currBlock.getType();
 
         if (!BlockTags.FENCES.contains(target) && isBlacklisted(target, fence, v))
             return false;
@@ -94,7 +94,7 @@ public class DynamicConnecting {
     /**
      * Some blocks override isFullBlock whilst actually having a full state
      */
-    boolean isBlacklisted(StateType m, StateType fence, ClientVersion clientVersion) {
+    boolean isBlacklisted(PacketStateType m, PacketStateType fence, ClientVersion clientVersion) {
         if (BlockTags.LEAVES.contains(m))
             return clientVersion.isNewerThan(ClientVersion.V_1_8) || !Materials.isGlassPane(fence);
         if (BlockTags.SHULKER_BOXES.contains(m)) return true;
@@ -128,7 +128,7 @@ public class DynamicConnecting {
         return i;
     }
 
-    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, StateType one, StateType two, BlockFace direction) {
+    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, PacketStateType one, PacketStateType two, BlockFace direction) {
         return false;
     }
 
@@ -136,7 +136,7 @@ public class DynamicConnecting {
         return false;
     }
 
-    public boolean canConnectToGate(StateType fence) {
+    public boolean canConnectToGate(PacketStateType fence) {
         return !Materials.isGlassPane(fence);
     }
 }

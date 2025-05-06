@@ -15,7 +15,7 @@ package ac.grim.grimac.platform.fabric.utils.metrics;
  * Violations will result in a ban of your plugin and account from bStats.
  */
 
-import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.GrimAPIProvider;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import net.fabricmc.loader.api.FabricLoader;
@@ -58,7 +58,7 @@ public class MetricsFabric implements Metrics {
                         enabled,
                         this::appendPlatformData,
                         this::appendServiceData,
-                        submitDataTask -> GrimAPI.INSTANCE.getScheduler().getAsyncScheduler().runNow(plugin, submitDataTask),
+                        submitDataTask -> GrimAPIProvider.getDirect().getPlatformLoader().getScheduler().getAsyncScheduler().runNow(plugin, submitDataTask),
                         () -> true,
                         (message, error) -> plugin.getLogger().log(Level.WARNING, message, error),
                         (message) -> plugin.getLogger().log(Level.INFO, message),
@@ -87,7 +87,7 @@ public class MetricsFabric implements Metrics {
     private void appendPlatformData(JsonObjectBuilder builder) {
         builder.appendField("playerAmount", getPlayerAmount());
         builder.appendField("onlineMode", GrimACFabricLoaderPlugin.FABRIC_SERVER.isOnlineMode() ? 0 : 1);
-        builder.appendField("bukkitVersion", GrimAPI.INSTANCE.getPlatformServer().getPlatformImplementationString());
+        builder.appendField("bukkitVersion", GrimAPIProvider.getDirect().getPlatformLoader().getPlatformServer().getPlatformImplementationString());
         builder.appendField("bukkitName", "Fabric");
         builder.appendField("javaVersion", System.getProperty("java.version"));
         builder.appendField("osName", System.getProperty("os.name"));

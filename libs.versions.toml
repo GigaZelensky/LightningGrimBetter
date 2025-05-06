@@ -4,6 +4,7 @@ adventure-platform-bukkit = "4.3.4"
 paper-api = "1.20.6-R0.1-SNAPSHOT"
 placeholderapi = "2.11.6"
 configuralize = "1.4.1:slim"
+snakeyaml = "2.2" # Bump snakeyaml (transitive dep of configuralize) 1.29 -> 2.2 for geyser-fabric
 cloud = "2.0.0"
 cloud-paper = "2.0.0-beta.10"
 cloud-fabric = "2.0.0-beta.10"
@@ -15,6 +16,7 @@ via-version = "5.0.4-SNAPSHOT"
 netty = "4.1.85.Final"
 fabric-loader = "0.16.10"
 fabric-loom = "1.10.5"
+grimapi-release = "1.2.0.0"
 
 spotless = "6.25.0"
 lombok = "8.6"
@@ -37,6 +39,8 @@ packetevents-api = { group = "com.github.retrooper", name = "packetevents-api", 
 packetevents-spigot = { group = "com.github.retrooper", name = "packetevents-spigot", version.ref = "packetevents"}
 packetevents-fabric = { group  = "com.github.retrooper", name = "packetevents-fabric", version.ref = "packetevents" }
 fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
+grim-api = { group = "ac.grim.grimac", name = "GrimAPI", version.ref = "grimapi-release" }
+snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }
 
 spotless = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
 lombok = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok" }

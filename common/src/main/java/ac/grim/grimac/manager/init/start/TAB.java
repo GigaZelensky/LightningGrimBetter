@@ -1,7 +1,8 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.api.platform.init.StartableInitable;
+import ac.grim.grimac.api.util.LogUtil;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;

@@ -1,9 +1,9 @@
 package ac.grim.grimac.platform.fabric.entity;
 
-import ac.grim.grimac.platform.api.entity.GrimEntity;
-import ac.grim.grimac.platform.api.world.PlatformWorld;
+import ac.grim.grimac.api.platform.entity.GrimEntity;
+import ac.grim.grimac.api.platform.world.PlatformWorld;
 import ac.grim.grimac.platform.fabric.world.FabricPlatformWorld;
-import ac.grim.grimac.utils.math.Location;
+import ac.grim.grimac.api.math.Location;
 import com.google.common.base.Preconditions;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.world.ServerWorld;

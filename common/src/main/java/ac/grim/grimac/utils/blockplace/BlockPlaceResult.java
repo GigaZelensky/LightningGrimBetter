@@ -1,18 +1,20 @@
 package ac.grim.grimac.utils.blockplace;
 
+import ac.grim.grimac.api.packet.item.PacketItemType;
+import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
-import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Dripstone;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -29,7 +31,6 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.South;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Type;
 import com.github.retrooper.packetevents.protocol.world.states.enums.VerticalDirection;
 import com.github.retrooper.packetevents.protocol.world.states.enums.West;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -47,7 +48,7 @@ public enum BlockPlaceResult {
 
     // If the block only has directional data
     ANVIL((player, place) -> {
-        WrappedBlockState data = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState data = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
         data.setFacing(BlockFaceHelper.getClockWise(place.getPlayerFacing()));
         place.set(data);
     }, ItemTags.ANVIL),
@@ -94,11 +95,12 @@ public enum BlockPlaceResult {
             }
         }
 
-    }, ItemTypes.SNOW),
+    }, PacketItemTypes.SNOW),
 
     SLAB((player, place) -> {
         Vector3dm clickedPos = place.getClickedLocation();
-        WrappedBlockState slabData = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+
+        WrappedBlockState slabData = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
         WrappedBlockState existing = place.getExistingBlockData();
 
         if (BlockTags.SLABS.contains(existing.getType())) {
@@ -115,7 +117,7 @@ public enum BlockPlaceResult {
 
     STAIRS((player, place) -> {
         BlockFace direction = place.getDirection();
-        WrappedBlockState stair = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState stair = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
         stair.setFacing(place.getPlayerFacing());
 
         Half half = (direction != BlockFace.DOWN && (direction == BlockFace.UP || place.getClickedLocation().getY() < 0.5D)) ? Half.BOTTOM : Half.TOP;
@@ -124,10 +126,10 @@ public enum BlockPlaceResult {
     }, ItemTags.STAIRS),
 
     END_ROD((player, place) -> {
-        WrappedBlockState endRod = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState endRod = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
         endRod.setFacing(place.getDirection());
         place.set(endRod);
-    }, ItemTypes.END_ROD, ItemTypes.LIGHTNING_ROD),
+    }, PacketItemTypes.END_ROD, PacketItemTypes.LIGHTNING_ROD),
 
     LADDER((player, place) -> {
         //  No placing a ladder against another ladder
@@ -143,13 +145,13 @@ public enum BlockPlaceResult {
             // Heads have no special preferences - place them anywhere
             // Signs need solid - exempts chorus flowers and a few other strange cases
             if (BlockFaceHelper.isFaceHorizontal(face) && place.isFullFace(face)) {
-                WrappedBlockState ladder = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+                WrappedBlockState ladder = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
                 ladder.setFacing(face.getOppositeFace());
                 place.set(ladder);
                 return;
             }
         }
-    }, ItemTypes.LADDER),
+    }, PacketItemTypes.LADDER),
 
     FARM_BLOCK((player, place) -> {
         // What we also need to check:
@@ -157,14 +159,14 @@ public enum BlockPlaceResult {
         if (!above.getType().isBlocking() && !BlockTags.FENCE_GATES.contains(above.getType()) && above.getType() != StateTypes.MOVING_PISTON) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.FARMLAND),
+    }, PacketItemTypes.FARMLAND),
 
     // 1.13+ only blocks from here below!  No need to write everything twice
     AMETHYST_CLUSTER((player, place) -> {
-        WrappedBlockState amethyst = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState amethyst = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
         amethyst.setFacing(place.getDirection());
         if (place.isFullFace(place.getDirection().getOppositeFace())) place.set(amethyst);
-    }, ItemTypes.AMETHYST_CLUSTER, ItemTypes.SMALL_AMETHYST_BUD, ItemTypes.MEDIUM_AMETHYST_BUD, ItemTypes.LARGE_AMETHYST_BUD),
+    }, PacketItemTypes.AMETHYST_CLUSTER, PacketItemTypes.SMALL_AMETHYST_BUD, PacketItemTypes.MEDIUM_AMETHYST_BUD, PacketItemTypes.LARGE_AMETHYST_BUD),
 
     BAMBOO((player, place) -> {
         Vector3i clicked = place.getPlacedAgainstBlockLocation();
@@ -184,11 +186,11 @@ public enum BlockPlaceResult {
                 }
             }
         }
-    }, ItemTypes.BAMBOO),
+    }, PacketItemTypes.BAMBOO),
 
     BELL((player, place) -> {
         BlockFace direction = place.getDirection();
-        WrappedBlockState bell = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState bell = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
 
         boolean canSurvive = !BlockTags.FENCE_GATES.contains(place.getPlacedAgainstMaterial());
         // This is exempt from being able to place on
@@ -227,11 +229,11 @@ public enum BlockPlaceResult {
             canSurvive = place.isFullFace(flag1 ? BlockFace.DOWN : BlockFace.UP);
         }
         if (canSurvive) place.set(bell);
-    }, ItemTypes.BELL),
+    }, PacketItemTypes.BELL),
 
     CANDLE((player, place) -> {
         WrappedBlockState existing = place.getExistingBlockData();
-        WrappedBlockState candle = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState candle = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
 
         if (BlockTags.CANDLES.contains(existing.getType())) {
             // Max candles already exists
@@ -259,10 +261,10 @@ public enum BlockPlaceResult {
         }
 
         place.set(existing);
-    }, ItemTypes.SEA_PICKLE),
+    }, PacketItemTypes.SEA_PICKLE),
 
     CHAIN((player, place) -> {
-        WrappedBlockState chain = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState chain = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
         BlockFace face = place.getDirection();
 
         switch (face) {
@@ -281,20 +283,20 @@ public enum BlockPlaceResult {
         }
 
         place.set(chain);
-    }, ItemTypes.CHAIN),
+    }, PacketItemTypes.CHAIN),
 
     COCOA((player, place) -> {
         for (BlockFace face : place.getNearestPlacingDirections()) {
             if (BlockFaceHelper.isFaceVertical(face)) continue;
-            StateType mat = place.getDirectionalState(face).getType();
+            PacketStateType mat = place.getDirectionalState(face).getType();
             if (mat == StateTypes.JUNGLE_LOG || mat == StateTypes.STRIPPED_JUNGLE_LOG || mat == StateTypes.JUNGLE_WOOD) {
-                WrappedBlockState data = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+                WrappedBlockState data = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
                 data.setFacing(face);
                 place.set(face, data);
                 break;
             }
         }
-    }, ItemTypes.COCOA_BEANS),
+    }, PacketItemTypes.COCOA_BEANS),
 
     DIRT_PATH((player, place) -> {
         WrappedBlockState state = place.getDirectionalState(BlockFace.UP);
@@ -304,19 +306,19 @@ public enum BlockPlaceResult {
         } else {
             place.set(StateTypes.DIRT);
         }
-    }, ItemTypes.DIRT_PATH),
+    }, PacketItemTypes.DIRT_PATH),
 
     HOPPER((player, place) -> {
         BlockFace opposite = place.getDirection().getOppositeFace();
-        WrappedBlockState hopper = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState hopper = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
         hopper.setFacing(place.isFaceVertical() ? BlockFace.DOWN : opposite);
         place.set(hopper);
-    }, ItemTypes.HOPPER),
+    }, PacketItemTypes.HOPPER),
 
     LANTERN((player, place) -> {
         for (BlockFace face : place.getNearestPlacingDirections()) {
             if (BlockFaceHelper.isFaceHorizontal(face)) continue;
-            WrappedBlockState lantern = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+            WrappedBlockState lantern = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
 
             boolean isHanging = face == BlockFace.UP;
             lantern.setHanging(isHanging);
@@ -327,7 +329,7 @@ public enum BlockPlaceResult {
             place.set(lantern);
             return;
         }
-    }, ItemTypes.LANTERN, ItemTypes.SOUL_LANTERN),
+    }, PacketItemTypes.LANTERN, PacketItemTypes.SOUL_LANTERN),
 
     POINTED_DRIPSTONE((player, place) -> {
         // To explain what Mojang is doing, take the example of placing on top face
@@ -368,7 +370,7 @@ public enum BlockPlaceResult {
         Dripstone.update(player, toPlace, placedPos.getX(), placedPos.getY(), placedPos.getZ(), place.isSecondaryUse());
 
         place.set(toPlace);
-    }, ItemTypes.POINTED_DRIPSTONE),
+    }, PacketItemTypes.POINTED_DRIPSTONE),
 
     CACTUS((player, place) -> {
         for (BlockFace face : BlockPlace.getHorizontalFaces()) {
@@ -380,33 +382,33 @@ public enum BlockPlaceResult {
         if (place.isOn(StateTypes.CACTUS, StateTypes.SAND, StateTypes.RED_SAND) && !place.isLava(BlockFace.UP)) {
             place.set();
         }
-    }, ItemTypes.CACTUS),
+    }, PacketItemTypes.CACTUS),
 
     CAKE((player, place) -> {
         if (place.isSolidBlocking(BlockFace.DOWN)) {
             place.set();
         }
-    }, ItemTypes.CAKE),
+    }, PacketItemTypes.CAKE),
 
     CANDLE_CAKE((player, place) -> {
         if (place.isSolidBlocking(BlockFace.DOWN)) {
             place.set();
         }
-    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("candle_cake"))
+    }, PacketItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("candle_cake"))
             .toList().toArray(new ItemType[0])),
 
     PISTON_BASE((player, place) -> {
-        WrappedBlockState piston = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState piston = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
         piston.setFacing(place.getNearestVerticalDirection().getOppositeFace());
         place.set(piston);
-    }, ItemTypes.PISTON, ItemTypes.STICKY_PISTON),
+    }, PacketItemTypes.PISTON, PacketItemTypes.STICKY_PISTON),
 
     AZALEA((player, place) -> {
         WrappedBlockState below = place.getBelowState();
         if (place.isOnDirt() || below.getType() == StateTypes.FARMLAND || below.getType() == StateTypes.CLAY) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.AZALEA, ItemTypes.FLOWERING_AZALEA),
+    }, PacketItemTypes.AZALEA, PacketItemTypes.FLOWERING_AZALEA),
 
     CROP((player, place) -> {
         WrappedBlockState below = place.getBelowState();
@@ -414,8 +416,8 @@ public enum BlockPlaceResult {
             // This is wrong and depends on lighting, but the server resync's anyways plus this isn't a solid block so I don't care.
             place.set();
         }
-    }, ItemTypes.CARROT, ItemTypes.BEETROOT, ItemTypes.POTATO,
-            ItemTypes.PUMPKIN_SEEDS, ItemTypes.MELON_SEEDS, ItemTypes.WHEAT_SEEDS, ItemTypes.TORCHFLOWER_SEEDS),
+    }, PacketItemTypes.CARROT, PacketItemTypes.BEETROOT, PacketItemTypes.POTATO,
+            PacketItemTypes.PUMPKIN_SEEDS, PacketItemTypes.MELON_SEEDS, PacketItemTypes.WHEAT_SEEDS, PacketItemTypes.TORCHFLOWER_SEEDS),
 
     SUGARCANE((player, place) -> {
         if (place.isOn(StateTypes.SUGAR_CANE)) {
@@ -439,7 +441,7 @@ public enum BlockPlaceResult {
                 }
             }
         }
-    }, ItemTypes.SUGAR_CANE),
+    }, PacketItemTypes.SUGAR_CANE),
 
     CARPET((player, place) -> {
         if (!place.getBelowMaterial().isAir()) {
@@ -448,7 +450,7 @@ public enum BlockPlaceResult {
     }, ItemTags.WOOL_CARPETS),
 
     // Moss carpet is a carpet not under the carpets tag
-    MOSS_CARPET(CARPET.data, ItemTypes.MOSS_CARPET, ItemTypes.PALE_MOSS_CARPET),
+    MOSS_CARPET(CARPET.data, PacketItemTypes.MOSS_CARPET, PacketItemTypes.PALE_MOSS_CARPET),
 
     CHORUS_FLOWER((player, place) -> {
         WrappedBlockState blockstate = place.getBelowState();
@@ -476,7 +478,7 @@ public enum BlockPlaceResult {
         } else {
             place.set();
         }
-    }, ItemTypes.CHORUS_FLOWER),
+    }, PacketItemTypes.CHORUS_FLOWER),
 
     CHORUS_PLANT((player, place) -> {
         WrappedBlockState blockstate = place.getBelowState();
@@ -502,7 +504,7 @@ public enum BlockPlaceResult {
         if (blockstate.getType() == StateTypes.CHORUS_PLANT || blockstate.getType() == StateTypes.END_STONE) {
             place.set();
         }
-    }, ItemTypes.CHORUS_PLANT),
+    }, PacketItemTypes.CHORUS_PLANT),
 
     DEAD_BUSH((player, place) -> {
         WrappedBlockState below = place.getBelowState();
@@ -510,44 +512,44 @@ public enum BlockPlaceResult {
                 BlockTags.TERRACOTTA.contains(below.getType()) || place.isOnDirt()) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.DEAD_BUSH),
+    }, PacketItemTypes.DEAD_BUSH),
 
     DIODE((player, place) -> {
         if (place.isFaceRigid(BlockFace.DOWN)) {
             place.set();
         }
-    }, ItemTypes.REPEATER, ItemTypes.COMPARATOR, ItemTypes.REDSTONE),
+    }, PacketItemTypes.REPEATER, PacketItemTypes.COMPARATOR, PacketItemTypes.REDSTONE),
 
     FUNGUS((player, place) -> {
         if (place.isOn(StateTypes.CRIMSON_NYLIUM, StateTypes.WARPED_NYLIUM, StateTypes.MYCELIUM, StateTypes.SOUL_SOIL, StateTypes.FARMLAND) || place.isOnDirt()) {
             place.set();
         }
-    }, ItemTypes.CRIMSON_FUNGUS, ItemTypes.WARPED_FUNGUS),
+    }, PacketItemTypes.CRIMSON_FUNGUS, PacketItemTypes.WARPED_FUNGUS),
 
     SPROUTS((player, place) -> {
         if (place.isOn(StateTypes.CRIMSON_NYLIUM, StateTypes.WARPED_NYLIUM, StateTypes.SOUL_SOIL, StateTypes.FARMLAND) || place.isOnDirt()) {
             place.set();
         }
-    }, ItemTypes.NETHER_SPROUTS, ItemTypes.WARPED_ROOTS, ItemTypes.CRIMSON_ROOTS),
+    }, PacketItemTypes.NETHER_SPROUTS, PacketItemTypes.WARPED_ROOTS, PacketItemTypes.CRIMSON_ROOTS),
 
     NETHER_WART((player, place) -> {
         if (place.isOn(StateTypes.SOUL_SAND)) {
             place.set();
         }
-    }, ItemTypes.NETHER_WART),
+    }, PacketItemTypes.NETHER_WART),
 
     WATERLILY((player, place) -> {
         WrappedBlockState below = place.getDirectionalState(BlockFace.DOWN);
         if (!place.isInLiquid() && (Materials.isWater(player.getClientVersion(), below) || place.isOn(StateTypes.ICE, StateTypes.FROSTED_ICE))) {
             place.set();
         }
-    }, ItemTypes.LILY_PAD),
+    }, PacketItemTypes.LILY_PAD),
 
     WITHER_ROSE((player, place) -> {
         if (place.isOn(StateTypes.NETHERRACK, StateTypes.SOUL_SAND, StateTypes.SOUL_SOIL, StateTypes.FARMLAND) || place.isOnDirt()) {
             place.set();
         }
-    }, ItemTypes.WITHER_ROSE),
+    }, PacketItemTypes.WITHER_ROSE),
 
     // Blocks that have both wall and standing states
     TORCH_OR_HEAD((player, place) -> {
@@ -591,18 +593,18 @@ public enum BlockPlaceResult {
                 }
             }
         }
-    }, ItemTypes.values().stream().filter(mat ->
+    }, PacketItemTypes.values().stream().filter(mat ->
                     mat.getName().getKey().contains("torch") // Find all torches
                             || (mat.getName().getKey().contains("head") || mat.getName().getKey().contains("skull")) && !mat.getName().getKey().contains("piston") // Skulls
                             || mat.getName().getKey().contains("sign")) // And signs
             .toArray(ItemType[]::new)),
 
     MULTI_FACE_BLOCK((player, place) -> {
-        StateType placedType = place.getMaterial();
+        PacketStateType placedType = place.getMaterial();
 
         WrappedBlockState multiFace = place.getExistingBlockData();
         if (multiFace.getType() != placedType) {
-            multiFace = placedType.createBlockState(CompensatedWorld.blockVersion);
+            multiFace = BlockPlace.createBlockState(placedType, CompensatedWorld.blockVersion);
         }
 
         for (BlockFace face : place.getNearestPlacingDirections()) {
@@ -652,7 +654,7 @@ public enum BlockPlaceResult {
         }
 
         place.set(multiFace);
-    }, ItemTypes.GLOW_LICHEN, ItemTypes.SCULK_VEIN),
+    }, PacketItemTypes.GLOW_LICHEN, PacketItemTypes.SCULK_VEIN),
 
     FACE_ATTACHED_HORIZONTAL_DIRECTIONAL((player, place) -> {
         for (BlockFace face : place.getNearestPlacingDirections()) {
@@ -661,12 +663,12 @@ public enum BlockPlaceResult {
                 return;
             }
         }
-    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("button") // Find all buttons
+    }, PacketItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("button") // Find all buttons
                     || mat.getName().getKey().contains("lever")) // And levers
             .toArray(ItemType[]::new)),
 
     GRINDSTONE((player, place) -> { // Grindstones do not have special survivability requirements
-        WrappedBlockState stone = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState stone = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
         if (place.isFaceVertical()) {
             stone.setFace(place.getPlayerFacing() == BlockFace.UP ? Face.CEILING : Face.FLOOR);
         } else {
@@ -674,7 +676,7 @@ public enum BlockPlaceResult {
         }
         stone.setFacing(place.getPlayerFacing());
         place.set(stone);
-    }, ItemTypes.GRINDSTONE),
+    }, PacketItemTypes.GRINDSTONE),
 
     // Blocks that have both wall and standing states
     // Banners
@@ -701,33 +703,33 @@ public enum BlockPlaceResult {
         if (place.isFullFace(BlockFace.DOWN) || existing.getType() == StateTypes.BIG_DRIPLEAF || existing.getType() == StateTypes.BIG_DRIPLEAF_STEM) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.BIG_DRIPLEAF),
+    }, PacketItemTypes.BIG_DRIPLEAF),
 
     SMALL_DRIPLEAF((player, place) -> {
         WrappedBlockState existing = place.getDirectionalState(BlockFace.DOWN);
         if (place.isBlockFaceOpen(BlockFace.UP) && BlockTags.SMALL_DRIPLEAF_PLACEABLE.contains(existing.getType()) || (place.isInWater() && (place.isOnDirt() || existing.getType() == StateTypes.FARMLAND))) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.SMALL_DRIPLEAF),
+    }, PacketItemTypes.SMALL_DRIPLEAF),
 
     SEAGRASS((player, place) -> {
         WrappedBlockState existing = place.getDirectionalState(BlockFace.DOWN);
         if (place.isInWater() && place.isFullFace(BlockFace.DOWN) && existing.getType() != StateTypes.MAGMA_BLOCK) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.SEAGRASS),
+    }, PacketItemTypes.SEAGRASS),
 
     HANGING_ROOT((player, place) -> {
         if (place.isFullFace(BlockFace.UP)) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.HANGING_ROOTS),
+    }, PacketItemTypes.HANGING_ROOTS),
 
     SPORE_BLOSSOM((player, place) -> {
         if (place.isFullFace(BlockFace.UP) && !place.isInWater()) {
             place.set();
         }
-    }, ItemTypes.SPORE_BLOSSOM),
+    }, PacketItemTypes.SPORE_BLOSSOM),
 
     FIRE((player, place) -> {
         boolean byFlammable = false;
@@ -739,19 +741,19 @@ public enum BlockPlaceResult {
         if (byFlammable || place.isFullFace(BlockFace.DOWN)) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.FLINT_AND_STEEL, ItemTypes.FIRE_CHARGE), // soul fire isn't directly placeable
+    }, PacketItemTypes.FLINT_AND_STEEL, PacketItemTypes.FIRE_CHARGE), // soul fire isn't directly placeable
 
     TRIPWIRE_HOOK((player, place) -> {
         if (place.isFaceHorizontal() && place.isFullFace(place.getDirection().getOppositeFace())) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.TRIPWIRE_HOOK),
+    }, PacketItemTypes.TRIPWIRE_HOOK),
 
     CORAL_PLANT((player, place) -> {
         if (place.isFullFace(BlockFace.DOWN)) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("coral")
+    }, PacketItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("coral")
                     && !mat.getName().getKey().contains("block") && !mat.getName().getKey().contains("fan")))
             .toArray(ItemType[]::new)),
 
@@ -775,7 +777,7 @@ public enum BlockPlaceResult {
                 }
             }
         }
-    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("coral")
+    }, PacketItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("coral")
                     && !mat.getName().getKey().contains("block") && mat.getName().getKey().contains("fan")))
             .toArray(ItemType[]::new)),
 
@@ -783,7 +785,7 @@ public enum BlockPlaceResult {
         if (place.isFullFace(BlockFace.DOWN) || place.isFaceFullCenter(BlockFace.DOWN)) {
             place.set();
         }
-    }, ItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("plate")))
+    }, PacketItemTypes.values().stream().filter(mat -> (mat.getName().getKey().contains("plate")))
             .toArray(ItemType[]::new)),
 
     RAIL((player, place) -> {
@@ -793,7 +795,7 @@ public enum BlockPlaceResult {
     }, ItemTags.RAILS),
 
     KELP((player, place) -> {
-        StateType below = place.getDirectionalState(BlockFace.DOWN).getType();
+        PacketStateType below = place.getDirectionalState(BlockFace.DOWN).getType();
         WrappedBlockState existing = place.getExistingBlockData();
 
         double fluidLevel = 0;
@@ -810,28 +812,28 @@ public enum BlockPlaceResult {
         if (below != StateTypes.MAGMA_BLOCK && (place.isFullFace(BlockFace.DOWN) || below == StateTypes.KELP || below == StateTypes.KELP_PLANT) && fluidLevel >= 8 / 9d) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.KELP),
+    }, PacketItemTypes.KELP),
 
     CAVE_VINE((player, place) -> {
-        StateType below = place.getDirectionalState(BlockFace.UP).getType();
+        PacketStateType below = place.getDirectionalState(BlockFace.UP).getType();
         if (place.isFullFace(BlockFace.DOWN) || below == StateTypes.CAVE_VINES || below == StateTypes.CAVE_VINES_PLANT) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.GLOW_BERRIES),
+    }, PacketItemTypes.GLOW_BERRIES),
 
     WEEPING_VINE((player, place) -> {
-        StateType below = place.getDirectionalState(BlockFace.UP).getType();
+        PacketStateType below = place.getDirectionalState(BlockFace.UP).getType();
         if (place.isFullFace(BlockFace.UP) || below == StateTypes.WEEPING_VINES || below == StateTypes.WEEPING_VINES_PLANT) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.WEEPING_VINES),
+    }, PacketItemTypes.WEEPING_VINES),
 
     TWISTED_VINE((player, place) -> {
-        StateType below = place.getDirectionalState(BlockFace.DOWN).getType();
+        PacketStateType below = place.getDirectionalState(BlockFace.DOWN).getType();
         if (place.isFullFace(BlockFace.DOWN) || below == StateTypes.TWISTING_VINES || below == StateTypes.TWISTING_VINES_PLANT) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.TWISTING_VINES),
+    }, PacketItemTypes.TWISTING_VINES),
 
     // Vine logic
     // If facing up, then there is a face facing up.
@@ -851,16 +853,16 @@ public enum BlockPlaceResult {
                 return;
             }
         }
-    }, ItemTypes.VINE),
+    }, PacketItemTypes.VINE),
 
     LECTERN((player, place) -> {
-        WrappedBlockState lectern = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState lectern = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
         lectern.setFacing(place.getPlayerFacing().getOppositeFace());
         place.set(lectern);
-    }, ItemTypes.LECTERN),
+    }, PacketItemTypes.LECTERN),
 
     FENCE_GATE((player, place) -> {
-        WrappedBlockState gate = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState gate = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
         gate.setFacing(place.getPlayerFacing());
 
         // Check for redstone signal!
@@ -872,7 +874,7 @@ public enum BlockPlaceResult {
     }, BlockTags.FENCE_GATES),
 
     TRAPDOOR((player, place) -> {
-        WrappedBlockState door = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState door = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
 
         BlockFace direction = place.getDirection();
         if (!place.isReplaceClicked() && BlockFaceHelper.isFaceHorizontal(direction)) {
@@ -913,7 +915,7 @@ public enum BlockPlaceResult {
 
     DOOR((player, place) -> {
         if (place.isFullFace(BlockFace.DOWN) && place.isBlockFaceOpen(BlockFace.UP)) {
-            WrappedBlockState door = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
+            WrappedBlockState door = BlockPlace.createBlockState(place.getMaterial(), CompensatedWorld.blockVersion);
             door.setFacing(place.getPlayerFacing());
 
             // Get the hinge
@@ -1037,15 +1039,15 @@ public enum BlockPlaceResult {
         scaffolding.setBottom(isBottom);
 
         place.set(scaffolding);
-    }, ItemTypes.SCAFFOLDING),
+    }, PacketItemTypes.SCAFFOLDING),
 
     DOUBLE_PLANT((player, place) -> {
         if (place.isBlockFaceOpen(BlockFace.UP) && place.isOnDirt() || place.isOn(StateTypes.FARMLAND)) {
             place.set();
             place.setAbove(); // Client predicts block above
         }
-    }, ItemTypes.TALL_GRASS, ItemTypes.LARGE_FERN, ItemTypes.SUNFLOWER,
-            ItemTypes.LILAC, ItemTypes.ROSE_BUSH, ItemTypes.PEONY),
+    }, PacketItemTypes.TALL_GRASS, PacketItemTypes.LARGE_FERN, PacketItemTypes.SUNFLOWER,
+            PacketItemTypes.LILAC, PacketItemTypes.ROSE_BUSH, PacketItemTypes.PEONY),
 
     MUSHROOM((player, place) -> {
         if (BlockTags.MUSHROOM_GROW_BLOCK.contains(place.getBelowMaterial())) {
@@ -1055,7 +1057,7 @@ public enum BlockPlaceResult {
             // This is wrong and depends on lighting, but the server resync's anyways plus this isn't a solid block. so I don't care.
             place.set();
         }
-    }, ItemTypes.BROWN_MUSHROOM, ItemTypes.RED_MUSHROOM),
+    }, PacketItemTypes.BROWN_MUSHROOM, PacketItemTypes.RED_MUSHROOM),
 
     MANGROVE_PROPAGULE((player, place) -> {
         // Must be hanging below mangrove leaves
@@ -1064,80 +1066,80 @@ public enum BlockPlaceResult {
         if (place.isOnDirt() || place.isOn(StateTypes.FARMLAND)) {
             place.set();
         }
-    }, ItemTypes.MANGROVE_PROPAGULE),
+    }, PacketItemTypes.MANGROVE_PROPAGULE),
 
     FROGSPAWN((player, place) -> {
         if (Materials.isWater(player.getClientVersion(), place.getExistingBlockData()) && Materials.isWater(player.getClientVersion(), place.getAboveState())) {
             place.set();
         }
-    }, ItemTypes.FROGSPAWN),
+    }, PacketItemTypes.FROGSPAWN),
 
     BUSH_BLOCK_TYPE((player, place) -> {
         if (place.isOnDirt() || place.isOn(StateTypes.FARMLAND)) {
             place.set();
         }
-    }, ItemTypes.SPRUCE_SAPLING, ItemTypes.ACACIA_SAPLING,
-            ItemTypes.BIRCH_SAPLING, ItemTypes.DARK_OAK_SAPLING,
-            ItemTypes.OAK_SAPLING, ItemTypes.JUNGLE_SAPLING,
-            ItemTypes.SWEET_BERRIES, ItemTypes.DANDELION,
-            ItemTypes.POPPY, ItemTypes.BLUE_ORCHID,
-            ItemTypes.ALLIUM, ItemTypes.AZURE_BLUET,
-            ItemTypes.RED_TULIP, ItemTypes.ORANGE_TULIP,
-            ItemTypes.WHITE_TULIP, ItemTypes.PINK_TULIP,
-            ItemTypes.OXEYE_DAISY, ItemTypes.CORNFLOWER,
-            ItemTypes.LILY_OF_THE_VALLEY, ItemTypes.PINK_PETALS,
-            ItemTypes.SHORT_GRASS),
+    }, PacketItemTypes.SPRUCE_SAPLING, PacketItemTypes.ACACIA_SAPLING,
+            PacketItemTypes.BIRCH_SAPLING, PacketItemTypes.DARK_OAK_SAPLING,
+            PacketItemTypes.OAK_SAPLING, PacketItemTypes.JUNGLE_SAPLING,
+            PacketItemTypes.SWEET_BERRIES, PacketItemTypes.DANDELION,
+            PacketItemTypes.POPPY, PacketItemTypes.BLUE_ORCHID,
+            PacketItemTypes.ALLIUM, PacketItemTypes.AZURE_BLUET,
+            PacketItemTypes.RED_TULIP, PacketItemTypes.ORANGE_TULIP,
+            PacketItemTypes.WHITE_TULIP, PacketItemTypes.PINK_TULIP,
+            PacketItemTypes.OXEYE_DAISY, PacketItemTypes.CORNFLOWER,
+            PacketItemTypes.LILY_OF_THE_VALLEY, PacketItemTypes.PINK_PETALS,
+            PacketItemTypes.SHORT_GRASS),
 
     POWDER_SNOW_BUCKET((player, place) -> {
         place.set();
-        CheckManagerListener.setPlayerItem(player, place.getHand(), ItemTypes.BUCKET);
-    }, ItemTypes.POWDER_SNOW_BUCKET),
+        CheckManagerListener.setPlayerItem(player, place.getHand(), PacketItemTypes.BUCKET);
+    }, PacketItemTypes.POWDER_SNOW_BUCKET),
 
     GAME_MASTER((player, place) -> {
         if (player.canUseGameMasterBlocks()) {
             place.set();
         }
-    }, ItemTypes.COMMAND_BLOCK, ItemTypes.CHAIN_COMMAND_BLOCK, ItemTypes.REPEATING_COMMAND_BLOCK,
-            ItemTypes.JIGSAW, ItemTypes.STRUCTURE_BLOCK),
+    }, PacketItemTypes.COMMAND_BLOCK, PacketItemTypes.CHAIN_COMMAND_BLOCK, PacketItemTypes.REPEATING_COMMAND_BLOCK,
+            PacketItemTypes.JIGSAW, PacketItemTypes.STRUCTURE_BLOCK),
 
-    NO_DATA((player, place) -> place.set(place.getMaterial()), ItemTypes.AIR);
+    NO_DATA((player, place) -> place.set(place.getMaterial()), PacketItemTypes.AIR);
 
     // This should be an array... but a hashmap will do for now...
-    private static final Map<ItemType, BlockPlaceResult> lookupMap = new HashMap<>();
+    private static final Map<PacketItemType, BlockPlaceResult> lookupMap = new HashMap<>();
 
     static {
         for (BlockPlaceResult data : values()) {
-            for (ItemType type : data.materials) {
+            for (PacketItemType type : data.materials) {
                 lookupMap.put(type, data);
             }
         }
     }
 
     private final BlockPlaceFactory data;
-    private final ItemType[] materials;
+    private final PacketItemType[] materials;
 
-    BlockPlaceResult(BlockPlaceFactory data, ItemType... materials) {
+    BlockPlaceResult(BlockPlaceFactory data, PacketItemType... materials) {
         this.data = data;
-        Set<ItemType> mList = new HashSet<>(Arrays.asList(materials));
+        Set<PacketItemType> mList = new HashSet<>(Arrays.asList(materials));
         mList.remove(null); // Sets can contain one null
-        this.materials = mList.toArray(new ItemType[0]);
+        this.materials = mList.toArray(new PacketItemType[0]);
     }
 
     BlockPlaceResult(BlockPlaceFactory data, ItemTags tags) {
-        this(data, tags.getStates().toArray(new ItemType[0]));
+        this(data, tags.getStates().toArray(new PacketItemType[0]));
     }
 
     BlockPlaceResult(BlockPlaceFactory data, BlockTags tag) {
-        List<ItemType> types = new ArrayList<>(tag.getStates().size());
-        for (StateType state : tag.getStates()) {
-            types.add(ItemTypes.getTypePlacingState(state));
+        List<PacketItemType> types = new ArrayList<>(tag.getStates().size());
+        for (PacketStateType state : tag.getStates()) {
+            types.add(state.getTypePlacingState());
         }
 
         this.data = data;
-        this.materials = types.toArray(new ItemType[0]);
+        this.materials = types.toArray(new PacketItemType[0]);
     }
 
-    public static BlockPlaceFactory getMaterialData(ItemType placed) {
+    public static BlockPlaceFactory getMaterialData(PacketItemType placed) {
         return lookupMap.getOrDefault(placed, NO_DATA).data;
     }
 }

@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.math;
 
+import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.util.Vector3d;
 

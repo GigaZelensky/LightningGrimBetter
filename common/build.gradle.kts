@@ -40,12 +40,13 @@ dependencies {
         exclude(group = "org.yaml", module = "snakeyaml")
     }
     // Bump snakeyaml (transitive dep of configuralize) 1.29 -> 2.2 for geyser-fabric
-    api("org.yaml:snakeyaml:2.2")
+    api(libs.snakeyaml)
     api(libs.fastutil)
     api(libs.adventure.text.minimessage)
     api(libs.jetbrains.annotations)
 
-    api("ac.grim.grimac:GrimAPI:1.1.0.0")
+    api(project(":api"))
+    api(project(":api:packet"))
 
     compileOnly(libs.floodgate.api)
     compileOnly(libs.via.version.api)

@@ -1,10 +1,10 @@
 package ac.grim.grimac.platform.bukkit.events;
 
-import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.GrimAPIProvider;
+import ac.grim.grimac.api.GrimUser;
+import ac.grim.grimac.api.data.PistonData;
+import ac.grim.grimac.api.data.boxes.BaseSCB;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
-import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.PistonData;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -26,13 +26,13 @@ public class PistonEvent implements Listener {
         boolean hasSlimeBlock = false;
         boolean hasHoneyBlock = false;
 
-        List<SimpleCollisionBox> boxes = new ArrayList<>();
+        List<BaseSCB> boxes = new ArrayList<>();
         for (Block block : event.getBlocks()) {
-            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
+            boxes.add(new BaseSCB(0, 0, 0, 1, 1, 1, true)
                     .offset(block.getX(),
                             block.getY(),
                             block.getZ()));
-            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
+            boxes.add(new BaseSCB(0, 0, 0, 1, 1, 1, true)
                     .offset(block.getX() + event.getDirection().getModX(),
                             block.getY() + event.getDirection().getModY(),
                             block.getZ() + event.getDirection().getModZ()));
@@ -50,19 +50,19 @@ public class PistonEvent implements Listener {
         Block piston = event.getBlock();
 
         // Add bounding box of the actual piston head pushing
-        boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
+        boxes.add(new BaseSCB(0, 0, 0, 1, 1, 1, true)
                 .offset(piston.getX() + event.getDirection().getModX(),
                         piston.getY() + event.getDirection().getModY(),
                         piston.getZ() + event.getDirection().getModZ()));
 
         boolean finalHasSlimeBlock = hasSlimeBlock;
         boolean finalHasHoneyBlock = hasHoneyBlock;
-        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            int lastTrans = player.lastTransactionSent.get();
+        for (GrimUser player : GrimAPIProvider.getDirect().getGrimUsers()) {
+            int lastTrans = player.getLastTransactionSent();
             player.runSafely(() -> {
-                if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
+                if (player.getCompensatedWorld().isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
                     PistonData data = new PistonData(BukkitConversionUtils.fromBukkitFace(event.getDirection()), boxes, lastTrans, true, finalHasSlimeBlock, finalHasHoneyBlock);
-                    player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
+                    player.addRealTimeTask(lastTrans, () -> player.getCompensatedWorld().addActivePistons(data));
                 }
             });
         }
@@ -83,7 +83,7 @@ public class PistonEvent implements Listener {
         boolean hasSlimeBlock = false;
         boolean hasHoneyBlock = false;
 
-        List<SimpleCollisionBox> boxes = new ArrayList<>();
+        List<BaseSCB> boxes = new ArrayList<>();
         BlockFace face = BukkitConversionUtils.fromBukkitFace(event.getDirection());
 
         // The event was called without blocks and is therefore in the right direction
@@ -91,16 +91,16 @@ public class PistonEvent implements Listener {
             Block piston = event.getBlock();
 
             // Add bounding box of the actual piston head pushing
-            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
+            boxes.add(new BaseSCB(0, 0, 0, 1, 1, 1, true)
                     .offset(piston.getX() + face.getModX(),
                             piston.getY() + face.getModY(),
                             piston.getZ() + face.getModZ()));
         }
 
         for (Block block : event.getBlocks()) {
-            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
+            boxes.add(new BaseSCB(0, 0, 0, 1, 1, 1, true)
                     .offset(block.getX(), block.getY(), block.getZ()));
-            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
+            boxes.add(new BaseSCB(0, 0, 0, 1, 1, 1, true)
                     .offset(block.getX() + face.getModX(), block.getY() + face.getModY(), block.getZ() + face.getModZ()));
 
             // Support honey block like this because ViaVersion replacement
@@ -115,12 +115,12 @@ public class PistonEvent implements Listener {
 
         boolean finalHasSlimeBlock = hasSlimeBlock;
         boolean finalHasHoneyBlock = hasHoneyBlock;
-        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            int lastTrans = player.lastTransactionSent.get();
+        for (GrimUser player : GrimAPIProvider.getDirect().getGrimUsers()) {
+            int lastTrans = player.getLastTransactionSent();
             player.runSafely(() -> {
-                if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
+                if (player.getCompensatedWorld().isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
                     PistonData data = new PistonData(BukkitConversionUtils.fromBukkitFace(event.getDirection()), boxes, lastTrans, false, finalHasSlimeBlock, finalHasHoneyBlock);
-                    player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
+                    player.addRealTimeTask(lastTrans, () -> player.getCompensatedWorld().addActivePistons(data));
                 }
             });
         }

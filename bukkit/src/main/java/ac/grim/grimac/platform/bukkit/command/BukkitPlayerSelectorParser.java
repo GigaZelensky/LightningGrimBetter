@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.bukkit.command;
 
-import ac.grim.grimac.platform.api.command.AbstractPlayerSelectorParser;
-import ac.grim.grimac.platform.api.command.PlayerSelector;
+import ac.grim.grimac.api.platform.command.AbstractPlayerSelectorParser;
+import ac.grim.grimac.api.platform.command.PlayerSelector;
 import org.incendo.cloud.bukkit.parser.selector.SinglePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.ParserDescriptor;

@@ -1,5 +1,7 @@
 package ac.grim.grimac.manager.init.start;
 
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.platform.init.StartableInitable;
 import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.events.packets.PacketBlockAction;
 import ac.grim.grimac.events.packets.PacketEntityAction;
@@ -18,22 +20,29 @@ import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.events.packets.worldreader.BasePacketWorldReader;
 import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderEight;
 import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderEighteen;
-import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.api.util.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
 
 public class PacketManager implements StartableInitable {
+
+    private final GrimAPI api;
+
+    public PacketManager(GrimAPI api) {
+        this.api = api;
+    }
+
     @Override
     public void start() {
         LogUtil.info("Registering packets...");
 
-        PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerJoinQuit());
-        PacketEvents.getAPI().getEventManager().registerListener(new PacketPingListener());
-        PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerDigging());
-        PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerAttack());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerJoinQuit(api));
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketPingListener(api));
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerDigging(api));
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerAttack(a));
         PacketEvents.getAPI().getEventManager().registerListener(new PacketEntityAction());
-        PacketEvents.getAPI().getEventManager().registerListener(new PacketBlockAction());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketBlockAction(api));
         PacketEvents.getAPI().getEventManager().registerListener(new PacketSelfMetadataListener());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketServerTeleport());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerCooldown());
@@ -54,7 +63,7 @@ public class PacketManager implements StartableInitable {
         }
 
         PacketEvents.getAPI().getEventManager().registerListener(new ProxyAlertMessenger());
-        PacketEvents.getAPI().getEventManager().registerListener(new PacketHidePlayerInfo());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketHidePlayerInfo(api));
 
         PacketEvents.getAPI().init();
     }

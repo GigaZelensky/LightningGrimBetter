@@ -1,12 +1,11 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.manager.init.ReloadableInitable;
-import ac.grim.grimac.manager.init.start.StartableInitable;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.api.math.Location;
+import ac.grim.grimac.api.platform.init.ReloadableInitable;
+import ac.grim.grimac.api.platform.init.StartableInitable;
+import ac.grim.grimac.api.platform.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.math.Location;
-import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -27,6 +26,12 @@ public class SpectateManager implements StartableInitable, ReloadableInitable {
 
     private boolean checkWorld = false;
 
+    private final GrimAPI grimAPI;
+
+    public SpectateManager(GrimAPI grimAPI) {
+        this.grimAPI = grimAPI;
+    }
+
     @Override
     public void start() {
         reload();
@@ -35,7 +40,7 @@ public class SpectateManager implements StartableInitable, ReloadableInitable {
     @Override
     public void reload() {
         allowedWorlds.clear();
-        allowedWorlds.addAll(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringListElse("spectators.allowed-worlds", new ArrayList<>()));
+        allowedWorlds.addAll(grimAPI.getConfigManager().getConfig().getStringListElse("spectators.allowed-worlds", new ArrayList<>()));
         checkWorld = !(allowedWorlds.isEmpty() || new ArrayList<>(allowedWorlds).get(0).isEmpty());
     }
 
@@ -58,7 +63,7 @@ public class SpectateManager implements StartableInitable, ReloadableInitable {
 
     public boolean enable(PlatformPlayer platformPlayer) {
         if (spectatingPlayers.containsKey(platformPlayer.getUniqueId())) return false;
-        spectatingPlayers.put(platformPlayer.getUniqueId(), new PreviousState(platformPlayer.getGameMode(), platformPlayer.getLocation()));
+        spectatingPlayers.put(platformPlayer.getUniqueId(), new PreviousState(platformPlayer.getGameModeID(), platformPlayer.getLocation()));
         return true;
     }
 
@@ -90,7 +95,7 @@ public class SpectateManager implements StartableInitable, ReloadableInitable {
     }
 
     private void onDisable(PreviousState previousState, PlatformPlayer platformPlayer) {
-        platformPlayer.setGameMode(previousState.gameMode);
+        platformPlayer.setGameMode(previousState.gameModeID);
         handlePlayerStopSpectating(platformPlayer.getUniqueId());
     }
 
@@ -98,6 +103,6 @@ public class SpectateManager implements StartableInitable, ReloadableInitable {
         spectatingPlayers.remove(uuid);
     }
 
-    private record PreviousState(GameMode gameMode, Location location) {
+    private record PreviousState(int gameModeID, Location location) {
     }
 }

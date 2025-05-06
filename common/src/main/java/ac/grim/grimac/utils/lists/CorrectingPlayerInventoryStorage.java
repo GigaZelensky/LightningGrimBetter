@@ -4,7 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import ac.grim.grimac.api.packet.item.PacketItemStack;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -76,7 +76,7 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
     // This is more meant for pre-1.17 clients, but mojang fucked up netcode AGAIN in 1.17, so
     // we must use this for 1.17 clients as well... at least you tried Mojang.
     @Override
-    public void setItem(int item, ItemStack stack) {
+    public void setItem(int item, PacketItemStack stack) {
         // If there is a more recent change to this one, don't override it
         int finalTransaction = serverIsCurrentlyProcessingThesePredictions.getOrDefault(item, -1);
 
@@ -101,8 +101,8 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
         int bukkitSlot = player.getInventory().getBukkitSlot(slot); // 8 -> 39, should be 36
 
         if (bukkitSlot != -1) {
-            ItemStack existing = getItem(slot);
-            ItemStack toPE = player.platformPlayer.getInventory().getStack(bukkitSlot, slot);
+            PacketItemStack existing = getItem(slot);
+            PacketItemStack toPE = player.platformPlayer.getInventory().getStack(bukkitSlot, slot);
 
             if (existing.getType() != toPE.getType() || existing.getAmount() != toPE.getAmount()) {
                 GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(),

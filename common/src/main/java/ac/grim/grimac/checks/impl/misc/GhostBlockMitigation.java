@@ -2,10 +2,9 @@ package ac.grim.grimac.checks.impl.misc;
 
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
-import ac.grim.grimac.platform.api.world.PlatformWorld;
+import ac.grim.grimac.api.platform.world.PlatformWorld;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
 
 public class GhostBlockMitigation extends BlockPlaceCheck {
@@ -49,9 +48,7 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
                             continue;
                         }
 
-                        WrappedBlockState type = world.getBlockAt(i, j, k);
-
-                        if (!type.getType().isAir()) {
+                        if (!world.isAirAt(i, j ,k)) {
                             return;
                         }
                     }

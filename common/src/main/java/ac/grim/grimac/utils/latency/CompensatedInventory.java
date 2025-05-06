@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
+import ac.grim.grimac.api.packet.item.PacketItemStack;
+import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -14,9 +16,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
@@ -110,7 +110,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         inventory.getInventoryStorage().handleClientClaimedSlotSet(playerInvSlotclicked);
     }
 
-    public ItemStack getItemInHand(InteractionHand hand) {
+    public PacketItemStack getItemInHand(InteractionHand hand) {
         return hand == InteractionHand.MAIN_HAND ? getHeldItem() : getOffHand();
     }
 
@@ -130,45 +130,45 @@ public class CompensatedInventory extends Check implements PacketCheck {
         inventory.getInventoryStorage().handleServerCorrectSlot(playerInvSlotclicked);
     }
 
-    public ItemStack getHeldItem() {
-        ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getHeldItem() :
+    public PacketItemStack getHeldItem() {
+        PacketItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getHeldItem() :
                 player.platformPlayer.getInventory().getItemInHand();
-        return item == null ? ItemStack.EMPTY : item;
+        return item == null ? PacketItemStack.EMPTY : item;
     }
 
-    public ItemStack getOffHand() {
+    public PacketItemStack getOffHand() {
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
-            return ItemStack.EMPTY;
-        ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getOffhand() :
+            return PacketItemStack.EMPTY;
+        PacketItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getOffhand() :
                 player.platformPlayer.getInventory().getItemInOffHand();
-        return item == null ? ItemStack.EMPTY : item;
+        return item == null ? PacketItemStack.EMPTY : item;
     }
 
-    public ItemStack getHelmet() {
-        ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getHelmet() :
+    public PacketItemStack getHelmet() {
+        PacketItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getHelmet() :
                 player.platformPlayer.getInventory().getHelmet();
-        return item == null ? ItemStack.EMPTY : item;
+        return item == null ? PacketItemStack.EMPTY : item;
     }
 
-    public ItemStack getChestplate() {
-        ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getChestplate() :
+    public PacketItemStack getChestplate() {
+        PacketItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getChestplate() :
                 player.platformPlayer.getInventory().getChestplate();
-        return item == null ? ItemStack.EMPTY : item;
+        return item == null ? PacketItemStack.EMPTY : item;
     }
 
-    public ItemStack getLeggings() {
-        ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getLeggings() :
+    public PacketItemStack getLeggings() {
+        PacketItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getLeggings() :
                 player.platformPlayer.getInventory().getLeggings();
-        return item == null ? ItemStack.EMPTY : item;
+        return item == null ? PacketItemStack.EMPTY : item;
     }
 
-    public ItemStack getBoots() {
-        ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getBoots() :
+    public PacketItemStack getBoots() {
+        PacketItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getBoots() :
                 player.platformPlayer.getInventory().getBoots();
-        return item == null ? ItemStack.EMPTY : item;
+        return item == null ? PacketItemStack.EMPTY : item;
     }
 
-    private ItemStack getByEquipmentType(EquipmentType type) {
+    private PacketItemStack getByEquipmentType(EquipmentType type) {
         return switch (type) {
             case HEAD -> getHelmet();
             case CHEST -> getChestplate();
@@ -184,7 +184,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             return inventory.hasItemType(type);
 
         // Fall back to platform inventories
-        for (ItemStack itemStack : player.platformPlayer.getInventory().getContents()) {
+        for (PacketItemStack itemStack : player.platformPlayer.getInventory().getContents()) {
             if (itemStack != null && itemStack.getType() == type) return true;
         }
         return false;
@@ -194,7 +194,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem item = new WrapperPlayClientUseItem(event);
 
-            ItemStack use = item.getHand() == InteractionHand.MAIN_HAND ? player.getInventory().getHeldItem() : player.getInventory().getOffHand();
+            PacketItemStack use = item.getHand() == InteractionHand.MAIN_HAND ? player.getInventory().getHeldItem() : player.getInventory().getOffHand();
 
             EquipmentType equipmentType = EquipmentType.getEquipmentSlotForItem(use);
             if (equipmentType != null) {
@@ -216,7 +216,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
                         return;
                 }
 
-                ItemStack itemstack1 = getByEquipmentType(equipmentType);
+                PacketItemStack itemstack1 = getByEquipmentType(equipmentType);
                 // Only 1.19.4+ clients support swapping with non-empty items
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4) && !itemstack1.isEmpty())
                     return;
@@ -240,7 +240,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) return;
 
             if (dig.getAction() == DiggingAction.DROP_ITEM) {
-                ItemStack heldItem = getHeldItem();
+                PacketItemStack heldItem = getHeldItem();
                 if (heldItem != null) {
                     heldItem.setAmount(heldItem.getAmount() - 1);
                     if (heldItem.getAmount() <= 0) {
@@ -294,7 +294,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             }
 
             // Mark the slots the player has changed as changed, then continue simulating what they changed
-            Optional<Map<Integer, ItemStack>> slots = click.getSlots();
+            Optional<Map<Integer, PacketItemStack>> slots = (Optional) click.getSlots();
             slots.ifPresent(integerItemStackMap -> integerItemStackMap.keySet().forEach(this::markPlayerSlotAsChanged));
 
             // 0 for left click
@@ -314,7 +314,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
             menu = inventory;
             openWindowID = 0;
-            menu.setCarried(ItemStack.EMPTY); // Reset carried item
+            menu.setCarried(PacketItemStack.EMPTY); // Reset carried item
         }
     }
 
@@ -328,7 +328,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
     }
 
     public void onBlockPlace(BlockPlace place) {
-        if (player.gamemode != GameMode.CREATIVE && place.getItemStack().getType() != ItemTypes.POWDER_SNOW_BUCKET) {
+        if (player.gamemode != GameMode.CREATIVE && place.getItemStack().getType() != PacketItemTypes.POWDER_SNOW_BUCKET) {
             markSlotAsResyncing(place);
             place.getItemStack().setAmount(place.getItemStack().getAmount() - 1);
         }
@@ -383,7 +383,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 openWindowID = 0;
                 menu = inventory;
-                menu.setCarried(ItemStack.EMPTY); // Reset carried item
+                menu.setCarried(PacketItemStack.EMPTY); // Reset carried item
             });
         }
 
@@ -392,7 +392,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
             stateID = items.getStateId();
 
-            List<ItemStack> slots = items.getItems();
+            List<PacketItemStack> slots = (List) items.getItems();
             for (int i = 0; i < slots.size(); i++) {
                 markServerForChangingSlot(i, items.getWindowId());
             }

@@ -1,13 +1,15 @@
 package ac.grim.grimac.utils.nmsutil;
 
+import ac.grim.grimac.api.packet.item.PacketItemAttribute;
+import ac.grim.grimac.api.packet.item.PacketItemType;
+import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 
@@ -16,18 +18,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Materials {
-    private static final Set<StateType> NO_PLACE_LIQUIDS = new HashSet<>();
+    private static final Set<PacketStateType> NO_PLACE_LIQUIDS = new HashSet<>();
     // Includes iron panes in addition to glass panes
-    private static final Set<StateType> PANES = new HashSet<>();
-    private static final Set<StateType> WATER_LIQUIDS = new HashSet<>();
-    private static final Set<StateType> WATER_LIQUIDS_LEGACY = new HashSet<>();
-    private static final Set<StateType> WATER_SOURCES = new HashSet<>();
-    private static final Set<StateType> WATER_SOURCES_LEGACY = new HashSet<>();
+    private static final Set<PacketStateType> PANES = new HashSet<>();
+    private static final Set<PacketStateType> WATER_LIQUIDS = new HashSet<>();
+    private static final Set<PacketStateType> WATER_LIQUIDS_LEGACY = new HashSet<>();
+    private static final Set<PacketStateType> WATER_SOURCES = new HashSet<>();
+    private static final Set<PacketStateType> WATER_SOURCES_LEGACY = new HashSet<>();
 
-    private static final Set<StateType> COPPER_DOORS = new HashSet<>();
-    private static final Set<StateType> COPPER_TRAPDOORS = new HashSet<>();
+    private static final Set<PacketStateType> COPPER_DOORS = new HashSet<>();
+    private static final Set<PacketStateType> COPPER_TRAPDOORS = new HashSet<>();
 
-    private static final Set<StateType> CLIENT_SIDE = new HashSet<>();
+    private static final Set<PacketStateType> CLIENT_SIDE = new HashSet<>();
 
     static {
         // Base water, flowing on 1.12- but not on 1.13+ servers
@@ -117,82 +119,82 @@ public class Materials {
         PANES.add(StateTypes.IRON_BARS);
     }
 
-    public static boolean isStairs(StateType type) {
+    public static boolean isStairs(PacketStateType type) {
         return BlockTags.STAIRS.contains(type);
     }
 
-    public static boolean isSlab(StateType type) {
+    public static boolean isSlab(PacketStateType type) {
         return BlockTags.SLABS.contains(type);
     }
 
-    public static boolean isWall(StateType type) {
+    public static boolean isWall(PacketStateType type) {
         return BlockTags.WALLS.contains(type);
     }
 
-    public static boolean isButton(StateType type) {
+    public static boolean isButton(PacketStateType type) {
         return BlockTags.BUTTONS.contains(type);
     }
 
-    public static boolean isFence(StateType type) {
+    public static boolean isFence(PacketStateType type) {
         return BlockTags.FENCES.contains(type);
     }
 
-    public static boolean isGate(StateType type) {
+    public static boolean isGate(PacketStateType type) {
         return BlockTags.FENCE_GATES.contains(type);
     }
 
-    public static boolean isBed(StateType type) {
+    public static boolean isBed(PacketStateType type) {
         return BlockTags.BEDS.contains(type);
     }
 
-    public static boolean isAir(StateType type) {
+    public static boolean isAir(PacketStateType type) {
         return type.isAir();
     }
 
-    public static boolean isLeaves(StateType type) {
+    public static boolean isLeaves(PacketStateType type) {
         return BlockTags.LEAVES.contains(type);
     }
 
-    public static boolean isDoor(StateType type) {
+    public static boolean isDoor(PacketStateType type) {
         return BlockTags.DOORS.contains(type);
     }
 
-    public static boolean isShulker(StateType type) {
+    public static boolean isShulker(PacketStateType type) {
         return BlockTags.SHULKER_BOXES.contains(type);
     }
 
-    public static boolean isGlassBlock(StateType type) {
+    public static boolean isGlassBlock(PacketStateType type) {
         return BlockTags.GLASS_BLOCKS.contains(type);
     }
 
-    public static Set<StateType> getPanes() {
+    public static Set<PacketStateType> getPanes() {
         return new HashSet<>(PANES);
     }
 
-    public static boolean isGlassPane(StateType type) {
+    public static boolean isGlassPane(PacketStateType type) {
         return PANES.contains(type);
     }
 
-    public static boolean isCauldron(StateType type) {
+    public static boolean isCauldron(PacketStateType type) {
         return BlockTags.CAULDRONS.contains(type);
     }
 
-    public static boolean isWaterModern(StateType type) {
+    public static boolean isWaterModern(PacketStateType type) {
         return WATER_LIQUIDS.contains(type);
     }
 
-    public static boolean isWaterLegacy(StateType type) {
+    public static boolean isWaterLegacy(PacketStateType type) {
         return WATER_LIQUIDS_LEGACY.contains(type);
     }
 
-    public static boolean isShapeExceedsCube(StateType type) {
+    public static boolean isShapeExceedsCube(PacketStateType type) {
         return type.exceedsCube();
     }
 
     public static boolean isUsable(ItemType material) {
-        return material != null && (material.hasAttribute(ItemTypes.ItemAttribute.EDIBLE) || material == ItemTypes.POTION || material == ItemTypes.MILK_BUCKET
-                || material == ItemTypes.CROSSBOW || material == ItemTypes.BOW || material.toString().endsWith("SWORD")
-                || material == ItemTypes.TRIDENT || material == ItemTypes.SHIELD);
+        return material != null && (material.hasAttribute(PacketItemAttribute.EDIBLE) || material == PacketItemTypes.POTION || material == PacketItemTypes.MILK_BUCKET
+                || material == PacketItemTypes.CROSSBOW || material == PacketItemTypes.BOW || material.toString().endsWith("SWORD")
+                || material == PacketItemTypes.TRIDENT || material == PacketItemTypes.SHIELD);
     }
 
     public static boolean isWater(ClientVersion clientVersion, WrappedBlockState state) {
@@ -225,7 +227,7 @@ public class Materials {
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_13))
             return false;
 
-        StateType type = state.getType();
+        PacketStateType type = state.getType();
 
         // Waterlogged lanterns were added in 1.16.2
         if (clientVersion.isOlderThan(ClientVersion.V_1_16_2) && (type == StateTypes.LANTERN || type == StateTypes.SOUL_LANTERN))
@@ -240,14 +242,14 @@ public class Materials {
         return (boolean) state.getInternalData().getOrDefault(StateValue.WATERLOGGED, false);
     }
 
-    public static boolean isPlaceableWaterBucket(ItemType mat) {
-        return mat == ItemTypes.AXOLOTL_BUCKET || mat == ItemTypes.COD_BUCKET || mat == ItemTypes.PUFFERFISH_BUCKET
-                || mat == ItemTypes.SALMON_BUCKET || mat == ItemTypes.TROPICAL_FISH_BUCKET || mat == ItemTypes.WATER_BUCKET
-                || mat == ItemTypes.TADPOLE_BUCKET;
+    public static boolean isPlaceableWaterBucket(PacketItemType mat) {
+        return mat == PacketItemTypes.AXOLOTL_BUCKET || mat == PacketItemTypes.COD_BUCKET || mat == PacketItemTypes.PUFFERFISH_BUCKET
+                || mat == PacketItemTypes.SALMON_BUCKET || mat == PacketItemTypes.TROPICAL_FISH_BUCKET || mat == PacketItemTypes.WATER_BUCKET
+                || mat == PacketItemTypes.TADPOLE_BUCKET;
     }
 
-    public static StateType transformBucketMaterial(ItemType mat) {
-        if (mat == ItemTypes.LAVA_BUCKET) return StateTypes.LAVA;
+    public static PacketStateType transformBucketMaterial(PacketItemType mat) {
+        if (mat == PacketItemTypes.LAVA_BUCKET) return StateTypes.LAVA;
         if (isPlaceableWaterBucket(mat)) return StateTypes.WATER;
         return null;
     }
@@ -256,7 +258,7 @@ public class Materials {
     // As we have already assumed that the player does not have water at this block
     // We do not have to track all the version differences in terms of looking for water
     // For 1.7-1.12 clients, it is safe to check SOLID_BLACKLIST directly
-    public static boolean isSolidBlockingBlacklist(StateType mat, ClientVersion ver) {
+    public static boolean isSolidBlockingBlacklist(PacketStateType mat, ClientVersion ver) {
         // Thankfully Mojang has not changed this code much across versions
         // There very likely is a few lurking issues though, I've done my best but can't thoroughly compare 11 versions
         // but from a look, Mojang seems to keep this definition consistent throughout their game (thankfully)
@@ -273,15 +275,15 @@ public class Materials {
         return false;
     }
 
-    public static boolean isAnvil(StateType mat) {
+    public static boolean isAnvil(PacketStateType mat) {
         return BlockTags.ANVIL.contains(mat);
     }
 
-    public static boolean isWoodenChest(StateType mat) {
+    public static boolean isWoodenChest(PacketStateType mat) {
         return mat == StateTypes.CHEST || mat == StateTypes.TRAPPED_CHEST;
     }
 
-    public static boolean isNoPlaceLiquid(StateType material) {
+    public static boolean isNoPlaceLiquid(PacketStateType material) {
         return NO_PLACE_LIQUIDS.contains(material);
     }
 
@@ -291,11 +293,11 @@ public class Materials {
         return isWaterLegacy(state.getType());
     }
 
-    public static boolean isClientSideInteractable(StateType material) {
+    public static boolean isClientSideInteractable(PacketStateType material) {
         return CLIENT_SIDE.contains(material);
     }
 
-    public static boolean isClientSideOpenableDoor(StateType mat, ClientVersion ver) {
+    public static boolean isClientSideOpenableDoor(PacketStateType mat, ClientVersion ver) {
         // Iron doors and all other blocks are not openable
         if (!BlockTags.MOB_INTERACTABLE_DOORS.contains(mat)) {
             return false;
@@ -310,7 +312,7 @@ public class Materials {
         return true;
     }
 
-    public static boolean isClientSideOpenableTrapdoor(StateType mat, ClientVersion ver) {
+    public static boolean isClientSideOpenableTrapdoor(PacketStateType mat, ClientVersion ver) {
         // Everything except trapdoors
         if (!BlockTags.TRAPDOORS.contains(mat)) {
             return false;
@@ -330,8 +332,8 @@ public class Materials {
         return true;
     }
 
-    public static boolean isCompostable(ItemType material) {
+    public static boolean isCompostable(PacketItemType material) {
         // This 3772 character line was auto generated
-        return ItemTypes.JUNGLE_LEAVES.equals(material) || ItemTypes.OAK_LEAVES.equals(material) || ItemTypes.SPRUCE_LEAVES.equals(material) || ItemTypes.DARK_OAK_LEAVES.equals(material) || ItemTypes.ACACIA_LEAVES.equals(material) || ItemTypes.BIRCH_LEAVES.equals(material) || ItemTypes.AZALEA_LEAVES.equals(material) || ItemTypes.OAK_SAPLING.equals(material) || ItemTypes.SPRUCE_SAPLING.equals(material) || ItemTypes.BIRCH_SAPLING.equals(material) || ItemTypes.JUNGLE_SAPLING.equals(material) || ItemTypes.ACACIA_SAPLING.equals(material) || ItemTypes.DARK_OAK_SAPLING.equals(material) || ItemTypes.BEETROOT_SEEDS.equals(material) || ItemTypes.DRIED_KELP.equals(material) || ItemTypes.SHORT_GRASS.equals(material) || ItemTypes.KELP.equals(material) || ItemTypes.MELON_SEEDS.equals(material) || ItemTypes.PUMPKIN_SEEDS.equals(material) || ItemTypes.SEAGRASS.equals(material) || ItemTypes.SWEET_BERRIES.equals(material) || ItemTypes.GLOW_BERRIES.equals(material) || ItemTypes.WHEAT_SEEDS.equals(material) || ItemTypes.MOSS_CARPET.equals(material) || ItemTypes.SMALL_DRIPLEAF.equals(material) || ItemTypes.HANGING_ROOTS.equals(material) || ItemTypes.DRIED_KELP_BLOCK.equals(material) || ItemTypes.TALL_GRASS.equals(material) || ItemTypes.AZALEA.equals(material) || ItemTypes.CACTUS.equals(material) || ItemTypes.SUGAR_CANE.equals(material) || ItemTypes.VINE.equals(material) || ItemTypes.NETHER_SPROUTS.equals(material) || ItemTypes.WEEPING_VINES.equals(material) || ItemTypes.TWISTING_VINES.equals(material) || ItemTypes.MELON_SLICE.equals(material) || ItemTypes.GLOW_LICHEN.equals(material) || ItemTypes.SEA_PICKLE.equals(material) || ItemTypes.LILY_PAD.equals(material) || ItemTypes.PUMPKIN.equals(material) || ItemTypes.CARVED_PUMPKIN.equals(material) || ItemTypes.MELON.equals(material) || ItemTypes.APPLE.equals(material) || ItemTypes.BEETROOT.equals(material) || ItemTypes.CARROT.equals(material) || ItemTypes.COCOA_BEANS.equals(material) || ItemTypes.POTATO.equals(material) || ItemTypes.WHEAT.equals(material) || ItemTypes.BROWN_MUSHROOM.equals(material) || ItemTypes.RED_MUSHROOM.equals(material) || ItemTypes.MUSHROOM_STEM.equals(material) || ItemTypes.CRIMSON_FUNGUS.equals(material) || ItemTypes.WARPED_FUNGUS.equals(material) || ItemTypes.NETHER_WART.equals(material) || ItemTypes.CRIMSON_ROOTS.equals(material) || ItemTypes.WARPED_ROOTS.equals(material) || ItemTypes.SHROOMLIGHT.equals(material) || ItemTypes.DANDELION.equals(material) || ItemTypes.POPPY.equals(material) || ItemTypes.BLUE_ORCHID.equals(material) || ItemTypes.ALLIUM.equals(material) || ItemTypes.AZURE_BLUET.equals(material) || ItemTypes.RED_TULIP.equals(material) || ItemTypes.ORANGE_TULIP.equals(material) || ItemTypes.WHITE_TULIP.equals(material) || ItemTypes.PINK_TULIP.equals(material) || ItemTypes.OXEYE_DAISY.equals(material) || ItemTypes.CORNFLOWER.equals(material) || ItemTypes.LILY_OF_THE_VALLEY.equals(material) || ItemTypes.WITHER_ROSE.equals(material) || ItemTypes.FERN.equals(material) || ItemTypes.SUNFLOWER.equals(material) || ItemTypes.LILAC.equals(material) || ItemTypes.ROSE_BUSH.equals(material) || ItemTypes.PEONY.equals(material) || ItemTypes.LARGE_FERN.equals(material) || ItemTypes.SPORE_BLOSSOM.equals(material) || ItemTypes.MOSS_BLOCK.equals(material) || ItemTypes.BIG_DRIPLEAF.equals(material) || ItemTypes.HAY_BLOCK.equals(material) || ItemTypes.BROWN_MUSHROOM_BLOCK.equals(material) || ItemTypes.RED_MUSHROOM_BLOCK.equals(material) || ItemTypes.NETHER_WART_BLOCK.equals(material) || ItemTypes.WARPED_WART_BLOCK.equals(material) || ItemTypes.FLOWERING_AZALEA.equals(material) || ItemTypes.BREAD.equals(material) || ItemTypes.BAKED_POTATO.equals(material) || ItemTypes.COOKIE.equals(material) || ItemTypes.CAKE.equals(material) || ItemTypes.PUMPKIN_PIE.equals(material);
+        return PacketItemTypes.JUNGLE_LEAVES.equals(material) || PacketItemTypes.OAK_LEAVES.equals(material) || PacketItemTypes.SPRUCE_LEAVES.equals(material) || PacketItemTypes.DARK_OAK_LEAVES.equals(material) || PacketItemTypes.ACACIA_LEAVES.equals(material) || PacketItemTypes.BIRCH_LEAVES.equals(material) || PacketItemTypes.AZALEA_LEAVES.equals(material) || PacketItemTypes.OAK_SAPLING.equals(material) || PacketItemTypes.SPRUCE_SAPLING.equals(material) || PacketItemTypes.BIRCH_SAPLING.equals(material) || PacketItemTypes.JUNGLE_SAPLING.equals(material) || PacketItemTypes.ACACIA_SAPLING.equals(material) || PacketItemTypes.DARK_OAK_SAPLING.equals(material) || PacketItemTypes.BEETROOT_SEEDS.equals(material) || PacketItemTypes.DRIED_KELP.equals(material) || PacketItemTypes.SHORT_GRASS.equals(material) || PacketItemTypes.KELP.equals(material) || PacketItemTypes.MELON_SEEDS.equals(material) || PacketItemTypes.PUMPKIN_SEEDS.equals(material) || PacketItemTypes.SEAGRASS.equals(material) || PacketItemTypes.SWEET_BERRIES.equals(material) || PacketItemTypes.GLOW_BERRIES.equals(material) || PacketItemTypes.WHEAT_SEEDS.equals(material) || PacketItemTypes.MOSS_CARPET.equals(material) || PacketItemTypes.SMALL_DRIPLEAF.equals(material) || PacketItemTypes.HANGING_ROOTS.equals(material) || PacketItemTypes.DRIED_KELP_BLOCK.equals(material) || PacketItemTypes.TALL_GRASS.equals(material) || PacketItemTypes.AZALEA.equals(material) || PacketItemTypes.CACTUS.equals(material) || PacketItemTypes.SUGAR_CANE.equals(material) || PacketItemTypes.VINE.equals(material) || PacketItemTypes.NETHER_SPROUTS.equals(material) || PacketItemTypes.WEEPING_VINES.equals(material) || PacketItemTypes.TWISTING_VINES.equals(material) || PacketItemTypes.MELON_SLICE.equals(material) || PacketItemTypes.GLOW_LICHEN.equals(material) || PacketItemTypes.SEA_PICKLE.equals(material) || PacketItemTypes.LILY_PAD.equals(material) || PacketItemTypes.PUMPKIN.equals(material) || PacketItemTypes.CARVED_PUMPKIN.equals(material) || PacketItemTypes.MELON.equals(material) || PacketItemTypes.APPLE.equals(material) || PacketItemTypes.BEETROOT.equals(material) || PacketItemTypes.CARROT.equals(material) || PacketItemTypes.COCOA_BEANS.equals(material) || PacketItemTypes.POTATO.equals(material) || PacketItemTypes.WHEAT.equals(material) || PacketItemTypes.BROWN_MUSHROOM.equals(material) || PacketItemTypes.RED_MUSHROOM.equals(material) || PacketItemTypes.MUSHROOM_STEM.equals(material) || PacketItemTypes.CRIMSON_FUNGUS.equals(material) || PacketItemTypes.WARPED_FUNGUS.equals(material) || PacketItemTypes.NETHER_WART.equals(material) || PacketItemTypes.CRIMSON_ROOTS.equals(material) || PacketItemTypes.WARPED_ROOTS.equals(material) || PacketItemTypes.SHROOMLIGHT.equals(material) || PacketItemTypes.DANDELION.equals(material) || PacketItemTypes.POPPY.equals(material) || PacketItemTypes.BLUE_ORCHID.equals(material) || PacketItemTypes.ALLIUM.equals(material) || PacketItemTypes.AZURE_BLUET.equals(material) || PacketItemTypes.RED_TULIP.equals(material) || PacketItemTypes.ORANGE_TULIP.equals(material) || PacketItemTypes.WHITE_TULIP.equals(material) || PacketItemTypes.PINK_TULIP.equals(material) || PacketItemTypes.OXEYE_DAISY.equals(material) || PacketItemTypes.CORNFLOWER.equals(material) || PacketItemTypes.LILY_OF_THE_VALLEY.equals(material) || PacketItemTypes.WITHER_ROSE.equals(material) || PacketItemTypes.FERN.equals(material) || PacketItemTypes.SUNFLOWER.equals(material) || PacketItemTypes.LILAC.equals(material) || PacketItemTypes.ROSE_BUSH.equals(material) || PacketItemTypes.PEONY.equals(material) || PacketItemTypes.LARGE_FERN.equals(material) || PacketItemTypes.SPORE_BLOSSOM.equals(material) || PacketItemTypes.MOSS_BLOCK.equals(material) || PacketItemTypes.BIG_DRIPLEAF.equals(material) || PacketItemTypes.HAY_BLOCK.equals(material) || PacketItemTypes.BROWN_MUSHROOM_BLOCK.equals(material) || PacketItemTypes.RED_MUSHROOM_BLOCK.equals(material) || PacketItemTypes.NETHER_WART_BLOCK.equals(material) || PacketItemTypes.WARPED_WART_BLOCK.equals(material) || PacketItemTypes.FLOWERING_AZALEA.equals(material) || PacketItemTypes.BREAD.equals(material) || PacketItemTypes.BAKED_POTATO.equals(material) || PacketItemTypes.COOKIE.equals(material) || PacketItemTypes.CAKE.equals(material) || PacketItemTypes.PUMPKIN_PIE.equals(material);
     }
 }

@@ -2,8 +2,8 @@ package ac.grim.grimac.command.commands;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.command.BuildableCommand;
-import ac.grim.grimac.platform.api.command.PlayerSelector;
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.platform.command.PlayerSelector;
+import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;

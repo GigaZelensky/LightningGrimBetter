@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.fabric.command;
 
-import ac.grim.grimac.platform.api.command.AbstractPlayerSelectorParser;
-import ac.grim.grimac.platform.api.command.PlayerSelector;
+import ac.grim.grimac.api.platform.command.AbstractPlayerSelectorParser;
+import ac.grim.grimac.api.platform.command.PlayerSelector;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.minecraft.modded.data.SinglePlayerSelector;
 import org.incendo.cloud.minecraft.modded.parser.VanillaArgumentParsers;

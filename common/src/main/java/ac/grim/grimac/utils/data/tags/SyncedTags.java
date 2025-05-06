@@ -1,17 +1,18 @@
 package ac.grim.grimac.utils.data.tags;
 
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTags;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -38,15 +39,16 @@ public final class SyncedTags {
         this.synced = new HashMap<>();
         ClientVersion version = player.getClientVersion();
         trackTags(BLOCK, id -> StateTypes.getById(VERSION.toClientVersion(), id),
-                SyncedTag.<StateType>builder(CLIMBABLE).defaults(BlockTags.CLIMBABLE.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_16)),
-                SyncedTag.<StateType>builder(MINEABLE_AXE).defaults(BlockTags.MINEABLE_AXE.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
-                SyncedTag.<StateType>builder(MINEABLE_PICKAXE).defaults(BlockTags.MINEABLE_PICKAXE.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
-                SyncedTag.<StateType>builder(MINEABLE_SHOVEL).defaults(BlockTags.MINEABLE_SHOVEL.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
-                SyncedTag.<StateType>builder(MINEABLE_HOE).defaults(BlockTags.MINEABLE_HOE.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
-                SyncedTag.<StateType>builder(NEEDS_DIAMOND_TOOL).defaults(BlockTags.NEEDS_DIAMOND_TOOL.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
-                SyncedTag.<StateType>builder(NEEDS_IRON_TOOL).defaults(BlockTags.NEEDS_IRON_TOOL.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
-                SyncedTag.<StateType>builder(NEEDS_STONE_TOOL).defaults(BlockTags.NEEDS_STONE_TOOL.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
-                SyncedTag.<StateType>builder(SWORD_EFFICIENT).defaults(BlockTags.SWORD_EFFICIENT.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_20))
+                // // TODO (Packet Rewrite) fix hacky cast
+                SyncedTag.<PacketStateType>builder(CLIMBABLE).defaults((Set<PacketStateType>) (Set<?>)BlockTags.CLIMBABLE.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_16)),
+                SyncedTag.<PacketStateType>builder(MINEABLE_AXE).defaults((Set<PacketStateType>) (Set<?>)BlockTags.MINEABLE_AXE.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
+                SyncedTag.<PacketStateType>builder(MINEABLE_PICKAXE).defaults((Set<PacketStateType>) (Set<?>)BlockTags.MINEABLE_PICKAXE.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
+                SyncedTag.<PacketStateType>builder(MINEABLE_SHOVEL).defaults((Set<PacketStateType>) (Set<?>)BlockTags.MINEABLE_SHOVEL.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
+                SyncedTag.<PacketStateType>builder(MINEABLE_HOE).defaults((Set<PacketStateType>) (Set<?>)BlockTags.MINEABLE_HOE.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
+                SyncedTag.<PacketStateType>builder(NEEDS_DIAMOND_TOOL).defaults((Set<PacketStateType>) (Set<?>)BlockTags.NEEDS_DIAMOND_TOOL.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
+                SyncedTag.<PacketStateType>builder(NEEDS_IRON_TOOL).defaults((Set<PacketStateType>) (Set<?>)BlockTags.NEEDS_IRON_TOOL.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
+                SyncedTag.<PacketStateType>builder(NEEDS_STONE_TOOL).defaults((Set<PacketStateType>) (Set<?>)BlockTags.NEEDS_STONE_TOOL.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
+                SyncedTag.<PacketStateType>builder(SWORD_EFFICIENT).defaults((Set<PacketStateType>) (Set<?>)BlockTags.SWORD_EFFICIENT.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_20))
         );
     }
 
@@ -61,9 +63,9 @@ public final class SyncedTags {
         synced.put(location, tags);
     }
 
-    public SyncedTag<StateType> block(ResourceLocation tag) {
+    public SyncedTag<PacketStateType> block(ResourceLocation tag) {
         final Map<ResourceLocation, SyncedTag<?>> blockTags = synced.get(BLOCK);
-        return (SyncedTag<StateType>) blockTags.get(tag);
+        return (SyncedTag<PacketStateType>) blockTags.get(tag);
     }
 
     public void handleTagSync(WrapperPlayServerTags tags) {

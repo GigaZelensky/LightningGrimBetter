@@ -1,6 +1,9 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.data.boxes.BaseSCB;
+import ac.grim.grimac.api.data.world.ICompensatedWorld;
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.change.BlockModification;
 import ac.grim.grimac.utils.chunks.Column;
@@ -8,12 +11,12 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BlockPrediction;
 import ac.grim.grimac.utils.data.Pair;
-import ac.grim.grimac.utils.data.PistonData;
+import ac.grim.grimac.api.data.PistonData;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -40,7 +43,6 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
 import com.github.retrooper.packetevents.protocol.world.states.enums.North;
 import com.github.retrooper.packetevents.protocol.world.states.enums.South;
 import com.github.retrooper.packetevents.protocol.world.states.enums.West;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -64,7 +66,7 @@ import java.util.Map;
 import java.util.Set;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
-public class CompensatedWorld {
+public class CompensatedWorld implements ICompensatedWorld {
     public static final ClientVersion blockVersion = PacketEvents.getAPI().getServerManager().getVersion().toClientVersion();
     private static final WrappedBlockState airData = WrappedBlockState.getByGlobalId(blockVersion, 0);
     public final GrimPlayer player;
@@ -240,7 +242,7 @@ public class CompensatedWorld {
 
         // Pistons are a block entity.
         for (PistonData data : activePistons) {
-            for (SimpleCollisionBox box : data.boxes) {
+            for (BaseSCB box : data.boxes) {
                 if (playerBox.isCollided(box)) {
                     return true;
                 }
@@ -314,7 +316,7 @@ public class CompensatedWorld {
 
     public void tickOpenable(int blockX, int blockY, int blockZ) {
         final WrappedBlockState data = getBlock(blockX, blockY, blockZ);
-        final StateType type = data.getType();
+        final PacketStateType type = data.getType();
         if (Materials.isClientSideOpenableDoor(type, player.getClientVersion())) {
             WrappedBlockState otherDoor = getBlock(blockX,
                     blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ);
@@ -360,7 +362,7 @@ public class CompensatedWorld {
         double modZ = 0;
 
         for (PistonData data : activePistons) {
-            for (SimpleCollisionBox box : data.boxes) {
+            for (BaseSCB box : data.boxes) {
                 if (playerBox.isCollided(box)) {
                     modX = Math.max(modX, Math.abs(data.direction.getModX() * 0.51D));
                     modY = Math.max(modY, Math.abs(data.direction.getModY() * 0.51D));
@@ -604,12 +606,17 @@ public class CompensatedWorld {
         return chunks.containsKey(chunkPosition);
     }
 
+    @Override
+    public void addActivePistons(PistonData data) {
+        activePistons.add(data);
+    }
+
     public void addToCache(Column chunk, int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> chunks.put(chunkPosition, chunk));
     }
 
-    public StateType getBlockType(double x, double y, double z) {
+    public PacketStateType getBlockType(double x, double y, double z) {
         return getBlock((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z)).getType();
     }
 

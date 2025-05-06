@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -9,7 +10,6 @@ import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.change.BlockModification;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.util.Vector3i;
 
 @CheckData(name = "AirLiquidPlace")
@@ -59,7 +59,7 @@ public class AirLiquidPlace extends BlockPlaceCheck {
         if (player.gamemode == GameMode.CREATIVE) return;
 
         Vector3i blockPos = place.getPlacedAgainstBlockLocation();
-        StateType placeAgainst = player.compensatedWorld.getBlockType(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        PacketStateType placeAgainst = player.compensatedWorld.getBlockType(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
         int currentTick = GrimAPI.INSTANCE.getTickManager().currentTick;
         // this is actual more lenient then we need to be, We can check up to 1 ticks for all changes at location sand up to 0 ticks for first change
@@ -71,7 +71,7 @@ public class AirLiquidPlace extends BlockPlaceCheck {
         // Check if old block from instant breaking in same tick as the current placement was valid
         // There should only be one block here for legit clients
         for (BlockModification blockModification : blockModifications) {
-            StateType stateType = blockModification.oldBlockContents().getType();
+            PacketStateType stateType = blockModification.oldBlockContents().getType();
             if (!stateType.isAir() && !Materials.isNoPlaceLiquid(stateType)) {
                 return;
             }

@@ -19,14 +19,18 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBl
 // on shulker boxes to get high lenience.
 //
 public class PacketBlockAction extends PacketListenerAbstract {
-    public PacketBlockAction() {
+    
+    private final GrimAPI api;
+    
+    public PacketBlockAction(GrimAPI api) {
         super(PacketListenerPriority.HIGH);
+        this.api = api;
     }
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.BLOCK_ACTION) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            GrimPlayer player = api.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             WrapperPlayServerBlockAction blockAction = new WrapperPlayServerBlockAction(event);

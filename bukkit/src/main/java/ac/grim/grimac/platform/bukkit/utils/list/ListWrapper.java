@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.lists;
+package ac.grim.grimac.platform.bukkit.utils.list;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

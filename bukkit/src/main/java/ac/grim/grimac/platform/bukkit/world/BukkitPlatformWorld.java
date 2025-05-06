@@ -1,7 +1,7 @@
 package ac.grim.grimac.platform.bukkit.world;
 
-import ac.grim.grimac.platform.api.world.PlatformChunk;
-import ac.grim.grimac.platform.api.world.PlatformWorld;
+import ac.grim.grimac.api.platform.world.PlatformChunk;
+import ac.grim.grimac.api.platform.world.PlatformWorld;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import lombok.Getter;
@@ -26,9 +26,15 @@ public class BukkitPlatformWorld implements PlatformWorld {
         return bukkitWorld.isChunkLoaded(chunkX, chunkZ);
     }
 
+//    @Override
+//    public  getBlockAt(int x, int y, int z) {
+//        return fromBukkitBlockData(bukkitWorld.getBlockAt(x, y, z).getBlockData());
+//    }
+
     @Override
-    public WrappedBlockState getBlockAt(int x, int y, int z) {
-        return SpigotConversionUtil.fromBukkitBlockData(bukkitWorld.getBlockAt(x, y, z).getBlockData());
+    public boolean isAirAt(int x, int y, int z) {
+        WrappedBlockState wrappedBlockState = SpigotConversionUtil.fromBukkitBlockData(bukkitWorld.getBlockData(x, y , z));
+        return wrappedBlockState.getType().isAir();
     }
 
     @Override

@@ -1,8 +1,8 @@
 package ac.grim.grimac.platform.bukkit.command;
 
-import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.platform.api.command.PlayerSelector;
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.GrimAPIProvider;
+import ac.grim.grimac.api.platform.command.PlayerSelector;
+import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.platform.bukkit.sender.BukkitSenderFactory;
 
 import java.util.Collection;
@@ -22,12 +22,12 @@ public class BukkitPlayerSelectorAdapter implements PlayerSelector {
 
     @Override
     public Sender getSinglePlayer() {
-        return ((BukkitSenderFactory) GrimAPI.INSTANCE.getSenderFactory()).map(bukkitSelector.single());
+        return ((BukkitSenderFactory) GrimAPIProvider.getDirect().getPlatformLoader().getSenderFactory()).map(bukkitSelector.single());
     }
 
     @Override
     public Collection<Sender> getPlayers() {
-        return Collections.singletonList(((BukkitSenderFactory) GrimAPI.INSTANCE.getSenderFactory()).map(bukkitSelector.single()));
+        return Collections.singletonList(((BukkitSenderFactory) GrimAPIProvider.getDirect().getPlatformLoader().getSenderFactory()).map(bukkitSelector.single()));
     }
 
     @Override

@@ -8,7 +8,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
-import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -82,6 +82,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
                 } else {
                     // We need to flip redstone blocks, or do special things with other blocks
                     final WrappedBlockState state = player.compensatedWorld.getBlock(record);
+                    // TODO (Packet Rewrite) replace PE Wrappers with Packet API
                     final StateType type = state.getType();
                     if (BlockTags.CANDLES.contains(type) || BlockTags.CANDLE_CAKES.contains(type)) {
                         state.setLit(false);

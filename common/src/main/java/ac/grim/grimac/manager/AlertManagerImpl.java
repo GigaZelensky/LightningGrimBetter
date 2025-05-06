@@ -5,9 +5,10 @@ import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.alerts.AlertManager;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.config.ConfigReloadable;
-import ac.grim.grimac.manager.init.start.StartableInitable;
-import ac.grim.grimac.platform.api.PlatformServer;
-import ac.grim.grimac.platform.api.player.PlatformPlayer;
+import ac.grim.grimac.api.platform.init.StartableInitable;
+import ac.grim.grimac.api.platform.PlatformServer;
+import ac.grim.grimac.api.platform.player.PlatformPlayer;
+import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;
@@ -26,6 +27,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 public final class AlertManagerImpl implements AlertManager, ConfigReloadable, StartableInitable {
     private static @NonNull PlatformServer platformServer;
+
+    private final GrimAPI grimAPI;
+
+    public AlertManagerImpl(GrimAPI grimAPI) {
+        this.grimAPI = grimAPI;
+    }
 
     private enum AlertType {
         NORMAL, VERBOSE, BRAND;
@@ -71,8 +78,8 @@ public final class AlertManagerImpl implements AlertManager, ConfigReloadable, S
 
     @Override
     public void start() {
-        platformServer = GrimAPI.INSTANCE.getPlatformServer();
-        reload(GrimAPI.INSTANCE.getConfigManager().getConfig());
+        platformServer = grimAPI.getPlatformServer();
+        reload(grimAPI.getConfigManager().getConfig());
     }
 
     @Override

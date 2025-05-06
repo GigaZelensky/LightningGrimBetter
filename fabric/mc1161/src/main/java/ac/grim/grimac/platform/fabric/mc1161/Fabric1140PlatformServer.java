@@ -1,6 +1,6 @@
 package ac.grim.grimac.platform.fabric.mc1161;
 
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.platform.fabric.AbstractFabricPlatformServer;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import net.minecraft.server.command.ServerCommandSource;

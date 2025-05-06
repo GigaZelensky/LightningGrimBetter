@@ -1,9 +1,9 @@
 package ac.grim.grimac.platform.fabric.scheduler;
 
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.platform.api.entity.GrimEntity;
-import ac.grim.grimac.platform.api.scheduler.EntityScheduler;
-import ac.grim.grimac.platform.api.scheduler.TaskHandle;
+import ac.grim.grimac.api.platform.entity.GrimEntity;
+import ac.grim.grimac.api.platform.scheduler.EntityScheduler;
+import ac.grim.grimac.api.platform.scheduler.TaskHandle;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;

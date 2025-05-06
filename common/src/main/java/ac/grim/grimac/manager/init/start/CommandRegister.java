@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.platform.init.LoadableInitable;
 import ac.grim.grimac.command.SenderRequirement;
 import ac.grim.grimac.command.commands.GrimAlerts;
 import ac.grim.grimac.command.commands.GrimBrands;
@@ -17,7 +18,7 @@ import ac.grim.grimac.command.commands.GrimStopSpectating;
 import ac.grim.grimac.command.commands.GrimVerbose;
 import ac.grim.grimac.command.commands.GrimVersion;
 import ac.grim.grimac.command.handler.GrimCommandFailureHandler;
-import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.text.ComponentLike;
@@ -32,7 +33,7 @@ import org.incendo.cloud.processors.requirements.Requirements;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class CommandRegister implements StartableInitable {
+public class CommandRegister implements LoadableInitable {
 
     public static final CloudKey<Requirements<Sender, SenderRequirement>>
             REQUIREMENT_KEY = CloudKey.of(
@@ -87,7 +88,7 @@ public class CommandRegister implements StartableInitable {
 
 
     @Override
-    public void start() {
+    public void load() {
         CommandManager<Sender> commandManager = commandManagerSupplier.get();
         registerCommands(commandManager);
 

@@ -1,7 +1,7 @@
 package ac.grim.grimac.manager.player.features;
 
 import ac.grim.grimac.manager.player.features.types.GrimFeature;
-import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.api.util.LogUtil;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.regex.Pattern;
