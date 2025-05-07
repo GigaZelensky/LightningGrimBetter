@@ -4,7 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.PistonData;
+import ac.grim.grimac.utils.data.PistonTemplate;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -55,17 +55,8 @@ public class PistonEvent implements Listener {
                         piston.getY() + event.getDirection().getModY(),
                         piston.getZ() + event.getDirection().getModZ()));
 
-        boolean finalHasSlimeBlock = hasSlimeBlock;
-        boolean finalHasHoneyBlock = hasHoneyBlock;
-        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            int lastTrans = player.lastTransactionSent.get();
-            player.runSafely(() -> {
-                if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                    PistonData data = new PistonData(BukkitConversionUtils.fromBukkitFace(event.getDirection()), boxes, lastTrans, true, finalHasSlimeBlock, finalHasHoneyBlock);
-                    player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
-                }
-            });
-        }
+        PistonTemplate data = new PistonTemplate(BukkitConversionUtils.fromBukkitFace(event.getDirection()), boxes, true, hasSlimeBlock, hasHoneyBlock);
+        addPistonData(data, event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4);
     }
 
     // For some unknown reason, bukkit handles this stupidly
@@ -113,15 +104,18 @@ public class PistonEvent implements Listener {
             }
         }
 
-        boolean finalHasSlimeBlock = hasSlimeBlock;
-        boolean finalHasHoneyBlock = hasHoneyBlock;
+        PistonTemplate data = new PistonTemplate(face, boxes, false, hasSlimeBlock, hasHoneyBlock);
+        addPistonData(data, event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4);
+    }
+
+    private void addPistonData(PistonTemplate pistonTemplate, int chunkX, int chunkZ) {
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
+            if (player.compensatedWorld.isChunkLoaded(chunkX, chunkZ)) continue;
+
             int lastTrans = player.lastTransactionSent.get();
-            player.runSafely(() -> {
-                if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                    PistonData data = new PistonData(BukkitConversionUtils.fromBukkitFace(event.getDirection()), boxes, lastTrans, false, finalHasSlimeBlock, finalHasHoneyBlock);
-                    player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> player.compensatedWorld.activePistons.add(data));
-                }
+
+            player.latencyUtils.addRealTimeTaskAsync(lastTrans, () -> {
+                player.compensatedWorld.addPiston(pistonTemplate, lastTrans);
             });
         }
     }
