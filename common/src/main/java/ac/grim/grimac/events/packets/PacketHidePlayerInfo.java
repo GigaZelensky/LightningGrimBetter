@@ -18,12 +18,9 @@ import java.util.EnumSet;
 import java.util.List;
 
 public class PacketHidePlayerInfo extends PacketListenerAbstract {
-    
-    private final GrimAPI api;
 
-    public PacketHidePlayerInfo(GrimAPI api) {
+    public PacketHidePlayerInfo() {
         super(PacketListenerPriority.HIGHEST);
-        this.api = api;
     }
 
     @Override
@@ -33,7 +30,7 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2))
                 return;
 
-            GrimPlayer receiver = api.getPlayerDataManager().getPlayer(event.getUser());
+            GrimPlayer receiver = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
 
             if (receiver == null) { // Exempt
                 return;
@@ -46,7 +43,7 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
 
                 int hideCount = 0;
                 for (WrapperPlayServerPlayerInfo.PlayerData playerData : nmsPlayerInfoDataList) {
-                    if (api.getSpectateManager().shouldHidePlayer(receiver, playerData)) {
+                    if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(receiver, playerData)) {
                         hideCount++;
                         if (playerData.getGameMode() == GameMode.SPECTATOR)
                             playerData.setGameMode(GameMode.SURVIVAL);
@@ -61,7 +58,7 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
                 }
             }
         } else if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO_UPDATE) {
-            GrimPlayer receiver = api.getPlayerDataManager().getPlayer(event.getUser());
+            GrimPlayer receiver = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (receiver == null) return;
             //create wrappers
             WrapperPlayServerPlayerInfoUpdate wrapper = new WrapperPlayServerPlayerInfoUpdate(event);
@@ -76,7 +73,7 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
                     //check if the player should be hidden
                     WrapperPlayServerPlayerInfoUpdate.PlayerInfo modifiedPacket = null;
                     final UserProfile gameProfile = entry.getGameProfile();
-                    if (api.getSpectateManager().shouldHidePlayer(receiver, gameProfile.getUUID())) {
+                    if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(receiver, gameProfile.getUUID())) {
                         hideCount++;
                         //modify & create a new packet from pre-existing one if they are a spectator
                         if (entry.getGameMode() == GameMode.SPECTATOR) {

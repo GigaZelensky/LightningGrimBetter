@@ -1,7 +1,8 @@
 package ac.grim.grimac.platform.bukkit;
 
 import ac.grim.grimac.api.lazy.LazyHolder;
-import ac.grim.grimac.api.packet.manager.PacketItemManager;
+import ac.grim.grimac.api.packet.MCPacketAPI;
+import ac.grim.grimac.api.packet.impl.pe.PEPacketAPI;
 import ac.grim.grimac.api.platform.CoreLoader;
 import ac.grim.grimac.api.platform.init.Initable;
 import ac.grim.grimac.api.plugin.BasicGrimPlugin;
@@ -21,7 +22,6 @@ import ac.grim.grimac.api.platform.player.PlatformPlayerFactory;
 import ac.grim.grimac.api.platform.scheduler.PlatformScheduler;
 import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.api.platform.sender.SenderFactory;
-import ac.grim.grimac.packet.api.impl.pe.PEItemManager;
 import ac.grim.grimac.platform.bukkit.initables.BukkitBStats;
 import ac.grim.grimac.platform.bukkit.initables.BukkitEventManager;
 import ac.grim.grimac.platform.bukkit.initables.BukkitTickEndEvent;
@@ -67,7 +67,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     private final PlatformServer platformServer = new BukkitPlatformServer();
     private final MessagePlaceHolderManager messagePlaceHolderManager = new BukkitMessagePlaceHolderManager();
     private final BukkitPermissionRegistrationManager bukkitPermissionRegistrationManager = new BukkitPermissionRegistrationManager();
-    private final PacketItemManager peItemManager = new PEItemManager();
+    private final MCPacketAPI mcPacketAPI = new PEPacketAPI();
 
     public GrimACBukkitLoaderPlugin() {
         this.plugin = new BasicGrimPlugin(
@@ -159,9 +159,9 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     @Override
-    public void registerAPIService() {
-        GrimAPIProvider.init(GrimAPIProvider.getDirect());
-        Bukkit.getServicesManager().register(GrimAbstractAPI.class, GrimAPIProvider.getDirect(), GrimACBukkitLoaderPlugin.LOADER, ServicePriority.Normal);
+    public void registerAPIService(GrimAbstractAPI api) {
+        GrimAPIProvider.init(api);
+        Bukkit.getServicesManager().register(GrimAbstractAPI.class, api, GrimACBukkitLoaderPlugin.LOADER, ServicePriority.Normal);
     }
 
     @Override
@@ -175,8 +175,8 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     @Override
-    public PacketItemManager getPacketItemManager() {
-        return peItemManager;
+    public MCPacketAPI getMCPacketAPI() {
+        return mcPacketAPI;
     }
 
     private PlatformScheduler createScheduler() {

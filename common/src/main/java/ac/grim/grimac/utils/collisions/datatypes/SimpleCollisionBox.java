@@ -4,6 +4,7 @@ import ac.grim.grimac.api.data.boxes.BaseSCB;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.api.math.Location;
 import ac.grim.grimac.api.math.Vector3dm;
+import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;

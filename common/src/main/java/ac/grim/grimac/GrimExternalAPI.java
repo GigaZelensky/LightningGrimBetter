@@ -3,6 +3,7 @@ package ac.grim.grimac;
 import ac.grim.grimac.api.GrimAbstractAPI;
 import ac.grim.grimac.api.platform.Platform;
 import ac.grim.grimac.api.platform.PlatformLoader;
+import ac.grim.grimac.api.platform.init.LoadableInitable;
 import ac.grim.grimac.api.plugin.GrimPluginDescription;
 import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.alerts.AlertManager;
@@ -29,7 +30,7 @@ import java.util.function.Function;
 
 //This is used for grim's external API. It has its own class just for organization.
 
-public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, StartableInitable {
+public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, StartableInitable, LoadableInitable {
 
     private final GrimAPI api;
     @Getter
@@ -132,7 +133,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
     // on load, load the config & register the service
     public void load() {
         reload(configManagerFile);
-        api.getLoader().registerAPIService();
+        api.getLoader().registerAPIService(this);
     }
 
     // handles any config loading that's needed to be done after load

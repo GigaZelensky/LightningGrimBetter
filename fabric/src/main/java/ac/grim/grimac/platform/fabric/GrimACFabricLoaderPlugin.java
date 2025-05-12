@@ -1,7 +1,9 @@
 package ac.grim.grimac.platform.fabric;
 
+import ac.grim.grimac.api.GrimAbstractAPI;
 import ac.grim.grimac.api.lazy.LazyHolder;
-import ac.grim.grimac.api.packet.manager.PacketItemManager;
+import ac.grim.grimac.api.packet.MCPacketAPI;
+import ac.grim.grimac.api.packet.impl.pe.PEPacketAPI;
 import ac.grim.grimac.api.plugin.BasicGrimPlugin;
 import ac.grim.grimac.api.GrimAPIProvider;
 import ac.grim.grimac.api.plugin.GrimPlugin;
@@ -10,7 +12,6 @@ import ac.grim.grimac.api.platform.PlatformServer;
 import ac.grim.grimac.api.platform.manager.*;
 import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.api.platform.sender.SenderFactory;
-import ac.grim.grimac.packet.api.impl.pe.PEItemManager;
 import ac.grim.grimac.platform.fabric.manager.*;
 import ac.grim.grimac.platform.fabric.player.FabricPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.scheduler.FabricPlatformScheduler;
@@ -38,7 +39,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     public static MinecraftServer FABRIC_SERVER;
     public static GrimACFabricLoaderPlugin LOADER;
 
-    private final PacketItemManager peItemManager = new PEItemManager();
+    private final MCPacketAPI mcPacketAPI = new PEPacketAPI();
 
     protected final LazyHolder<FabricPlatformScheduler> scheduler = LazyHolder.simple(FabricPlatformScheduler::new);
     // Since we JiJ PacketEvents and depend on it on Fabric, we can always just get the API instance since it loads firsts
@@ -116,8 +117,8 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     }
 
     @Override
-    public void registerAPIService() {
-        GrimAPIProvider.init(GrimAPIProvider.getDirect());
+    public void registerAPIService(GrimAbstractAPI api) {
+        GrimAPIProvider.init(api);
     }
 
     @Override @NotNull
@@ -163,7 +164,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     public abstract ServerVersion getNativeVersion();
 
     @Override
-    public PacketItemManager getPacketItemManager() {
-        return peItemManager;
+    public MCPacketAPI getMCPacketAPI() {
+        return mcPacketAPI;
     }
 }

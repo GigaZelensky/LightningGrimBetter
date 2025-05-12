@@ -20,18 +20,15 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 
 public class PacketPlayerAttack extends PacketListenerAbstract {
 
-    private final GrimAPI api;
-
-    public PacketPlayerAttack(GrimAPI api) {
+    public PacketPlayerAttack() {
         super(PacketListenerPriority.LOW);
-        this.api = api;
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity interact = new WrapperPlayClientInteractEntity(event);
-            GrimPlayer player = api.getPlayerDataManager().getPlayer(event.getUser());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
 
             if (player == null) return;
 
@@ -47,7 +44,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
 
             if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 if (player.isResetItemUsageOnAttack()) {
-                    api.getItemResetHandler().resetItemUsage(player.platformPlayer);
+                    GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                 }
 
                 PacketItemStack heldItem = player.getInventory().getHeldItem();

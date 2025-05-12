@@ -27,11 +27,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUs
 
 public class PacketPlayerDigging extends PacketListenerAbstract {
 
-    private final GrimAPI api;
-
-    public PacketPlayerDigging(GrimAPI api) {
+    public PacketPlayerDigging() {
         super(PacketListenerPriority.LOW);
-        this.api = api;
     }
 
     public static void handleUseItem(GrimPlayer player, PacketItemStack item, InteractionHand hand) {
@@ -165,7 +162,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
             if (dig.getAction() == DiggingAction.RELEASE_USE_ITEM) {
-                final GrimPlayer player = api.getPlayerDataManager().getPlayer(event.getUser());
+                final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
 
                 player.packetStateData.setSlowedByUsingItem(false);
@@ -183,7 +180,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         }
 
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
-            final GrimPlayer player = api.getPlayerDataManager().getPlayer(event.getUser());
+            final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player != null && player.packetStateData.isSlowedByUsingItem()
                     && !player.packetStateData.lastPacketWasTeleport
                     && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
@@ -202,7 +199,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             // Stop people from spamming the server with out of bounds exceptions
             if (slot > 8 || slot < 0) return;
 
-            final GrimPlayer player = api.getPlayerDataManager().getPlayer(event.getUser());
+            final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             // do we need to do this with block breaks too?
@@ -211,7 +208,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             if (player.packetStateData.lastSlotSelected != slot && player.packetStateData.eatingHand != InteractionHand.OFF_HAND) {
                 if (player.isResetItemUsageOnSlotChange()) {
-                    api.getItemResetHandler().resetItemUsage(player.platformPlayer);
+                    GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                 }
 
                 // just assume they tick after this
@@ -223,7 +220,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM || (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT && new WrapperPlayClientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER)) {
-            final GrimPlayer player = api.getPlayerDataManager().getPlayer(event.getUser());
+            final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             final InteractionHand hand = event.getPacketType() == PacketType.Play.Client.USE_ITEM

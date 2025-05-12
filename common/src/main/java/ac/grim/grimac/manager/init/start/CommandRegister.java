@@ -2,6 +2,7 @@ package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.platform.init.LoadableInitable;
+import ac.grim.grimac.api.platform.init.StartableInitable;
 import ac.grim.grimac.command.SenderRequirement;
 import ac.grim.grimac.command.commands.GrimAlerts;
 import ac.grim.grimac.command.commands.GrimBrands;
@@ -33,7 +34,7 @@ import org.incendo.cloud.processors.requirements.Requirements;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class CommandRegister implements LoadableInitable {
+public class CommandRegister implements LoadableInitable, StartableInitable {
 
     public static final CloudKey<Requirements<Sender, SenderRequirement>>
             REQUIREMENT_KEY = CloudKey.of(
@@ -86,12 +87,14 @@ public class CommandRegister implements LoadableInitable {
         );
     }
 
-
     @Override
     public void load() {
         CommandManager<Sender> commandManager = commandManagerSupplier.get();
         registerCommands(commandManager);
+    }
 
+    @Override
+    public void start() {
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("check-for-updates", true)) {
             GrimVersion.checkForUpdatesAsync(GrimAPI.INSTANCE.getPlatformServer().getConsoleSender());
         }

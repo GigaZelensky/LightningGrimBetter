@@ -15,13 +15,10 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPi
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
 
 public class PacketPingListener extends PacketListenerAbstract {
-    
-    private final GrimAPI api;
 
     // Must listen on LOWEST (or maybe low) to stop Tuinity packet limiter from kicking players for transaction/pong spam
-    public PacketPingListener(GrimAPI api) {
+    public PacketPingListener() {
         super(PacketListenerPriority.LOWEST);
-        this.api = api;
     }
 
 
@@ -31,7 +28,7 @@ public class PacketPingListener extends PacketListenerAbstract {
             WrapperPlayClientWindowConfirmation transaction = new WrapperPlayClientWindowConfirmation(event);
             short id = transaction.getActionId();
 
-            GrimPlayer player = api.getPlayerDataManager().getPlayer(event.getUser());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
             player.packetStateData.lastTransactionPacketWasValid = false;
 
@@ -53,7 +50,7 @@ public class PacketPingListener extends PacketListenerAbstract {
 
         if (event.getPacketType() == PacketType.Play.Client.PONG) {
             WrapperPlayClientPong pong = new WrapperPlayClientPong(event);
-            GrimPlayer player = api.getPlayerDataManager().getPlayer(event.getUser());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
             player.packetStateData.lastTransactionPacketWasValid = false;
 
@@ -77,7 +74,7 @@ public class PacketPingListener extends PacketListenerAbstract {
             WrapperPlayServerWindowConfirmation confirmation = new WrapperPlayServerWindowConfirmation(event);
             short id = confirmation.getActionId();
             //
-            GrimPlayer player = api.getPlayerDataManager().getPlayer(event.getUser());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
             player.packetStateData.lastServerTransWasValid = false;
             // Vanilla always uses an ID starting from 1
@@ -94,7 +91,7 @@ public class PacketPingListener extends PacketListenerAbstract {
             WrapperPlayServerPing pong = new WrapperPlayServerPing(event);
             int id = pong.getId();
             //
-            GrimPlayer player = api.getPlayerDataManager().getPlayer(event.getUser());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
             player.packetStateData.lastServerTransWasValid = false;
             // Check if in the short range, we only use short range

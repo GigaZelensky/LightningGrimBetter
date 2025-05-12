@@ -2,7 +2,6 @@ package ac.grim.grimac;
 
 import ac.grim.grimac.api.event.EventBus;
 import ac.grim.grimac.api.event.OptimizedEventBus;
-import ac.grim.grimac.api.platform.CoreLoader;
 import ac.grim.grimac.api.plugin.GrimPlugin;
 import ac.grim.grimac.manager.AlertManagerImpl;
 import ac.grim.grimac.manager.DiscordManager;
@@ -30,13 +29,11 @@ import lombok.Getter;
 import org.incendo.cloud.CommandManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 @Getter
-public final class GrimAPI implements CoreLoader {
-    public final GrimAPI INSTANCE = new GrimAPI();
+public final class GrimAPI {
+    public final static GrimAPI INSTANCE = new GrimAPI();
 
     @Getter
     private final Platform platform = detectPlatform();
@@ -82,7 +79,7 @@ public final class GrimAPI implements CoreLoader {
 
     public void bootstrap(@NotNull PlatformLoader platformLoader, Initable... platformSpecificInitables) {
         this.loader = platformLoader;
-        this.initManager = new InitManager(this, (PacketEventsAPI<?>) loader.getPacketAPI(), loader::getCommandManager, platformSpecificInitables);
+        this.initManager = new InitManager((PacketEventsAPI<?>) loader.getPacketAPI(), loader::getCommandManager, platformSpecificInitables);
         this.initManager.load();
         this.initialized = true;
     }

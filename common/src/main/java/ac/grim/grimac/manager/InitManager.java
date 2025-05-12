@@ -30,7 +30,7 @@ public class InitManager {
     @Getter
     private boolean stopped = false;
 
-    public InitManager(GrimAPI api, PacketEventsAPI<?> packetEventsAPI, Supplier<CommandManager<Sender>> commandManager, Initable... platformSpecificInitables) {
+    public InitManager(PacketEventsAPI<?> packetEventsAPI, Supplier<CommandManager<Sender>> commandManager, Initable... platformSpecificInitables) {
         ArrayList<LoadableInitable> extraLoadableInitables = new ArrayList<>();
         ArrayList<StartableInitable> extraStartableInitables = new ArrayList<>();
         ArrayList<StoppableInitable> extraStoppableInitables = new ArrayList<>();
@@ -41,22 +41,22 @@ public class InitManager {
         }
 
         initializersOnLoad = ImmutableList.<LoadableInitable>builder()
-                .add(() -> api.getExternalAPI().load())
+                .add(GrimAPI.INSTANCE.getExternalAPI())
                 .add(new PacketEventsInit(packetEventsAPI))
                 .add(new CommandRegister(commandManager))
                 .addAll(extraLoadableInitables)
                 .build();
 
         initializersOnStart = ImmutableList.<StartableInitable>builder()
-                .add(api.getExternalAPI())
+                .add(GrimAPI.INSTANCE.getExternalAPI())
                 .add(new ExemptOnlinePlayersOnReload())
-                .add(new PacketManager(api))
+                .add(new PacketManager())
                 .add(new ViaBackwardsManager())
                 .add(new TickRunner())
                 .add(new PacketLimiter())
-                .add(api.getAlertManager())
-                .add(api.getDiscordManager())
-                .add(api.getSpectateManager())
+                .add(GrimAPI.INSTANCE.getAlertManager())
+                .add(GrimAPI.INSTANCE.getDiscordManager())
+                .add(GrimAPI.INSTANCE.getSpectateManager())
                 .add(new JavaVersion())
                 .add(new ViaVersion())
                 .add(new TAB())

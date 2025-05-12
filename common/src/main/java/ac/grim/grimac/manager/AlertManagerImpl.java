@@ -8,7 +8,6 @@ import ac.grim.grimac.api.config.ConfigReloadable;
 import ac.grim.grimac.api.platform.init.StartableInitable;
 import ac.grim.grimac.api.platform.PlatformServer;
 import ac.grim.grimac.api.platform.player.PlatformPlayer;
-import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;

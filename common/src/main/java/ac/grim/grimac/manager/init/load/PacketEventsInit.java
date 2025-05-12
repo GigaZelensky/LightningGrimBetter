@@ -1,5 +1,7 @@
 package ac.grim.grimac.manager.init.load;
 
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.item.PacketEnchantmentTypes;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.platform.init.LoadableInitable;
@@ -25,6 +27,7 @@ public class PacketEventsInit implements LoadableInitable {
     @Override
     public void load() {
         LogUtil.info("Loading PacketEvents...");
+        MCPacket.setAPI(GrimAPI.INSTANCE.getLoader().getMCPacketAPI());
         PacketEvents.setAPI(packetEventsAPI);
         PacketEvents.getAPI().getSettings()
                 .fullStackTrace(true)

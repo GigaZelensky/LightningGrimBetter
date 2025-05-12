@@ -4,11 +4,13 @@ import ac.grim.grimac.api.platform.entity.GrimEntity;
 import ac.grim.grimac.api.platform.player.AbstractPlatformPlayerFactory;
 import ac.grim.grimac.platform.fabric.GrimACFabricLoaderPlugin;
 import net.minecraft.entity.Entity;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -54,8 +56,10 @@ public class FabricPlatformPlayerFactory extends AbstractPlatformPlayerFactory<S
 
     @Override
     protected Collection<ServerPlayerEntity> getNativeOnlinePlayers() {
+        PlayerManager playerManager = GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerManager();
+
         // Get the list of online players from the server
-        return GrimACFabricLoaderPlugin.FABRIC_SERVER.getPlayerManager().getPlayerList();
+        return playerManager != null ? playerManager.getPlayerList() : Collections.emptyList();
     }
 
     @Override

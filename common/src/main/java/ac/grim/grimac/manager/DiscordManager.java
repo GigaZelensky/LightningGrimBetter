@@ -37,9 +37,9 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
     private int embedColor;
     private String staticContent = "";
     private String embedTitle = "";
-    
+
     private final GrimAPI grimAPI;
-    
+
     public DiscordManager(GrimAPI grimAPI) {
         this.grimAPI = grimAPI;
     }
