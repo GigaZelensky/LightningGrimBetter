@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.blockplace;
 import ac.grim.grimac.api.packet.item.PacketItemType;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
@@ -15,7 +16,8 @@ import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -56,7 +58,7 @@ public enum BlockPlaceResult {
     // The client only predicts one of the individual bed blocks, interestingly
     BED((player, place) -> {
         // 1.12- players don't predict bed places for some reason
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) return;
+        if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) return;
 
         BlockFace facing = place.getPlayerFacing();
         if (place.isBlockFaceOpen(facing)) {
@@ -561,7 +563,7 @@ public enum BlockPlaceResult {
         boolean isHead = place.getMaterial().getName().contains("head") || place.getMaterial().getName().contains("skull");
         boolean isWallSign = !isTorch && !isHead;
 
-        if (isHead && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2))
+        if (isHead && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_12_2))
             return; // 1.12- players don't predict head places
 
         if (isTorch) {
@@ -882,7 +884,7 @@ public enum BlockPlaceResult {
             boolean clickedTop = place.getClickedLocation().getY() > 0.5;
             Half half = clickedTop ? Half.TOP : Half.BOTTOM;
             door.setHalf(half);
-        } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // 1.9 logic only
+        } else if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9)) { // 1.9 logic only
             door.setFacing(place.getPlayerFacing().getOppositeFace());
             Half half = direction == BlockFace.UP ? Half.BOTTOM : Half.TOP;
             door.setHalf(half);
@@ -894,7 +896,7 @@ public enum BlockPlaceResult {
         }
 
         // 1.8 has special placing requirements
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+        if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)) {
             WrappedBlockState dirState = place.getDirectionalState(door.getFacing().getOppositeFace());
             boolean fullFace = CollisionData.getData(dirState.getType()).getMovementCollisionBox(player, player.getClientVersion(), dirState).isFullBlock();
             boolean blacklisted = BlockTags.ICE.contains(dirState.getType()) || BlockTags.GLASS_BLOCKS.contains(dirState.getType()) ||

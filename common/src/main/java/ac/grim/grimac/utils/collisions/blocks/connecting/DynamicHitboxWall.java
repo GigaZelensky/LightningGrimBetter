@@ -1,6 +1,8 @@
 package ac.grim.grimac.utils.collisions.blocks.connecting;
 
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -10,7 +12,6 @@ import ac.grim.grimac.utils.collisions.datatypes.HitBoxFactory;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -21,18 +22,18 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.West;
 
 public class DynamicHitboxWall extends DynamicConnecting implements HitBoxFactory {
     @Override
-    public CollisionBox fetch(GrimPlayer player, PacketStateType heldItem, ClientVersion version, WrappedBlockState state, boolean isTargetBlock, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketStateType heldItem, PacketClientVersion version, WrappedBlockState state, boolean isTargetBlock, int x, int y, int z) {
         int[] connections = getConnections(player, version, state, x, y, z);
         int north = connections[0], south = connections[1], west = connections[2], east = connections[3], up = connections[4];
 
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+        if (version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
             return getModernHitBox(north, south, west, east, up);
         } else {
             return getLegacyHitBox(north, south, west, east);
         }
     }
 
-    private int[] getConnections(GrimPlayer player, ClientVersion version, WrappedBlockState state, int x, int y, int z) {
+    private int[] getConnections(GrimPlayer player, PacketClientVersion version, WrappedBlockState state, int x, int y, int z) {
         int north = 0, south = 0, west = 0, east = 0, up = 0;
 
         if (isModernServer()) {

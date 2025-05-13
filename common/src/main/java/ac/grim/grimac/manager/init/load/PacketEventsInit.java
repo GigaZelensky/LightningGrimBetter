@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.github.retrooper.packetevents.protocol.chat.ChatTypes;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
@@ -40,7 +40,7 @@ public class PacketEventsInit implements LoadableInitable {
         Executors.defaultThreadFactory().newThread(() -> {
             StateTypes.AIR.getName();
             PacketItemTypes.AIR.getName();
-            EntityTypes.PLAYER.getParent();
+            PacketEntityTypes.PLAYER.getName();
             EntityDataTypes.BOOLEAN.getName();
             ChatTypes.CHAT.getName();
             PacketEnchantmentTypes.ALL_DAMAGE_PROTECTION.getName();

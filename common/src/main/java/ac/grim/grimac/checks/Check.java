@@ -4,10 +4,12 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.event.events.FlagEvent;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import lombok.Getter;
 import lombok.Setter;
@@ -199,7 +201,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
     public boolean isTickPacketIncludingNonMovement(PacketTypeCommon packetType) {
         // On 1.21.2+ fall back to the TICK_END packet IF the player did not send a movement packet for their tick
         // TickTimer checks to see if player did not send a tick end packet before new flying packet is sent
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)
+        if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21_2)
                 && !player.packetStateData.didSendMovementBeforeTickEnd) {
             if (packetType == PacketType.Play.Client.CLIENT_TICK_END) {
                 return true;

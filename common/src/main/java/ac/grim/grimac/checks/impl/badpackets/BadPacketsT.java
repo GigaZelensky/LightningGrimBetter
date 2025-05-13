@@ -1,5 +1,8 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -7,9 +10,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 @CheckData(name = "BadPacketsT")
@@ -17,7 +19,7 @@ public class BadPacketsT extends Check implements PacketCheck {
     // 1.7 and 1.8 seem to have different hitbox "expansion" values than 1.9+
     // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872458702
     // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872533497
-    private final boolean hasLegacyExpansion = player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
+    private final boolean hasLegacyExpansion = player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9);
     private final double maxHorizontalDisplacement = 0.3001 + (hasLegacyExpansion ? 0.1 : 0);
     private final double minVerticalDisplacement = -0.0001 - (hasLegacyExpansion ? 0.1 : 0);
     private final double maxVerticalDisplacement = 1.8001 + (hasLegacyExpansion ? 0.1 : 0);
@@ -39,7 +41,7 @@ public class BadPacketsT extends Check implements PacketCheck {
                 }
 
                 // Make sure our target entity is actually a player (Player NPCs work too)
-                if (!EntityTypes.PLAYER.equals(packetEntity.getType())) {
+                if (!PacketEntityTypes.PLAYER.equals(packetEntity.getType())) {
                     // We can't check for any entity that is not a player
                     return;
                 }

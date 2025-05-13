@@ -1,5 +1,6 @@
 package ac.grim.grimac.predictionengine.predictions;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
@@ -9,7 +10,8 @@ import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.FluidFallingAdjustedMovement;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -103,7 +105,7 @@ public class PredictionEngineWater extends PredictionEngine {
     @Override
     public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
         // "hacky" climbing where player enters ladder within 0.03 movement (WHY DOES 0.03 EXIST???)
-        if (player.lastWasClimbing == 0 && player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+        if (player.lastWasClimbing == 0 && player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
             player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.2D * 0.8F)).getY();
         }

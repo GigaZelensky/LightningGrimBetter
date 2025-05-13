@@ -1,5 +1,8 @@
 package ac.grim.grimac.utils.collisions.blocks;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
@@ -7,7 +10,6 @@ import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
@@ -20,7 +22,7 @@ public class DoorHandler implements CollisionFactory {
     protected static final CollisionBox EAST_AABB = new HexCollisionBox(0.0D, 0.0D, 0.0D, 3.0D, 16.0D, 16.0D);
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
         return switch (fetchDirection(player, version, block, x, y, z)) {
             case NORTH -> NORTH_AABB.copy();
             case SOUTH -> SOUTH_AABB.copy();
@@ -31,7 +33,7 @@ public class DoorHandler implements CollisionFactory {
 
     }
 
-    public BlockFace fetchDirection(GrimPlayer player, ClientVersion version, WrappedBlockState door, int x, int y, int z) {
+    public BlockFace fetchDirection(GrimPlayer player, PacketClientVersion version, WrappedBlockState door, int x, int y, int z) {
         BlockFace facingDirection;
         boolean isClosed;
         boolean isRightHinge;
@@ -42,7 +44,7 @@ public class DoorHandler implements CollisionFactory {
         // I hate legacy versions... this is so messy
         //TODO: This needs to be updated to support corrupted door collision
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)
-                || version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
+                || version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) {
             if (door.getHalf() == Half.LOWER) {
                 WrappedBlockState above = player.compensatedWorld.getBlock(x, y + 1, z);
 

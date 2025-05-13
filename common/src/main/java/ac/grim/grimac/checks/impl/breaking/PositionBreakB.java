@@ -1,17 +1,19 @@
 package ac.grim.grimac.checks.impl.breaking;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
 @CheckData(name = "PositionBreakB", experimental = true)
 public class PositionBreakB extends Check implements BlockBreakCheck {
-    private final int releaseFace = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? 0 : 255;
+    private final int releaseFace = player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8) ? 0 : 255;
     private BlockFace lastFace;
 
     public PositionBreakB(GrimPlayer player) {

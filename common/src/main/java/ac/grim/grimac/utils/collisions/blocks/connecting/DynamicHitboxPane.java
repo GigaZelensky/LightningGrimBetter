@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.collisions.blocks.connecting;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -7,7 +9,6 @@ import ac.grim.grimac.utils.collisions.datatypes.HitBoxFactory;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -23,7 +24,7 @@ public class DynamicHitboxPane extends DynamicConnecting implements HitBoxFactor
     private static final CollisionBox[] COLLISION_BOXES = makeShapes(1.0F, 1.0F, 16.0F, 0.0F, 16.0F, true, 1);
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, PacketStateType item, ClientVersion version, WrappedBlockState block, boolean isTargetBlock, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketStateType item, PacketClientVersion version, WrappedBlockState block, boolean isTargetBlock, int x, int y, int z) {
         boolean east, north, south, west;
 
         // 1.13+ servers on 1.13+ clients send the full fence data
@@ -44,21 +45,21 @@ public class DynamicHitboxPane extends DynamicConnecting implements HitBoxFactor
             north = south = east = west = true;
         }
 
-        return version.isNewerThanOrEquals(ClientVersion.V_1_9)
+        return version.isNewerThanOrEquals(PacketClientVersions.V_1_9)
                 ? getModernCollisionBox(north, east, south, west)
                 : getLegacyCollisionBox(north, east, south, west);
     }
 
-    private boolean isModernVersion(ClientVersion version) {
+    private boolean isModernVersion(PacketClientVersion version) {
         return PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
-                && version.isNewerThanOrEquals(ClientVersion.V_1_13);
+                && version.isNewerThanOrEquals(PacketClientVersions.V_1_13);
     }
 
-    private boolean shouldUseOldPaneShape(ClientVersion version, boolean north, boolean south, boolean east, boolean west) {
+    private boolean shouldUseOldPaneShape(PacketClientVersion version, boolean north, boolean south, boolean east, boolean west) {
         return (!north && !south && !east && !west) &&
-                (version.isOlderThanOrEquals(ClientVersion.V_1_8) ||
+                (version.isOlderThanOrEquals(PacketClientVersions.V_1_8) ||
                         (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8) &&
-                                version.isNewerThanOrEquals(ClientVersion.V_1_13)));
+                                version.isNewerThanOrEquals(PacketClientVersions.V_1_13)));
     }
 
     private CollisionBox getModernCollisionBox(boolean north, boolean east, boolean south, boolean west) {

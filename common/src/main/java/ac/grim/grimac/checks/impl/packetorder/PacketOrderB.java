@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -8,7 +9,8 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 @CheckData(name = "PacketOrderB", description = "Did not swing for attack")
@@ -17,7 +19,7 @@ public class PacketOrderB extends Check implements PacketCheck {
     // 1.9 packet order: INTERACT -> ANIMATION
     // 1.8 packet order: ANIMATION -> INTERACT
     // I personally think 1.8 made much more sense. You swing and THEN you hit!
-    private boolean sentAnimation = player.getClientVersion().isNewerThan(ClientVersion.V_1_8);
+    private boolean sentAnimation = player.getClientVersion().isNewerThan(PacketClientVersions.V_1_8);
 
     public PacketOrderB(final GrimPlayer player) {
         super(player);
@@ -40,7 +42,7 @@ public class PacketOrderB extends Check implements PacketCheck {
             // INTERACT -> INTERACT -> ANIMATION -> ANIMATION
             // I will simply disable this check for 1.8- clients on 1.9+ servers as I can't be bothered to find a way around this.
             // Stop supporting such old clients on modern servers!
-            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
+            if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)
                     && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9))
                 return;
 

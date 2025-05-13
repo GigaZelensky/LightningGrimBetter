@@ -15,6 +15,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.utils.data.packetentity;
 
+import ac.grim.grimac.api.packet.entity.PacketEntityType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachInterpolationData;
@@ -22,8 +26,6 @@ import ac.grim.grimac.utils.data.TrackedPosition;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import com.github.retrooper.packetevents.protocol.attribute.Attribute;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -56,20 +58,20 @@ public class PacketEntity extends TypedPacketEntity {
     private ReachInterpolationData newPacketLocation;
     private Object2IntMap<PotionType> potionsMap = null;
 
-    public PacketEntity(GrimPlayer player, EntityType type) {
+    public PacketEntity(GrimPlayer player, PacketEntityType type) {
         super(type);
         this.uuid = null;
         initAttributes(player);
         this.trackedServerPosition = new TrackedPosition();
     }
 
-    public PacketEntity(GrimPlayer player, UUID uuid, EntityType type, double x, double y, double z) {
+    public PacketEntity(GrimPlayer player, UUID uuid, PacketEntityType type, double x, double y, double z) {
         super(type);
         this.uuid = uuid;
         initAttributes(player);
         this.trackedServerPosition = new TrackedPosition();
         this.trackedServerPosition.setPos(new Vector3d(x, y, z));
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) { // Thanks ViaVersion
+        if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)) { // Thanks ViaVersion
             trackedServerPosition.setPos(new Vector3d(((int) (x * 32)) / 32d, ((int) (y * 32)) / 32d, ((int) (z * 32)) / 32d));
         }
         final Vector3d pos = trackedServerPosition.getPos();
@@ -85,11 +87,11 @@ public class PacketEntity extends TypedPacketEntity {
 
     protected void initAttributes(GrimPlayer player) {
         trackAttribute(ValuedAttribute.ranged(Attributes.SCALE, 1.0, 0.0625, 16)
-                .requiredVersion(player, ClientVersion.V_1_20_5));
+                .requiredVersion(player, PacketClientVersions.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.STEP_HEIGHT, 0.6f, 0, 10)
-                .requiredVersion(player, ClientVersion.V_1_20_5));
+                .requiredVersion(player, PacketClientVersions.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.GRAVITY, 0.08, -1, 1)
-                .requiredVersion(player, ClientVersion.V_1_20_5));
+                .requiredVersion(player, PacketClientVersions.V_1_20_5));
     }
 
     public Optional<ValuedAttribute> getAttribute(Attribute attribute) {
@@ -125,7 +127,7 @@ public class PacketEntity extends TypedPacketEntity {
                 // This only matters for 1.9+ clients, but it won't hurt 1.8 clients either... align for imprecision
                 final double scale = trackedServerPosition.getScale();
                 Vector3d vec3d;
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16)) {
+                if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_16)) {
                     vec3d = trackedServerPosition.withDelta(TrackedPosition.pack(relX, scale), TrackedPosition.pack(relY, scale), TrackedPosition.pack(relZ, scale));
                 } else {
                     vec3d = trackedServerPosition.withDeltaLegacy(TrackedPosition.packLegacy(relX, scale), TrackedPosition.packLegacy(relY, scale), TrackedPosition.packLegacy(relZ, scale));
@@ -136,7 +138,7 @@ public class PacketEntity extends TypedPacketEntity {
                 // ViaVersion desync's here for teleports
                 // It simply teleports the entity with its position divided by 32... ignoring the offset this causes.
                 // Thanks a lot ViaVersion!  Please don't fix this, or it will be a pain to support.
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+                if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)) {
                     trackedServerPosition.setPos(new Vector3d(((int) (relX * 32)) / 32d, ((int) (relY * 32)) / 32d, ((int) (relZ * 32)) / 32d));
                 }
             }
@@ -146,7 +148,7 @@ public class PacketEntity extends TypedPacketEntity {
 
         // In versions < 1.16.2 when the client receives non-relative teleport for an entity
         // And they move less by the thresholds given, the entity does not move client side
-        if (hasPos && !relative && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_1)) {
+        if (hasPos && !relative && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_16_1)) {
             SimpleCollisionBox clientArea = newPacketLocation.getPossibleLocationCombined();
             if (clientArea.distanceX(relX) < 0.03125D
                     && clientArea.distanceY(relY) < 0.015625D

@@ -1,6 +1,9 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsE;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsF;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsG;
@@ -15,9 +18,8 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerJoinGame;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerRespawn;
@@ -144,7 +146,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                 // From 1.16 to 1.19, this doesn't get set to false for whatever reason
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_16) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20)) {
+                if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_16) || player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_20)) {
                     player.isSneaking = false;
                 }
 
@@ -166,7 +168,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
                 if (!keepTrackedData) {
                     // 1.19.4 uses current sprinting, older versions use last sprinting
-                    if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4)) {
+                    if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_19_4)) {
                         player.isSprinting = false;
                     } else {
                         player.lastSprintingForSpeed = false;
@@ -177,7 +179,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.checkManager.getPacketCheck(BadPacketsG.class).handleRespawn();
 
                 // compensate for immediate respawn gamerule
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
+                if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_15)) {
                     player.checkManager.getPacketCheck(BadPacketsF.class).exemptNext = true;
                 }
 
@@ -194,9 +196,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
                 player.compensatedEntities.serverPlayerVehicle = null; // All entities get removed on respawn
                 player.compensatedEntities.self = new PacketEntitySelf(player, player.compensatedEntities.self);
-                player.compensatedEntities.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
+                player.compensatedEntities.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, PacketEntityTypes.PLAYER, player.lastTransactionSent.get());
 
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) { // 1.14+ players send a packet for this, listen for it instead
+                if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_14)) { // 1.14+ players send a packet for this, listen for it instead
                     player.isSprinting = false;
                     player.checkManager.getPacketCheck(BadPacketsF.class).lastSprinting = false; // Pre 1.14 clients set this to false when creating new entity
                     // TODO: What the fuck viaversion, why do you throw out keep all metadata?
@@ -210,7 +212,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.compensatedWorld.setDimension(respawn.getDimensionType(), event.getUser());
                 }
 
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && !this.hasFlag(respawn, KEEP_ATTRIBUTES)) {
+                if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_16) && !this.hasFlag(respawn, KEEP_ATTRIBUTES)) {
                     // Reset attributes if not kept
                     player.compensatedEntities.self.resetAttributes();
                     player.compensatedEntities.hasSprintingAttributeEnabled = false;
@@ -220,7 +222,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
     }
 
     private boolean isWorldChange(GrimPlayer player, WrapperPlayServerRespawn respawn) {
-        ClientVersion version = PacketEvents.getAPI().getServerManager().getVersion().toClientVersion();
+        PacketClientVersion version = PacketEvents.getAPI().getServerManager().getVersion().toClientVersion();
         return respawn.getDimensionType().getId(version) != player.dimensionType.getId(version)
                 || !Objects.equals(respawn.getDimensionType().getName(), player.dimensionType.getName());
     }

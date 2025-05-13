@@ -2,6 +2,9 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.packet.item.PacketItemStack;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -11,7 +14,6 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -78,7 +80,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
                     if (zeroBitField instanceof Byte) {
                         byte field = (byte) zeroBitField;
-                        boolean isGliding = (field & 0x80) == 0x80 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
+                        boolean isGliding = (field & 0x80) == 0x80 && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9);
                         boolean isSwimming = (field & 0x10) == 0x10;
                         boolean isSprinting = (field & 0x8) == 0x8;
 
@@ -157,7 +159,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 }
 
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) &&
-                        player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+                        player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9)) {
                     EntityData<?> riptide = WatchableIndexUtil.getIndex(entityMetadata.getEntityMetadata(), PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 8 : 7);
 
                     // This one only present if it changed
@@ -184,7 +186,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         // - Server: Okay, I will not make you eat or stop eating because it makes sense that the server doesn't control a player's eating.
                         //
                         // This was added for stuff like shields, but IMO it really should be all client sided
-                        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+                        if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
                             boolean isActive = (((byte) riptide.getValue()) & 1) > 0;
                             boolean isOffhand = (((byte) riptide.getValue()) & 2) > 0;
 

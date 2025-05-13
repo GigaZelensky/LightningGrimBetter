@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.nmsutil;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.HitboxData;
@@ -10,7 +12,6 @@ import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import ac.grim.grimac.api.packet.item.PacketStateType;
@@ -26,12 +27,12 @@ public class WorldRayTrace {
         Vector3d startingPos = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
         Vector3dm startingVec = new Vector3dm(startingPos.getX(), startingPos.getY(), startingPos.getZ());
         Ray trace = new Ray(player, startingPos.getX(), startingPos.getY(), startingPos.getZ(), player.xRot, player.yRot);
-        final double distance = itemUsePlacement && player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 5 : player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
+        final double distance = itemUsePlacement && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_20_5) ? 5 : player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
         Vector3dm endVec = trace.getPointAtDistance(distance);
         Vector3d endPos = new Vector3d(endVec.getX(), endVec.getY(), endVec.getZ());
 
         return traverseBlocks(player, startingPos, endPos, (block, vector3i) -> {
-            if (fluidPlacement && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && CollisionData.getData(block.getType())
+            if (fluidPlacement && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_13) && CollisionData.getData(block.getType())
                     .getMovementCollisionBox(player, player.getClientVersion(), block, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isNull()) {
                 return null;
             }
@@ -63,7 +64,7 @@ public class WorldRayTrace {
             if (sourcesHaveHitbox &&
                     (player.compensatedWorld.isWaterSourceBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ())
                             || player.compensatedWorld.getLavaFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ()) == (8 / 9f))) {
-                double waterHeight = player.getClientVersion().isOlderThan(ClientVersion.V_1_13) ? 1
+                double waterHeight = player.getClientVersion().isOlderThan(PacketClientVersions.V_1_13) ? 1
                         : player.compensatedWorld.getFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ());
                 SimpleCollisionBox box = new SimpleCollisionBox(vector3i.getX(), vector3i.getY(), vector3i.getZ(), vector3i.getX() + 1, vector3i.getY() + waterHeight, vector3i.getZ() + 1);
 

@@ -16,6 +16,10 @@
 package ac.grim.grimac.checks.impl.combat;
 
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -27,10 +31,8 @@ import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import ac.grim.grimac.api.packet.entity.PacketEntityType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
@@ -47,10 +49,10 @@ import java.util.List;
 @CheckData(name = "Reach", setback = 10)
 public class Reach extends Check implements PacketCheck {
 
-    private static final List<EntityType> blacklisted = Arrays.asList(
-            EntityTypes.BOAT,
-            EntityTypes.CHEST_BOAT,
-            EntityTypes.SHULKER);
+    private static final List<PacketEntityType> blacklisted = Arrays.asList(
+            PacketEntityTypes.BOAT,
+            PacketEntityTypes.CHEST_BOAT,
+            PacketEntityTypes.SHULKER);
     private static final CheckResult NONE = new CheckResult(ResultType.NONE, "");
     // Only one flag per reach attack, per entity, per tick.
     // We store position because lastX isn't reliable on teleports.
@@ -92,7 +94,7 @@ public class Reach extends Check implements PacketCheck {
             if (entity.isDead) return;
 
             // TODO: Remove when in front of via
-            if (entity.getType() == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8))
+            if (entity.getType() == PacketEntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_8))
                 return;
 
             if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR)
@@ -129,7 +131,7 @@ public class Reach extends Check implements PacketCheck {
     // Meaning that the other check should be the only one that flags.
     private boolean isKnownInvalid(PacketEntity reachEntity) {
         // If the entity doesn't exist, or if it is exempt, or if it is dead
-        if ((blacklisted.contains(reachEntity.getType()) || !reachEntity.isLivingEntity()) && reachEntity.getType() != EntityTypes.END_CRYSTAL)
+        if ((blacklisted.contains(reachEntity.getType()) || !reachEntity.isLivingEntity()) && reachEntity.getType() != PacketEntityTypes.END_CRYSTAL)
             return false; // exempt
 
         if (player.gamemode == GameMode.CREATIVE || player.gamemode == GameMode.SPECTATOR)
@@ -142,7 +144,7 @@ public class Reach extends Check implements PacketCheck {
             return result.isFlag(); // If they flagged
         } else {
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-            if (reachEntity.getType() == EntityTypes.END_CRYSTAL) {
+            if (reachEntity.getType() == PacketEntityTypes.END_CRYSTAL) {
                 targetBox = new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
             }
             return ReachUtils.getMinReachToBox(player, targetBox) > player.compensatedEntities.self.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
@@ -174,13 +176,13 @@ public class Reach extends Check implements PacketCheck {
     private CheckResult checkReach(PacketEntity reachEntity, Vector3d from, boolean isPrediction) {
         SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
 
-        if (reachEntity.getType() == EntityTypes.END_CRYSTAL) { // Hardcode end crystal box
+        if (reachEntity.getType() == PacketEntityTypes.END_CRYSTAL) { // Hardcode end crystal box
             targetBox = new SimpleCollisionBox(reachEntity.trackedServerPosition.getPos().subtract(1, 0, 1), reachEntity.trackedServerPosition.getPos().add(1, 2, 1));
         }
 
         // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
         // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+        if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)) {
             targetBox.expand(0.1f);
         }
 
@@ -204,12 +206,12 @@ public class Reach extends Check implements PacketCheck {
             possibleLookDirs.add(ReachUtils.getLook(player, player.lastXRot, player.yRot));
 
             // 1.9+ players could be a tick behind because we don't get skipped ticks
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+            if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9)) {
                 possibleLookDirs.add(ReachUtils.getLook(player, player.lastXRot, player.lastYRot));
             }
 
             // 1.7 players do not have any of these issues! They are always on the latest look vector
-            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
+            if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_8)) {
                 possibleLookDirs = Collections.singletonList(ReachUtils.getLook(player, player.xRot, player.yRot));
             }
         }
@@ -238,7 +240,7 @@ public class Reach extends Check implements PacketCheck {
         }
 
         // if the entity is not exempt and the entity is alive
-        if ((!blacklisted.contains(reachEntity.getType()) && reachEntity.isLivingEntity()) || reachEntity.getType() == EntityTypes.END_CRYSTAL) {
+        if ((!blacklisted.contains(reachEntity.getType()) && reachEntity.isLivingEntity()) || reachEntity.getType() == PacketEntityTypes.END_CRYSTAL) {
             if (minDistance == Double.MAX_VALUE) {
                 cancelBuffer = 1;
                 return new CheckResult(ResultType.HITBOX, "");

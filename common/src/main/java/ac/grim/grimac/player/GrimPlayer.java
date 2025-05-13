@@ -10,8 +10,14 @@ import ac.grim.grimac.api.handler.ResyncHandler;
 import ac.grim.grimac.api.math.Location;
 import ac.grim.grimac.api.packet.component.PacketComponentItemEquippable;
 import ac.grim.grimac.api.packet.component.PacketComponentTypes;
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import ac.grim.grimac.api.packet.inventory.PacketEquipmentSlot;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.player.PacketUser;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketConnectionState;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
@@ -56,13 +62,9 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
-import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import ac.grim.grimac.api.packet.item.PacketItemStack;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.dimension.DimensionType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -104,7 +106,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 // Soon there will be a generic class for lag compensation
 public class GrimPlayer implements GrimUser {
     public final UUID uuid;
-    public final User user;
+    public final PacketUser user;
     public int entityID;
     public @Nullable PlatformPlayer platformPlayer;
     // Start transaction handling stuff
@@ -271,7 +273,7 @@ public class GrimPlayer implements GrimUser {
     public final LongSet visitedBlocks = new LongOpenHashSet();
     private @Nullable UserConnection viaUserConnection;
 
-    public GrimPlayer(@NonNull User user) {
+    public GrimPlayer(@NonNull PacketUser user) {
         this.user = user;
         this.uuid = user.getUUID();
         fireworks = new CompensatedFireworks(this); // Must be before checkmanager
@@ -288,12 +290,12 @@ public class GrimPlayer implements GrimUser {
         uncertaintyHandler = new UncertaintyHandler(this); // must be after checkmanager
         pointThreeEstimator = new PointThreeEstimator(this);
 
-        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
+        if (getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14)) {
             final float scale = (float) compensatedEntities.self.getAttributeValue(Attributes.SCALE);
             possibleEyeHeights[2] = new double[]{0.4 * scale, 1.62 * scale, 1.27 * scale}; // Elytra, standing, sneaking (1.14)
             possibleEyeHeights[1] = new double[]{1.27 * scale, 1.62 * scale, 0.4 * scale}; // sneaking (1.14), standing, Elytra
             possibleEyeHeights[0] = new double[]{1.62 * scale, 1.27 * scale, 0.4 * scale}; // standing, sneaking (1.14), Elytra
-        } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // standing, sneaking Elytra
+        } else if (getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9)) { // standing, sneaking Elytra
             possibleEyeHeights[2] = new double[]{0.4, 1.62, 1.54}; // Elytra, standing, sneaking (1.13)
             possibleEyeHeights[1] = new double[]{1.54, 1.62, 0.4}; // sneaking (1.9-1.13), standing, Elytra
             possibleEyeHeights[0] = new double[]{1.62, 1.54, 0.4}; // standing, sneaking (1.9-1.13), Elytra
@@ -448,7 +450,7 @@ public class GrimPlayer implements GrimUser {
     public void sendTransaction(boolean async) {
         // don't send transactions outside PLAY phase
         // Sending in non-play corrupts the pipeline, don't waste bandwidth when anticheat disabled
-        if (user.getEncoderState() != ConnectionState.PLAY) return;
+        if (user.getPlayerEncoderState() != PacketConnectionState.PLAY) return;
 
         // Send a packet once every 15 seconds to avoid any memory leaks
         if (disableGrim && (System.nanoTime() - getPlayerClockAtLeast()) > 15e9) {
@@ -489,7 +491,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     public double getEyeHeight() {
-        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? pose.eyeHeight
+        return getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) ? pose.eyeHeight
                 : isSneaking ? 1.54f : 1.62f;
     }
 
@@ -588,16 +590,16 @@ public class GrimPlayer implements GrimUser {
     }
 
     public boolean isPointThree() {
-        return getClientVersion().isOlderThan(ClientVersion.V_1_18_2);
+        return getClientVersion().isOlderThan(PacketClientVersions.V_1_18_2);
     }
 
     public double getMovementThreshold() {
         return isPointThree() ? 0.03 : 0.0002;
     }
 
-    public ClientVersion getClientVersion() {
+    public PacketClientVersion getClientVersion() {
         // If temporarily null, assume server version...
-        return Objects.requireNonNullElseGet(user.getClientVersion(), () -> ClientVersion.getById(PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion()));
+        return Objects.requireNonNullElseGet(user.getPlayerClientVersion(), () -> PacketClientVersions.getById(PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion()));
     }
 
     // Alright, someone at mojang decided to not send a flying packet every tick with 1.9
@@ -629,7 +631,7 @@ public class GrimPlayer implements GrimUser {
 
     public double[] getPossibleEyeHeights() { // We don't return sleeping eye height
         // 1.8 Players once again ruin my clean switch-case
-        if (this.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+        if (this.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)) {
             return this.isSneaking ? this.possibleEyeHeights[1] : this.possibleEyeHeights[0];
         } else {
             // 1.8 players just have their pose set to standing all the time
@@ -687,9 +689,9 @@ public class GrimPlayer implements GrimUser {
 
         if (data != null) {
             // If we actually need to check vehicle movement
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9)) {
                 // And if the vehicle is a type of vehicle that we track
-                if (EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.BOAT) || EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_HORSE) || data.getEntityType() == EntityTypes.PIG || data.getEntityType() == EntityTypes.STRIDER) {
+                if (PacketEntityTypes.isTypeInstanceOf(data.getEntityType(), PacketEntityTypes.BOAT) || PacketEntityTypes.isTypeInstanceOf(data.getEntityType(), PacketEntityTypes.ABSTRACT_HORSE) || data.getEntityType() == PacketEntityTypes.PIG || data.getEntityType() == PacketEntityTypes.STRIDER) {
                     // We need to set its velocity otherwise it will jump a bit on us, flagging the anticheat
                     // The server does override this with some vehicles. This is intentional.
                     user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
@@ -725,7 +727,7 @@ public class GrimPlayer implements GrimUser {
         latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> {
             this.vehicleData.wasVehicleSwitch = true;
             // Pre-1.14 players desync sprinting attribute when in vehicle to be false, sprinting itself doesn't change
-            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)) {
+            if (getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_14)) {
                 compensatedEntities.hasSprintingAttributeEnabled = false;
             }
         });
@@ -733,7 +735,7 @@ public class GrimPlayer implements GrimUser {
 
     public boolean canGlide() {
         // Servers older than 1.21.2 don't have this component
-        if (getClientVersion().isOlderThan(ClientVersion.V_1_21_2)
+        if (getClientVersion().isOlderThan(PacketClientVersions.V_1_21_2)
                 || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)) {
             final PacketItemStack chestPlate = getInventory().getChestplate();
             return chestPlate.getType() == PacketItemTypes.ELYTRA && chestPlate.getDamageValue() < chestPlate.getMaxDamage();
@@ -758,7 +760,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     public void resyncPose() {
-        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && platformPlayer != null) {
+        if (getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14) && platformPlayer != null) {
             platformPlayer.setSneaking(!platformPlayer.isSneaking());
         }
     }
@@ -766,18 +768,18 @@ public class GrimPlayer implements GrimUser {
     public boolean canUseGameMasterBlocks() {
         // This check was added in 1.11
         // 1.11+ players must be in creative and have a permission level at or above 2
-        return getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.self.getOpLevel() >= 2);
+        return getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.self.getOpLevel() >= 2);
     }
 
     @Contract(pure = true)
     public boolean supportsEndTick() {
         // TODO: Bypass viaversion
-        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2);
+        return getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21_2) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2);
     }
 
     @Contract(pure = true)
     public boolean canSkipTicks() {
-        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && !supportsEndTick();
+        return getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) && !supportsEndTick();
     }
 
     @Override

@@ -1,13 +1,14 @@
 package ac.grim.grimac.utils.collisions.blocks.connecting;
 
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -21,7 +22,7 @@ public class DynamicCollisionFence extends DynamicConnecting implements Collisio
     private static final CollisionBox[] COLLISION_BOXES = makeShapes(2.0F, 2.0F, 24.0F, 0.0F, 24.0F, true, 1);
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
         boolean east;
         boolean north;
         boolean south;
@@ -29,7 +30,7 @@ public class DynamicCollisionFence extends DynamicConnecting implements Collisio
 
         // 1.13+ servers on 1.13+ clients send the full fence data
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
-                && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+                && version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
             east = block.getEast() != East.FALSE;
             north = block.getNorth() != North.FALSE;
             south = block.getSouth() != South.FALSE;

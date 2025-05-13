@@ -1,12 +1,14 @@
 package ac.grim.grimac.predictionengine.movementtick;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
@@ -56,7 +58,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
     public float getSteeringSpeed() {
         PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.self.getRiding();
         // Unsure which version the speed changed in
-        final boolean newSpeed = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20);
+        final boolean newSpeed = player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_20);
         final float coldSpeed = newSpeed ? 0.35F : 0.23F;
 
         // Client desyncs the attribute

@@ -2,13 +2,15 @@ package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -29,11 +31,11 @@ public class BadPacketsU extends Check implements PacketCheck {
 
                 // This packet is always sent at (-1, -1, -1) at (0, 0, 0) on the block
                 // except y gets wrapped?
-                final int expectedY = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? 4095 : 255;
+                final int expectedY = player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8) ? 4095 : 255;
 
                 final boolean failedItemCheck = packet.getItemStack().isPresent() && isEmpty(packet.getItemStack().get())
                         // ViaVersion can sometimes cause this part of the check to false
-                        && player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
+                        && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9);
 
                 final Vector3i pos = packet.getBlockPosition();
                 final Vector3f cursor = packet.getCursorPosition();

@@ -9,7 +9,8 @@ import ac.grim.grimac.utils.collisions.datatypes.HitBoxFactory;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -44,7 +45,7 @@ public class DynamicHitboxFence extends DynamicConnecting implements HitBoxFacto
     }
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, PacketStateType heldItem, ClientVersion version, WrappedBlockState block, boolean isTargetBlock, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketStateType heldItem, PacketClientVersion version, WrappedBlockState block, boolean isTargetBlock, int x, int y, int z) {
         boolean east;
         boolean north;
         boolean south;
@@ -52,7 +53,7 @@ public class DynamicHitboxFence extends DynamicConnecting implements HitBoxFacto
 
         // 1.13+ servers on 1.13+ clients send the full fence data
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
-                && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+                && version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
             east = block.getEast() != East.FALSE;
             north = block.getNorth() != North.FALSE;
             south = block.getSouth() != South.FALSE;
@@ -64,7 +65,7 @@ public class DynamicHitboxFence extends DynamicConnecting implements HitBoxFacto
             west = connectsTo(player, version, x, y, z, BlockFace.WEST);
         }
 
-        return version.isNewerThanOrEquals(ClientVersion.V_1_12_2)
+        return version.isNewerThanOrEquals(PacketClientVersions.V_1_12_2)
                 ? getModernCollisionBox(north, east, south, west)
                 : getLegacyCollisionBox(north, east, south, west);
 

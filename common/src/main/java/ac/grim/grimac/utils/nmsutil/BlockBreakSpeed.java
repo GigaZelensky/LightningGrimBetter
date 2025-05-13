@@ -1,6 +1,9 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.api.packet.item.*;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.enums.FluidTag;
@@ -8,7 +11,6 @@ import ac.grim.grimac.utils.inventory.EnchantmentHelper;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -27,15 +29,15 @@ public class BlockBreakSpeed {
         float blockHardness = block.getType().getHardness();
 
         // 1.15.2 and below need this hack
-        if ((block.getType() == StateTypes.PISTON || block.getType() == StateTypes.PISTON_HEAD || block.getType() == StateTypes.STICKY_PISTON) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2)) {
+        if ((block.getType() == StateTypes.PISTON || block.getType() == StateTypes.PISTON_HEAD || block.getType() == StateTypes.STICKY_PISTON) && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_15_2)) {
             blockHardness = 0.5f;
         }
 
         if (player.gamemode == GameMode.CREATIVE) {
             // players in creative mode cannot mine with certain items
             if (toolType.hasAttribute(PacketItemAttribute.SWORD) || toolType == PacketItemTypes.TRIDENT
-                    || toolType == PacketItemTypes.DEBUG_STICK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)
-                    || toolType == PacketItemTypes.MACE && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
+                    || toolType == PacketItemTypes.DEBUG_STICK && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_13)
+                    || toolType == PacketItemTypes.MACE && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_20_5)) {
                 return 0;
             }
             // Instabreak
@@ -117,7 +119,7 @@ public class BlockBreakSpeed {
         }
 
         if (speedMultiplier > 1.0f) {
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
+            if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
                 speedMultiplier += (float) player.compensatedEntities.self.getAttributeValue(Attributes.MINING_EFFICIENCY);
             } else {
                 int digSpeed = tool.getEnchantmentLevel(PacketEnchantmentTypes.BLOCK_EFFICIENCY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion().getProtocolVersion());
@@ -156,7 +158,7 @@ public class BlockBreakSpeed {
         speedMultiplier *= (float) player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_BREAK_SPEED);
 
         if (player.fluidOnEyes == FluidTag.WATER) {
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
+            if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
                 speedMultiplier *= (float) player.compensatedEntities.self.getAttributeValue(Attributes.SUBMERGED_MINING_SPEED);
             } else {
                 if (EnchantmentHelper.getMaximumEnchantLevel(player.getInventory(), PacketEnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion().getProtocolVersion()) == 0) {
@@ -173,7 +175,7 @@ public class BlockBreakSpeed {
 
         boolean canHarvest = !block.getType().isRequiresCorrectTool() || isCorrectToolForDrop
                 // temporary hardcode to workaround PE bug https://github.com/retrooper/packetevents/issues/1217; see https://github.com/GrimAnticheat/Grim/issues/2091
-                || block.getType() == StateTypes.BREWING_STAND && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4);
+                || block.getType() == StateTypes.BREWING_STAND && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21_4);
         if (canHarvest) {
             damage /= 30F;
         } else {

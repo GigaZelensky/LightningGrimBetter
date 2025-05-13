@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.crash;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -9,7 +10,8 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 
 @CheckData(name = "CrashG", description = "Sent negative sequence id")
@@ -48,7 +50,7 @@ public class CrashG extends BlockPlaceCheck {
     }
 
     private boolean isSupportedVersion() {
-        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19);
+        return player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19);
     }
 
 }

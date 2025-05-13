@@ -4,6 +4,10 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.data.boxes.BaseSCB;
 import ac.grim.grimac.api.data.world.ICompensatedWorld;
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.player.PacketUser;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.change.BlockModification;
 import ac.grim.grimac.utils.chunks.Column;
@@ -23,10 +27,8 @@ import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v1_16.Chunk_v1_9;
@@ -67,7 +69,7 @@ import java.util.Set;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld implements ICompensatedWorld {
-    public static final ClientVersion blockVersion = PacketEvents.getAPI().getServerManager().getVersion().toClientVersion();
+    public static final PacketClientVersion blockVersion = PacketEvents.getAPI().getServerManager().getVersion().toClientVersion();
     private static final WrappedBlockState airData = WrappedBlockState.getByGlobalId(blockVersion, 0);
     public final GrimPlayer player;
     public final Long2ObjectMap<Column> chunks;
@@ -97,11 +99,11 @@ public class CompensatedWorld implements ICompensatedWorld {
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
         chunks = new Long2ObjectOpenHashMap<>(81, 0.5f);
-        noNegativeBlocks = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4);
+        noNegativeBlocks = player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_16_4);
     }
 
     public void startPredicting() {
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) return; // No predictions
+        if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_18_2)) return; // No predictions
         this.isCurrentlyPredicting = true;
     }
 
@@ -179,13 +181,13 @@ public class CompensatedWorld implements ICompensatedWorld {
 
     public void handleBlockBreakPrediction(WrapperPlayClientPlayerDigging digging) {
         // 1.14.4 intentional and correct, do not change it to 1.14
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14_4) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) {
+        if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14_4) && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_18_2)) {
             unackedActions.put(new Pair<>(digging.getBlockPosition(), digging.getAction()), new Vector3d(player.x, player.y, player.z));
         }
     }
 
     public void stopPredicting(PacketWrapper<?> wrapper) {
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) return; // No predictions
+        if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_18_2)) return; // No predictions
         this.isCurrentlyPredicting = false; // We aren't in a block place or use item
 
         if (this.currentlyChangedBlocks.isEmpty()) return; // Nothing to change
@@ -224,7 +226,7 @@ public class CompensatedWorld implements ICompensatedWorld {
 
     public boolean isNearHardEntity(SimpleCollisionBox playerBox) {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.isBoat() || entity.getType() == EntityTypes.SHULKER) && player.compensatedEntities.self.getRiding() != entity) {
+            if ((entity.isBoat() || entity.getType() == PacketEntityTypes.SHULKER) && player.compensatedEntities.self.getRiding() != entity) {
                 SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
                 if (box.isIntersected(playerBox)) {
                     return true;
@@ -371,7 +373,7 @@ public class CompensatedWorld implements ICompensatedWorld {
                     playerBox.expandMax(modX, modY, modZ);
                     playerBox.expandMin(modX * -1, modY * -1, modZ * -1);
 
-                    if (data.hasSlimeBlock || (data.hasHoneyBlock && player.getClientVersion().isOlderThan(ClientVersion.V_1_15_2))) {
+                    if (data.hasSlimeBlock || (data.hasHoneyBlock && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_15_2))) {
                         player.uncertaintyHandler.slimePistonBounces.add(data.direction);
                     }
 
@@ -694,7 +696,7 @@ public class CompensatedWorld implements ICompensatedWorld {
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> chunks.remove(chunkPosition));
     }
 
-    public void setDimension(DimensionType dimension, User user) {
+    public void setDimension(DimensionType dimension, PacketUser user) {
         // No world height NBT
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
 

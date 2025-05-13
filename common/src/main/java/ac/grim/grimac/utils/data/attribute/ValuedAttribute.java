@@ -1,9 +1,10 @@
 package ac.grim.grimac.utils.data.attribute;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.protocol.attribute.Attribute;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 
 import java.util.List;
@@ -59,7 +60,7 @@ public final class ValuedAttribute {
      * @param requiredVersion the required version for the attribute
      * @return this instance for chaining
      */
-    public ValuedAttribute requiredVersion(GrimPlayer player, ClientVersion requiredVersion) {
+    public ValuedAttribute requiredVersion(GrimPlayer player, PacketClientVersion requiredVersion) {
         withSetRewriter((oldValue, newValue) -> {
             if (player.getClientVersion().isOlderThan(requiredVersion)) {
                 return oldValue;

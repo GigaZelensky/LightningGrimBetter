@@ -13,7 +13,7 @@ import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -335,7 +335,7 @@ public class UncertaintyHandler {
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.isBoat() || entity.getType() == EntityTypes.SHULKER) && entity != riding
+            if ((entity.isBoat() || entity.getType() == PacketEntityTypes.SHULKER) && entity != riding
                     && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }
@@ -348,7 +348,7 @@ public class UncertaintyHandler {
         // Stiders can walk on top of other striders
         if (player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider) {
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.getType() == EntityTypes.STRIDER && entity != player.compensatedEntities.self.getRiding()
+                if (entity.getType() == PacketEntityTypes.STRIDER && entity != player.compensatedEntities.self.getRiding()
                         && !entity.hasPassenger(entity) && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }

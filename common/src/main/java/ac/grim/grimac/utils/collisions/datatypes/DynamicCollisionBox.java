@@ -1,7 +1,8 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import lombok.Setter;
 
@@ -12,12 +13,12 @@ public class DynamicCollisionBox implements CollisionBox {
     private final GrimPlayer player;
     private final CollisionFactory box;
     @Setter
-    private ClientVersion version;
+    private PacketClientVersion version;
     @Setter
     private WrappedBlockState block;
     private int x, y, z;
 
-    public DynamicCollisionBox(GrimPlayer player, ClientVersion version, CollisionFactory box, WrappedBlockState block) {
+    public DynamicCollisionBox(GrimPlayer player, PacketClientVersion version, CollisionFactory box, WrappedBlockState block) {
         this.player = player;
         this.version = version;
         this.box = box;

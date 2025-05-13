@@ -5,6 +5,9 @@ import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketItemType;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -27,9 +30,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
-import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
@@ -126,7 +127,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Less than 15 milliseconds ago means this is likely (fix all look vectors being a tick behind server sided)
             // Or mojang had the idle packet... for the 1.7/1.8 clients
             // No idle packet on 1.9+
-            if ((now - player.lastBlockPlaceUseItem < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
+            if ((now - player.lastBlockPlaceUseItem < 15 || player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)) && hasLook) {
                 player.xRot = yaw;
                 player.yRot = pitch;
             }
@@ -163,7 +164,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Less than 15 milliseconds ago means this is likely (fix all look vectors being a tick behind server sided)
             // Or mojang had the idle packet... for the 1.7/1.8 clients
             // No idle packet on 1.9+
-            if ((now - player.lastBlockBreak < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
+            if ((now - player.lastBlockBreak < 15 || player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)) && hasLook) {
                 player.xRot = yaw;
                 player.yRot = pitch;
             }
@@ -238,9 +239,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 // Right-clicking a trapdoor/door/etc.
                 PacketStateType placedAgainst = blockPlace.getPlacedAgainstMaterial();
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_11) && (placedAgainst == StateTypes.IRON_TRAPDOOR
+                if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_11) && (placedAgainst == StateTypes.IRON_TRAPDOOR
                         || placedAgainst == StateTypes.IRON_DOOR || BlockTags.FENCES.contains(placedAgainst))
-                        || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) && BlockTags.CAULDRONS.contains(placedAgainst)
+                        || player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8) && BlockTags.CAULDRONS.contains(placedAgainst)
                         || Materials.isClientSideInteractable(placedAgainst)) {
                     player.checkManager.onPostFlyingBlockPlace(blockPlace);
                     Vector3i location = blockPlace.getPlacedAgainstBlockLocation();
@@ -395,7 +396,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // Teleports are not stupidity packets.
         if (player.packetStateData.lastPacketWasTeleport) return false;
         // Mojang has become less stupid!
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)) return false;
+        if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21)) return false;
 
         final Location location = flying.getLocation();
         final double threshold = player.getMovementThreshold();
@@ -409,7 +410,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 // Ground status will never change in this stupidity packet
                 ((flying.isOnGround() == player.packetStateData.packetPlayerOnGround
                         // Mojang added this stupid mechanic in 1.17
-                        && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
+                        && (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_17) &&
                         // Due to 0.03, we can't check exact position, only within 0.03
                         player.filterMojangStupidityOnMojangStupidity.distanceSquared(location.getPosition()) < threshold * threshold))
                         // If the player was in a vehicle, has position and look, and wasn't a teleport, then it was this stupid packet
@@ -598,7 +599,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                                             BlockModification.Cause.START_DIGGING
                                     )
                             );
-                            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Materials.isWaterSource(player.getClientVersion(), blockBreak.block)) {
+                            if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_13) && Materials.isWaterSource(player.getClientVersion(), blockBreak.block)) {
                                 // Vanilla uses a method to grab water flowing, but as you can't break flowing water
                                 // We can simply treat all waterlogged blocks or source blocks as source blocks
                                 player.compensatedWorld.updateBlock(blockBreak.position, StateTypes.WATER.createBlockState(CompensatedWorld.blockVersion));
@@ -631,7 +632,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 BlockPlace blockPlace = new BlockPlace(player, packet.getHand(), packet.getBlockPosition(), packet.getFaceId(), packet.getFace(), placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false), packet.getSequence());
                 blockPlace.setCursor(packet.getCursorPosition());
 
-                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_11) && player.getClientVersion().isOlderThan(ClientVersion.V_1_11)) {
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_11) && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_11)) {
                     // ViaRewind is stupid and divides the byte by 15 to get the float
                     // We must undo this to get the correct block place... why?
                     if (packet.getCursorPosition().getX() * 15 % 1 == 0 && packet.getCursorPosition().getY() * 15 % 1 == 0 && packet.getCursorPosition().getZ() * 15 % 1 == 0) {
@@ -656,7 +657,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     Vector3i facePos = new Vector3i(packet.getBlockPosition().getX() + packet.getFace().getModX(), packet.getBlockPosition().getY() + packet.getFace().getModY(), packet.getBlockPosition().getZ() + packet.getFace().getModZ());
 
                     // Ends the client prediction introduced in 1.19+
-                    if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
+                    if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
                         player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
                     } else { // The client isn't smart enough to revert changes
                         player.resyncPosition(packet.getBlockPosition());
@@ -667,10 +668,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     if (player.platformPlayer != null) {
                         if (packet.getHand() == InteractionHand.MAIN_HAND) {
                             PacketItemStack mainHand = player.platformPlayer.getInventory().getItemInHand();
-                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, (ItemStack) mainHand)); // TODO (Packet Rewrite) replace PE Wrappers with Packet API don't cast ItemStack
+                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, (ac.grim.grimac.api.platform.item.PacketItemStack) mainHand)); // TODO (Packet Rewrite) replace PE Wrappers with Packet API don't cast ItemStack
                         } else {
                             PacketItemStack offHand = player.platformPlayer.getInventory().getItemInOffHand();
-                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, (ItemStack) offHand)); // TODO (Packet Rewrite) replace PE Wrappers with Packet API don't cast ItemStack
+                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, (ac.grim.grimac.api.platform.item.PacketItemStack) offHand)); // TODO (Packet Rewrite) replace PE Wrappers with Packet API don't cast ItemStack
                         }
                     }
 

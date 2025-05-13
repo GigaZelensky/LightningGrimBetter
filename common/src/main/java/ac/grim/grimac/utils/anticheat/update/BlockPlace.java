@@ -2,6 +2,9 @@ package ac.grim.grimac.utils.anticheat.update;
 
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.api.util.LogUtil;
 import ac.grim.grimac.utils.collisions.AxisSelect;
@@ -23,7 +26,6 @@ import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -107,7 +109,7 @@ public class BlockPlace {
         return BY_2D;
     }
 
-    public static WrappedBlockState createBlockState(PacketStateType material, ClientVersion blockVersion) {
+    public static WrappedBlockState createBlockState(PacketStateType material, PacketClientVersion blockVersion) {
         return ((StateType) material).createBlockState(blockVersion);
     }
 
@@ -207,7 +209,7 @@ public class BlockPlace {
             if (state.getEast() == East.FALSE) return true;
             return state.getWest() == West.FALSE;
         }
-        if (state.getType() == StateTypes.LADDER && player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) {
+        if (state.getType() == StateTypes.LADDER && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_13)) {
             return true;
         }
 
@@ -590,7 +592,7 @@ public class BlockPlace {
             //
             // 1.9+ introduced the mechanic where both the client and server must agree upon a block place
             // 1.8 clients will simply not send the place when it fails, thanks mojang.
-            if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8)) {
+            if (player.getClientVersion().isNewerThan(PacketClientVersions.V_1_8)) {
                 for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                     SimpleCollisionBox interpBox = entity.getPossibleCollisionBoxes();
 
@@ -644,7 +646,7 @@ public class BlockPlace {
 
     // We need to now run block
     public void tryCascadeBlockUpdates(Vector3i pos) {
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) return;
+        if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) return;
 
         cascadeBlockUpdates(pos);
     }

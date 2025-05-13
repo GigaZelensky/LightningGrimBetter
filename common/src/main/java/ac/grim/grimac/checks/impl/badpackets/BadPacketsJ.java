@@ -1,5 +1,8 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -9,7 +12,6 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 
@@ -31,7 +33,7 @@ public class BadPacketsJ extends Check implements PostPredictionCheck {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)
+        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21)
                 && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
             WrapperPlayClientUseItem packet = new WrapperPlayClientUseItem(event);
             rotations.add(new HeadRotation(packet.getYaw(), packet.getPitch()));

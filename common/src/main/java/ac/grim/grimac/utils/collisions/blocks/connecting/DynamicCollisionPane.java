@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.collisions.blocks.connecting;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -8,7 +10,6 @@ import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -24,7 +25,7 @@ public class DynamicCollisionPane extends DynamicConnecting implements Collision
     private static final CollisionBox[] COLLISION_BOXES = makeShapes(1.0F, 1.0F, 16.0F, 0.0F, 16.0F, true, 1);
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
         boolean east;
         boolean north;
         boolean south;
@@ -32,7 +33,7 @@ public class DynamicCollisionPane extends DynamicConnecting implements Collision
 
         // 1.13+ servers on 1.13+ clients send the full fence data
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
-                && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+                && version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
             east = block.getEast() != East.FALSE;
             north = block.getNorth() != North.FALSE;
             south = block.getSouth() != South.FALSE;
@@ -45,11 +46,11 @@ public class DynamicCollisionPane extends DynamicConnecting implements Collision
         }
 
         // On 1.7 and 1.8 clients, and 1.13+ clients on 1.7 and 1.8 servers, the glass pane is + instead of |
-        if (!north && !south && !east && !west && (version.isOlderThanOrEquals(ClientVersion.V_1_8) || (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8) && version.isNewerThanOrEquals(ClientVersion.V_1_13)))) {
+        if (!north && !south && !east && !west && (version.isOlderThanOrEquals(PacketClientVersions.V_1_8) || (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8) && version.isNewerThanOrEquals(PacketClientVersions.V_1_13)))) {
             north = south = east = west = true;
         }
 
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_9)) {
+        if (version.isNewerThanOrEquals(PacketClientVersions.V_1_9)) {
             return COLLISION_BOXES[getAABBIndex(north, east, south, west)].copy();
         } else { // 1.8 and below clients have pane bounding boxes one pixel less
             ComplexCollisionBox boxes = new ComplexCollisionBox(2);
@@ -84,7 +85,7 @@ public class DynamicCollisionPane extends DynamicConnecting implements Collision
 
     @Override
     public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, PacketStateType one, PacketStateType two, BlockFace direction) {
-        if (BlockTags.GLASS_PANES.contains(one) || one == StateTypes.IRON_BARS || one == StateTypes.CHAIN && player.getClientVersion().isOlderThan(ClientVersion.V_1_16))
+        if (BlockTags.GLASS_PANES.contains(one) || one == StateTypes.IRON_BARS || one == StateTypes.CHAIN && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_16))
             return true;
         else
             return CollisionData.getData(one).getMovementCollisionBox(player, player.getClientVersion(), state, 0, 0, 0).isSideFullBlock(direction);

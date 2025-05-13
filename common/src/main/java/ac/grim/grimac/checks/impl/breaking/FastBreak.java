@@ -1,6 +1,9 @@
 package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
@@ -12,7 +15,6 @@ import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
@@ -117,7 +119,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         // Find the most optimal block damage using the animation packet, which is sent at least once a tick when breaking blocks
         // On 1.8 clients, via screws with this packet meaning we must fall back to the 1.8 idle flying packet
-        if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? event.getPacketType() == PacketType.Play.Client.ANIMATION : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) && targetBlockPosition != null) {
+        if ((player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) ? event.getPacketType() == PacketType.Play.Client.ANIMATION : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) && targetBlockPosition != null) {
             maximumBlockDamage = Math.max(maximumBlockDamage, BlockBreakSpeed.getBlockDamage(player, player.compensatedWorld.getBlock(targetBlockPosition)));
         }
     }

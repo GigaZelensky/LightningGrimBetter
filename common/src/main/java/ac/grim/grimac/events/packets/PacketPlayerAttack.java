@@ -2,6 +2,9 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.packet.item.PacketEnchantmentTypes;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsW;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -12,10 +15,9 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 public class PacketPlayerAttack extends PacketListenerAbstract {
@@ -50,12 +52,12 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                 PacketItemStack heldItem = player.getInventory().getHeldItem();
                 PacketEntity entity = player.compensatedEntities.getEntity(interact.getEntityId());
 
-                if (entity != null && (!entity.isLivingEntity() || entity.getType() == EntityTypes.PLAYER)) {
-                    int knockbackLevel = player.getClientVersion().isOlderThan(ClientVersion.V_1_21) && heldItem != null
+                if (entity != null && (!entity.isLivingEntity() || entity.getType() == PacketEntityTypes.PLAYER)) {
+                    int knockbackLevel = player.getClientVersion().isOlderThan(PacketClientVersions.V_1_21) && heldItem != null
                             ? heldItem.getEnchantmentLevel(PacketEnchantmentTypes.KNOCKBACK, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion().getProtocolVersion())
                             : 0;
 
-                    boolean isLegacyPlayer = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8);
+                    boolean isLegacyPlayer = player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8);
                     // assume cooldown is full on 1.8 servers
                     boolean noCooldown = isLegacyPlayer || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9);
 
@@ -90,7 +92,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                 // Interacting with a horse in versions 1.13- will cause the client to
                 // set the player's rotation to the horse's rotation
                 if (player.compensatedEntities.getEntity(interact.getEntityId()) instanceof PacketEntityHorse
-                        && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_13)) {
+                        && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_13)) {
                     player.packetStateData.horseInteractCausedForcedRotation = true;
                 }
             }

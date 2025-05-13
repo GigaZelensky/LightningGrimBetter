@@ -2,7 +2,7 @@ package ac.grim.grimac.utils.data.packetentity.dragon;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 
@@ -16,7 +16,7 @@ public final class PacketEntityEnderDragon extends PacketEntity {
     private final List<PacketEntityEnderDragonPart> parts = new ArrayList<>();
 
     public PacketEntityEnderDragon(GrimPlayer player, UUID uuid, int entityID, double x, double y, double z) {
-        super(player, uuid, EntityTypes.ENDER_DRAGON, x, y, z);
+        super(player, uuid, PacketEntityTypes.ENDER_DRAGON, x, y, z);
         final Int2ObjectOpenHashMap<PacketEntity> entityMap = player.compensatedEntities.entityMap;
         parts.add(new PacketEntityEnderDragonPart(player, DragonPart.HEAD, x, y, z, 1.0F, 1.0F));
         parts.add(new PacketEntityEnderDragonPart(player, DragonPart.NECK, x, y, z, 3.0F, 3.0F));

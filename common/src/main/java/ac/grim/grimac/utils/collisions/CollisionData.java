@@ -2,6 +2,9 @@ package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
@@ -28,7 +31,6 @@ import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import ac.grim.grimac.api.packet.item.PacketItemStack;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -108,7 +110,7 @@ public enum CollisionData implements CollisionFactory {
 
         // Yes I know we only need maxIndex = 3 for 1.8 specifically
         // No I'm not adding a special clause for which would require another if check, I'll take compute > memory any day
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+        if (version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
             maxIndex = 2;
             base = 1;
         }
@@ -121,7 +123,7 @@ public enum CollisionData implements CollisionFactory {
 
     BAMBOO((player, version, block, x, y, z) -> {
         // ViaVersion replacement, sugarcane
-        if (version.isOlderThan(ClientVersion.V_1_14)) {
+        if (version.isOlderThan(PacketClientVersions.V_1_14)) {
             return NoCollisionBox.INSTANCE;
         }
         return new HexOffsetCollisionBox(block.getType(), 6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D);
@@ -130,10 +132,10 @@ public enum CollisionData implements CollisionFactory {
     COMPOSTER((player, version, block, x, y, z) -> {
         double height = 0.125;
 
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_13_2))
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_13_2))
             height = 0.25;
 
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_12_2))
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2))
             height = 0.3125;
 
         return new ComplexCollisionBox(5,
@@ -154,7 +156,7 @@ public enum CollisionData implements CollisionFactory {
         // https://www.mcpk.wiki/wiki/Version_Differences
         // The base is 0.75×0.75, and its floor is 0.25b high.
         // The top is 1×0.625, and its ceiling is 0.375b low.
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+        if (version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
             ComplexCollisionBox complexAnvil = new ComplexCollisionBox(4);
             // Base of the anvil
             complexAnvil.add(new HexCollisionBox(2, 0, 2, 14, 4, 14));
@@ -219,7 +221,7 @@ public enum CollisionData implements CollisionFactory {
     DOOR(new DoorHandler(), BlockTags.DOORS.getStates().toArray(new PacketStateType[0])),
 
     HOPPER((player, version, data, x, y, z) -> {
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+        if (version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
             ComplexCollisionBox hopperBox = new ComplexCollisionBox(7);
 
             switch (data.getFacing()) {
@@ -263,7 +265,7 @@ public enum CollisionData implements CollisionFactory {
 
     CAKE((player, version, data, x, y, z) -> {
         double height = 0.5;
-        if (version.isOlderThan(ClientVersion.V_1_8))
+        if (version.isOlderThan(PacketClientVersions.V_1_8))
             height = 0.4375;
         double eatenPosition = (1 + (data.getBites()) * 2) / 16D;
         return new SimpleCollisionBox(eatenPosition, 0, 0.0625, 1 - 0.0625, height, 1 - 0.0625, false);
@@ -272,7 +274,7 @@ public enum CollisionData implements CollisionFactory {
     COCOA_BEANS((player, version, data, x, y, z) -> getCocoa(version, data.getAge(), data.getFacing()), StateTypes.COCOA),
 
     STONE_CUTTER((player, version, data, x, y, z) -> {
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_13_2))
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_13_2))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D);
@@ -308,7 +310,7 @@ public enum CollisionData implements CollisionFactory {
     // Kelp block is a full block, so it by default is correct
 
     BELL((player, version, data, x, y, z) -> {
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_13_2))
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_13_2))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         BlockFace direction = data.getFacing();
@@ -350,7 +352,7 @@ public enum CollisionData implements CollisionFactory {
 
     SCAFFOLDING((player, version, data, x, y, z) -> {
         // ViaVersion replacement block - hay block
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_13_2))
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_13_2))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         if (player.lastY > y + 1 - 1e-5 && !player.isSneaking) {
@@ -369,7 +371,7 @@ public enum CollisionData implements CollisionFactory {
 
     LADDER((player, version, data, x, y, z) -> {
         int width = 3;
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_8))
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_8))
             width = 2;
 
         return switch (data.getFacing()) {
@@ -382,7 +384,7 @@ public enum CollisionData implements CollisionFactory {
 
     CAMPFIRE((player, version, data, x, y, z) -> {
         // ViaVersion replacement block - slab if not lit or fire if lit
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_13_2)) {
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_13_2)) {
 
             if (data.isLit()) {
                 return NoCollisionBox.INSTANCE;
@@ -395,7 +397,7 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.CAMPFIRE, StateTypes.SOUL_CAMPFIRE),
 
     LANTERN((player, version, data, x, y, z) -> {
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_12_2))
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         if (data.isHanging()) {
@@ -412,7 +414,7 @@ public enum CollisionData implements CollisionFactory {
 
 
     LECTERN((player, version, data, x, y, z) -> {
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_13_2))
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_13_2))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return new ComplexCollisionBox(2,
@@ -422,7 +424,7 @@ public enum CollisionData implements CollisionFactory {
 
 
     HONEY_BLOCK((player, version, data, x, y, z) -> {
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_14_4))
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_14_4))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 15.0D, 15.0D); // post
@@ -434,7 +436,7 @@ public enum CollisionData implements CollisionFactory {
         BlockFace facing = data.getFacing();
 
         // ViaVersion replacement block - Anvil
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) {
             // Just a single solid collision box with 1.12
             if (facing == BlockFace.NORTH || facing == BlockFace.SOUTH) {
                 return new SimpleCollisionBox(0.125F, 0.0F, 0.0F, 0.875F, 1.0F, 1.0F, false);
@@ -443,7 +445,7 @@ public enum CollisionData implements CollisionFactory {
             }
         }
 
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_13_2)) {
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_13_2)) {
             ComplexCollisionBox complexAnvil = new ComplexCollisionBox(4);
             // Base of the anvil
             complexAnvil.add(new HexCollisionBox(2, 0, 2, 14, 4, 14));
@@ -534,7 +536,7 @@ public enum CollisionData implements CollisionFactory {
     PANE(new DynamicCollisionPane(), Materials.getPanes().toArray(new PacketStateType[0])),
 
     CHAIN_BLOCK((player, version, data, x, y, z) -> {
-        if (version.isOlderThan(ClientVersion.V_1_16)) {
+        if (version.isOlderThan(PacketClientVersions.V_1_16)) {
             // viaversion replacement - iron bars
             return PANE.fetch(player, version, data, x, y, z);
         }
@@ -568,7 +570,7 @@ public enum CollisionData implements CollisionFactory {
 
     SNOW((player, version, data, x, y, z) -> {
         int layers = data.getLayers();
-        if (layers == 1 && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+        if (layers == 1 && version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
                     || !ViaVersionUtil.isAvailable() || !Via.getConfig().isSnowCollisionFix()) {
                 return NoCollisionBox.INSTANCE;
@@ -595,7 +597,7 @@ public enum CollisionData implements CollisionFactory {
         ComplexCollisionBox complexCollisionBox = new ComplexCollisionBox(2, new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 13.0D, 16.0D));
 
         if (data.isEye()) {
-            if (version.isNewerThanOrEquals(ClientVersion.V_1_13)) {  // 1.13 players have a 0.5x0.5 eye
+            if (version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {  // 1.13 players have a 0.5x0.5 eye
                 complexCollisionBox.add(new HexCollisionBox(4.0D, 13.0D, 4.0D, 12.0D, 16.0D, 12.0D));
             } else { // 1.12 and below players have a 0.375x0.375 eye
                 complexCollisionBox.add(new HexCollisionBox(5.0D, 13.0D, 5.0D, 11.0D, 16.0D, 11.0D));
@@ -607,7 +609,7 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.END_PORTAL_FRAME),
 
     CARPET((player, version, data, x, y, z) -> {
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_7_10))
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_7_10))
             return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F, false);
 
         return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F, false);
@@ -620,7 +622,7 @@ public enum CollisionData implements CollisionFactory {
             return NoCollisionBox.INSTANCE;
         }
 
-        if (version.isOlderThan(ClientVersion.V_1_21_2)) {
+        if (version.isOlderThan(PacketClientVersions.V_1_21_2)) {
             return MOSS_CARPET.fetch(player, version, data, x, y, z);
         }
 
@@ -633,14 +635,14 @@ public enum CollisionData implements CollisionFactory {
     FARMLAND((player, version, data, x, y, z) -> {
         // Thanks Mojang for changing block collisions without changing protocol version!
         // Anyways, let a 1.10/1.10.1/1.10.2 client decide what farmland collision box it uses
-        if (version == ClientVersion.V_1_10) {
+        if (version == PacketClientVersions.V_1_10) {
             if (Math.abs(player.y % 1.0) < 0.001) {
                 return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
             }
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
         }
 
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_10))
+        if (version.isNewerThanOrEquals(PacketClientVersions.V_1_10))
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
 
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
@@ -648,7 +650,7 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.FARMLAND),
 
     GRASS_PATH((player, version, data, x, y, z) -> {
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_9))
+        if (version.isNewerThanOrEquals(PacketClientVersions.V_1_9))
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
 
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
@@ -657,17 +659,17 @@ public enum CollisionData implements CollisionFactory {
 
     LILYPAD((player, version, data, x, y, z) -> {
         // Boats break lilypads client sided on 1.12- clients.
-        if (player.inVehicle() && player.compensatedEntities.self.getRiding().isBoat() && version.isOlderThanOrEquals(ClientVersion.V_1_12_2))
+        if (player.inVehicle() && player.compensatedEntities.self.getRiding().isBoat() && version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2))
             return NoCollisionBox.INSTANCE;
 
-        if (version.isOlderThan(ClientVersion.V_1_9))
+        if (version.isOlderThan(PacketClientVersions.V_1_9))
             return new SimpleCollisionBox(0.0f, 0.0F, 0.0f, 1.0f, 0.015625F, 1.0f, false);
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.5D, 15.0D);
     }, StateTypes.LILY_PAD),
 
     BED((player, version, data, x, y, z) -> {
         // It's all the same box on 1.14 clients
-        if (version.isOlderThan(ClientVersion.V_1_14))
+        if (version.isOlderThan(PacketClientVersions.V_1_14))
             return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.5625, 1.0F, false);
 
         ComplexCollisionBox baseBox = new ComplexCollisionBox(3, new HexCollisionBox(0.0D, 3.0D, 0.0D, 16.0D, 9.0D, 16.0D));
@@ -707,7 +709,7 @@ public enum CollisionData implements CollisionFactory {
     END_ROD((player, version, data, x, y, z) -> getEndRod(version, data.getFacing()), StateTypes.END_ROD, StateTypes.LIGHTNING_ROD),
 
     CAULDRON((player, version, data, x, y, z) -> {
-        if (version.isNewerThan(ClientVersion.V_1_13_2)) { // changed in 19w13a, 1.14 Snapshot
+        if (version.isNewerThan(PacketClientVersions.V_1_13_2)) { // changed in 19w13a, 1.14 Snapshot
             return new ComplexCollisionBox(15,
                     new SimpleCollisionBox(0.0, 0.0, 0.0, 0.125, 1.0, 0.25, false),
                     new SimpleCollisionBox(0.0, 0.0, 0.75, 0.125, 1.0, 1.0, false),
@@ -727,7 +729,7 @@ public enum CollisionData implements CollisionFactory {
             );
         } else {
             double height = 0.25;
-            if (version.isOlderThan(ClientVersion.V_1_13))
+            if (version.isOlderThan(PacketClientVersions.V_1_13))
                 height = 0.3125;
 
             return new ComplexCollisionBox(5,
@@ -754,7 +756,7 @@ public enum CollisionData implements CollisionFactory {
 
     TURTLEEGG((player, version, data, x, y, z) -> {
         // ViaVersion replacement block (West facing cocoa beans)
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) {
             return getCocoa(version, data.getEggs(), BlockFace.WEST);
         }
 
@@ -767,7 +769,7 @@ public enum CollisionData implements CollisionFactory {
 
     CONDUIT((player, version, data, x, y, z) -> {
         // ViaVersion replacement block - Beacon
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_12_2))
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return new HexCollisionBox(5.0D, 5.0D, 5.0D, 11.0D, 11.0D, 11.0D);
@@ -855,7 +857,7 @@ public enum CollisionData implements CollisionFactory {
 
     // 1.17 blocks
     CANDLE((player, version, data, x, y, z) -> {
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_17)) {
+        if (version.isNewerThanOrEquals(PacketClientVersions.V_1_17)) {
             return switch (data.getCandles()) {
                 case 1 -> new HexCollisionBox(7.0, 0.0, 7.0, 9.0, 6.0, 9.0);
                 case 2 -> new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 6.0, 9.0);
@@ -869,7 +871,7 @@ public enum CollisionData implements CollisionFactory {
 
     CANDLE_CAKE((player, version, data, x, y, z) -> {
         SimpleCollisionBox cake = new HexCollisionBox(1.0, 0.0, 1.0, 15.0, 8.0, 15.0);
-        if (version.isOlderThan(ClientVersion.V_1_17)) {
+        if (version.isOlderThan(PacketClientVersions.V_1_17)) {
             return cake;
         } else {
             return new ComplexCollisionBox(2,
@@ -881,7 +883,7 @@ public enum CollisionData implements CollisionFactory {
     SCULK_SENSOR(new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 8.0, 16.0), StateTypes.SCULK_SENSOR, StateTypes.CALIBRATED_SCULK_SENSOR),
 
     DECORATED_POT((player, version, data, x, y, z) -> {
-        if (version.isNewerThan(ClientVersion.V_1_19_3)) {
+        if (version.isNewerThan(PacketClientVersions.V_1_19_3)) {
             return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0);
         } else { // ViaVersion replacement is a Brick
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
@@ -890,7 +892,7 @@ public enum CollisionData implements CollisionFactory {
 
     BIG_DRIPLEAF((player, version, data, x, y, z) -> {
         Tilt tilt = data.getTilt();
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_16_4)) {
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_16_4)) {
             if (tilt == Tilt.FULL) {
                 return new SimpleCollisionBox(0, 0, 0, 1, 0.5, 1, false);
             } else {
@@ -908,7 +910,7 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.BIG_DRIPLEAF),
 
     POINTED_DRIPSTONE((player, version, data, x, y, z) -> {
-        if (version.isOlderThan(ClientVersion.V_1_17))
+        if (version.isOlderThan(PacketClientVersions.V_1_17))
             return getEndRod(version, BlockFace.UP);
 
         SimpleCollisionBox box;
@@ -933,13 +935,13 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.POINTED_DRIPSTONE),
 
     POWDER_SNOW((player, version, data, x, y, z) -> {
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_16_4))
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_16_4))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         // If fall distance greater than 2.5, 0.899999 box
         if (player.fallDistance > 2.5) {
             // TODO: this is technically incorrect (1.21.4)
-            return player.getClientVersion() == ClientVersion.V_1_21_4 ?
+            return player.getClientVersion() == PacketClientVersions.V_1_21_4 ?
                     new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
                     : new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 0.9, 1.0, false);
         }
@@ -972,7 +974,7 @@ public enum CollisionData implements CollisionFactory {
     LARGE_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 5, 3), StateTypes.LARGE_AMETHYST_BUD),
 
     MUD_BLOCK((player, version, data, x, y, z) -> {
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_19)) {
+        if (version.isNewerThanOrEquals(PacketClientVersions.V_1_19)) {
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D);
         }
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
@@ -992,7 +994,7 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.MANGROVE_PROPAGULE),
 
     SCULK_SHRIKER((player, version, data, x, y, z) -> {
-        if (version.isNewerThan(ClientVersion.V_1_18_2)) {
+        if (version.isNewerThan(PacketClientVersions.V_1_18_2)) {
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
         } else {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
@@ -1000,7 +1002,7 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.SCULK_SHRIEKER),
 
     SNIFFER_EGG((player, version, data, x, y, z) -> {
-        if (version.isNewerThan(ClientVersion.V_1_19_4)) {
+        if (version.isNewerThan(PacketClientVersions.V_1_19_4)) {
             return new HexCollisionBox(1.0D, 0.0D, 2.0D, 15.0D, 16.0D, 14.0D);
         } else {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
@@ -1008,7 +1010,7 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.SNIFFER_EGG),
 
     PITCHER_CROP((player, version, data, x, y, z) -> {
-        if (version.isNewerThan(ClientVersion.V_1_19_4)) {
+        if (version.isNewerThan(PacketClientVersions.V_1_19_4)) {
             final SimpleCollisionBox COLLISION_SHAPE_BULB = new HexCollisionBox(5.0D, -1.0D, 5.0D, 11.0D, 3.0D, 11.0D);
             final SimpleCollisionBox COLLISION_SHAPE_CROP = new HexCollisionBox(3.0D, -1.0D, 3.0D, 13.0D, 5.0D, 13.0D);
 
@@ -1059,8 +1061,8 @@ public enum CollisionData implements CollisionFactory {
         this.materials = mList.toArray(new PacketStateType[0]);
     }
 
-    private static CollisionBox getAmethystBox(ClientVersion version, com.github.retrooper.packetevents.protocol.world.BlockFace facing, int param_0, int param_1) {
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_16_4))
+    private static CollisionBox getAmethystBox(PacketClientVersion version, com.github.retrooper.packetevents.protocol.world.BlockFace facing, int param_0, int param_1) {
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_16_4))
             return NoCollisionBox.INSTANCE;
 
         return switch (facing) {
@@ -1079,9 +1081,9 @@ public enum CollisionData implements CollisionFactory {
         };
     }
 
-    private static CollisionBox getPicklesBox(ClientVersion version, int pickles) {
+    private static CollisionBox getPicklesBox(PacketClientVersion version, int pickles) {
         // ViaVersion replacement block (West facing cocoa beans)
-        if (version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
+        if (version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) {
             return getCocoa(version, pickles, BlockFace.WEST);
         }
 
@@ -1094,10 +1096,10 @@ public enum CollisionData implements CollisionFactory {
         };
     }
 
-    public static CollisionBox getCocoa(ClientVersion version, int age, BlockFace direction) {
+    public static CollisionBox getCocoa(PacketClientVersion version, int age, BlockFace direction) {
         // From 1.9 - 1.10, the large cocoa block is the same as the medium one
         // https://bugs.mojang.com/browse/MC-94274
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_9_1) && version.isOlderThan(ClientVersion.V_1_11))
+        if (version.isNewerThanOrEquals(PacketClientVersions.V_1_9_1) && version.isOlderThan(PacketClientVersions.V_1_11))
             age = Math.min(age, 1);
 
         switch (direction) {
@@ -1141,9 +1143,9 @@ public enum CollisionData implements CollisionFactory {
         return NoCollisionBox.INSTANCE;
     }
 
-    private static CollisionBox getEndRod(ClientVersion version, BlockFace face) {
+    private static CollisionBox getEndRod(PacketClientVersion version, BlockFace face) {
         // ViaVersion replacement block - torch
-        if (version.isOlderThan(ClientVersion.V_1_9))
+        if (version.isOlderThan(PacketClientVersions.V_1_9))
             return NoCollisionBox.INSTANCE;
 
         return switch (face) {
@@ -1164,11 +1166,11 @@ public enum CollisionData implements CollisionFactory {
         return rawLookupMap.getOrDefault(state, DEFAULT);
     }
 
-    public CollisionBox getMovementCollisionBox(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox getMovementCollisionBox(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
         return fetch(player, version, block, x, y, z).offset(x, y, z);
     }
 
-    public CollisionBox getMovementCollisionBox(GrimPlayer player, ClientVersion version, WrappedBlockState block) {
+    public CollisionBox getMovementCollisionBox(GrimPlayer player, PacketClientVersion version, WrappedBlockState block) {
         if (this.box != null)
             return this.box.copy();
 
@@ -1176,7 +1178,7 @@ public enum CollisionData implements CollisionFactory {
     }
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
         return box != null ? box.copy() : new DynamicCollisionBox(player, version, dynamic, block);
     }
 }

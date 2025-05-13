@@ -1,11 +1,13 @@
 package ac.grim.grimac.predictionengine.predictions;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +21,7 @@ public class PredictionEngineElytra extends PredictionEngine {
         double length = lookVector.length();
 
         // Mojang changed from using their math to using regular java math in 1.18.2 elytra movement
-        double vertCosRotation = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2) ? Math.cos(yRotRadians) : player.trigHandler.cos(yRotRadians);
+        double vertCosRotation = player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_18_2) ? Math.cos(yRotRadians) : player.trigHandler.cos(yRotRadians);
         vertCosRotation = (float) (vertCosRotation * vertCosRotation * Math.min(1.0D, length / 0.4D));
 
         // So we actually use the player's actual movement to get the gravity/slow falling status
@@ -27,7 +29,7 @@ public class PredictionEngineElytra extends PredictionEngine {
         // Yeah, slow falling needs a refactor in grim.
         double recalculatedGravity = player.compensatedEntities.self.getAttributeValue(Attributes.GRAVITY);
         if (player.clientVelocity.getY() <= 0 && player.compensatedEntities.getSlowFallingAmplifier().isPresent()) {
-            recalculatedGravity = player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 0.01 : Math.min(recalculatedGravity, 0.01);
+            recalculatedGravity = player.getClientVersion().isOlderThan(PacketClientVersions.V_1_20_5) ? 0.01 : Math.min(recalculatedGravity, 0.01);
         }
 
         vector.add(new Vector3dm(0.0D, recalculatedGravity * (-1.0D + vertCosRotation * 0.75D), 0.0D));

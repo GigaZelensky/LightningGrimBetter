@@ -1,8 +1,10 @@
 package ac.grim.grimac.utils.math;
 
 import ac.grim.grimac.api.math.Vector3dm;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import lombok.Getter;
 
 public class TrigHandler {
@@ -30,8 +32,8 @@ public class TrigHandler {
     }
 
     public Vector3dm getShitMathMovement(Vector3dm wantedMovement, float f, float f2) {
-        float f3 = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.sin(GrimMath.radians(f2)) : LegacyFastMath.sin(GrimMath.radians(f2));
-        float f4 = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.cos(GrimMath.radians(f2)) : LegacyFastMath.cos(GrimMath.radians(f2));
+        float f3 = player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8) ? OptifineFastMath.sin(GrimMath.radians(f2)) : LegacyFastMath.sin(GrimMath.radians(f2));
+        float f4 = player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8) ? OptifineFastMath.cos(GrimMath.radians(f2)) : LegacyFastMath.cos(GrimMath.radians(f2));
 
         float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
         float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
@@ -78,10 +80,10 @@ public class TrigHandler {
     }
 
     public float sin(float f) {
-        return isVanillaMath ? VanillaMath.sin(f) : (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.sin(f) : LegacyFastMath.sin(f));
+        return isVanillaMath ? VanillaMath.sin(f) : (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8) ? OptifineFastMath.sin(f) : LegacyFastMath.sin(f));
     }
 
     public float cos(float f) {
-        return isVanillaMath ? VanillaMath.cos(f) : (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.cos(f) : LegacyFastMath.cos(f));
+        return isVanillaMath ? VanillaMath.cos(f) : (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8) ? OptifineFastMath.cos(f) : LegacyFastMath.cos(f));
     }
 }

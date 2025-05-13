@@ -1,13 +1,15 @@
 package ac.grim.grimac.utils.nmsutil;
 
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
 public class ReachUtils {
@@ -138,7 +140,7 @@ public class ReachUtils {
 
     // Look vector accounting for optifine FastMath, and client version differences
     public static Vector3dm getLook(GrimPlayer player, float yaw, float pitch) {
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
+        if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) {
             float f = player.trigHandler.cos(GrimMath.radians(-yaw) - (float) Math.PI);
             float f1 = player.trigHandler.sin(GrimMath.radians(-yaw) - (float) Math.PI);
             float f2 = -player.trigHandler.cos(GrimMath.radians(-pitch));
@@ -161,7 +163,7 @@ public class ReachUtils {
 
     public static double getMinReachToBox(GrimPlayer player, SimpleCollisionBox targetBox) {
         boolean giveMovementThresholdLenience = !player.packetStateData.didLastMovementIncludePosition || player.canSkipTicks();
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))
+        if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8))
             targetBox.expand(0.1);
 
         double lowest = Double.MAX_VALUE;

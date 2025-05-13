@@ -1,5 +1,8 @@
 package ac.grim.grimac.checks.impl.elytra;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -7,7 +10,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
@@ -22,7 +24,7 @@ public class ElytraC extends Check implements PostPredictionCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
+        if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8)) {
             return;
         }
 

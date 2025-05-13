@@ -4,10 +4,12 @@ import ac.grim.grimac.api.packet.item.PacketItemAttribute;
 import ac.grim.grimac.api.packet.item.PacketItemType;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
@@ -197,8 +199,8 @@ public class Materials {
                 || material == PacketItemTypes.TRIDENT || material == PacketItemTypes.SHIELD);
     }
 
-    public static boolean isWater(ClientVersion clientVersion, WrappedBlockState state) {
-        boolean modern = clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13);
+    public static boolean isWater(PacketClientVersion clientVersion, WrappedBlockState state) {
+        boolean modern = clientVersion.isNewerThanOrEquals(PacketClientVersions.V_1_13);
 
         if (modern && isWaterModern(state.getType())) {
             return true;
@@ -211,32 +213,32 @@ public class Materials {
         return isWaterlogged(clientVersion, state);
     }
 
-    public static boolean isWaterSource(ClientVersion clientVersion, WrappedBlockState state) {
+    public static boolean isWaterSource(PacketClientVersion clientVersion, WrappedBlockState state) {
         if (isWaterlogged(clientVersion, state)) {
             return true;
         }
         if (state.getType() == StateTypes.WATER && state.getLevel() == 0) {
             return true;
         }
-        boolean modern = clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13);
+        boolean modern = clientVersion.isNewerThanOrEquals(PacketClientVersions.V_1_13);
         return modern ? WATER_SOURCES.contains(state.getType()) : WATER_SOURCES_LEGACY.contains(state.getType());
     }
 
-    public static boolean isWaterlogged(ClientVersion clientVersion, WrappedBlockState state) {
-        if (clientVersion.isOlderThanOrEquals(ClientVersion.V_1_12_2)) return false;
+    public static boolean isWaterlogged(PacketClientVersion clientVersion, WrappedBlockState state) {
+        if (clientVersion.isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) return false;
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_13))
             return false;
 
         PacketStateType type = state.getType();
 
         // Waterlogged lanterns were added in 1.16.2
-        if (clientVersion.isOlderThan(ClientVersion.V_1_16_2) && (type == StateTypes.LANTERN || type == StateTypes.SOUL_LANTERN))
+        if (clientVersion.isOlderThan(PacketClientVersions.V_1_16_2) && (type == StateTypes.LANTERN || type == StateTypes.SOUL_LANTERN))
             return false;
         // ViaVersion small dripleaf -> fern (not waterlogged)
-        if (clientVersion.isOlderThan(ClientVersion.V_1_17) && type == StateTypes.SMALL_DRIPLEAF)
+        if (clientVersion.isOlderThan(PacketClientVersions.V_1_17) && type == StateTypes.SMALL_DRIPLEAF)
             return false;
         // Waterlogged rails were added in 1.17
-        if (clientVersion.isOlderThan(ClientVersion.V_1_17) && BlockTags.RAILS.contains(type))
+        if (clientVersion.isOlderThan(PacketClientVersions.V_1_17) && BlockTags.RAILS.contains(type))
             return false;
         // Nice check to see if waterlogged :)
         return (boolean) state.getInternalData().getOrDefault(StateValue.WATERLOGGED, false);
@@ -258,7 +260,7 @@ public class Materials {
     // As we have already assumed that the player does not have water at this block
     // We do not have to track all the version differences in terms of looking for water
     // For 1.7-1.12 clients, it is safe to check SOLID_BLACKLIST directly
-    public static boolean isSolidBlockingBlacklist(PacketStateType mat, ClientVersion ver) {
+    public static boolean isSolidBlockingBlacklist(PacketStateType mat, PacketClientVersion ver) {
         // Thankfully Mojang has not changed this code much across versions
         // There very likely is a few lurking issues though, I've done my best but can't thoroughly compare 11 versions
         // but from a look, Mojang seems to keep this definition consistent throughout their game (thankfully)
@@ -270,7 +272,7 @@ public class Materials {
 
         // 1.13-1.15 had banners on the blacklist - removed in 1.16, not implemented in 1.12 and below
         if (BlockTags.BANNERS.contains(mat))
-            return ver.isNewerThanOrEquals(ClientVersion.V_1_13) && ver.isOlderThan(ClientVersion.V_1_16);
+            return ver.isNewerThanOrEquals(PacketClientVersions.V_1_13) && ver.isOlderThan(PacketClientVersions.V_1_16);
 
         return false;
     }
@@ -287,8 +289,8 @@ public class Materials {
         return NO_PLACE_LIQUIDS.contains(material);
     }
 
-    public static boolean isWaterIgnoringWaterlogged(ClientVersion clientVersion, WrappedBlockState state) {
-        if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13))
+    public static boolean isWaterIgnoringWaterlogged(PacketClientVersion clientVersion, WrappedBlockState state) {
+        if (clientVersion.isNewerThanOrEquals(PacketClientVersions.V_1_13))
             return isWaterModern(state.getType());
         return isWaterLegacy(state.getType());
     }
@@ -297,7 +299,7 @@ public class Materials {
         return CLIENT_SIDE.contains(material);
     }
 
-    public static boolean isClientSideOpenableDoor(PacketStateType mat, ClientVersion ver) {
+    public static boolean isClientSideOpenableDoor(PacketStateType mat, PacketClientVersion ver) {
         // Iron doors and all other blocks are not openable
         if (!BlockTags.MOB_INTERACTABLE_DOORS.contains(mat)) {
             return false;
@@ -305,27 +307,27 @@ public class Materials {
 
         // Copper doors can only be opened in 1.20.3 and above, in older versions they appear as iron doors
         if (COPPER_DOORS.contains(mat)) {
-            return ver.isNewerThanOrEquals(ClientVersion.V_1_20_3);
+            return ver.isNewerThanOrEquals(PacketClientVersions.V_1_20_3);
         }
 
         // If it's not a copper door players in any version can open it
         return true;
     }
 
-    public static boolean isClientSideOpenableTrapdoor(PacketStateType mat, ClientVersion ver) {
+    public static boolean isClientSideOpenableTrapdoor(PacketStateType mat, PacketClientVersion ver) {
         // Everything except trapdoors
         if (!BlockTags.TRAPDOORS.contains(mat)) {
             return false;
         }
 
         // In 1.7, only oak trapdoors exist so 1.7 players can open every type of trapdoor
-        if (ver.isOlderThan(ClientVersion.V_1_8)) {
+        if (ver.isOlderThan(PacketClientVersions.V_1_8)) {
             return true;
         }
 
         // Copper trapdoors can only be opened in 1.20.3 and above, in older versions they appear as iron trapdoors
         if (COPPER_TRAPDOORS.contains(mat)) {
-            return ver.isNewerThanOrEquals(ClientVersion.V_1_20_3);
+            return ver.isNewerThanOrEquals(PacketClientVersions.V_1_20_3);
         }
 
         // If it's not a copper trapdoor players in any version can open it

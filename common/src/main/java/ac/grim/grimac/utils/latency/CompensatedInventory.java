@@ -2,6 +2,9 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -18,7 +21,6 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
@@ -218,7 +220,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
 
                 PacketItemStack itemstack1 = getByEquipmentType(equipmentType);
                 // Only 1.19.4+ clients support swapping with non-empty items
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4) && !itemstack1.isEmpty())
+                if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_19_4) && !itemstack1.isEmpty())
                     return;
 
                 // 1.19.4+ clients support swapping with non-empty items
@@ -237,7 +239,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
             // 1.8 clients don't predict dropping items
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) return;
+            if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8)) return;
 
             if (dig.getAction() == DiggingAction.DROP_ITEM) {
                 PacketItemStack heldItem = getHeldItem();

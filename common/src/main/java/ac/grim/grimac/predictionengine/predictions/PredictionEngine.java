@@ -1,5 +1,8 @@
 package ac.grim.grimac.predictionengine.predictions;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
@@ -16,7 +19,6 @@ import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.Riptide;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +34,7 @@ public class PredictionEngine {
     }
 
     public static Vector3dm transformInputsToVector(GrimPlayer player, Vector3dm theoreticalInput) {
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+        if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21_5)) {
             Vec2 moveVector = new Vec2((float) theoreticalInput.getX(), (float) theoreticalInput.getZ()).normalized();
             Vec2 input = modifyInput(player, moveVector);
             return new Vector3dm(input.x(), 0, input.y());
@@ -159,7 +161,7 @@ public class PredictionEngine {
         SimpleCollisionBox originalBB = player.boundingBox;
         // 0.03 doesn't exist with vehicles, thank god
         // 1.13+ clients have stupid poses that desync because mojang brilliantly removed the idle packet in 1.9
-        SimpleCollisionBox pointThreeThanksMojang = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)
+        SimpleCollisionBox pointThreeThanksMojang = player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_13)
                 ? GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.lastX, player.lastY, player.lastZ, 0.6f, 0.6f)
                 : originalBB;
 
@@ -316,7 +318,7 @@ public class PredictionEngine {
         }
 
         // Swimming vertically can add more Y velocity than normal
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && player.isSwimming) {
+        if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_13) && player.isSwimming) {
             pointThreePossibilities = PredictionEngineWater.transformSwimmingVectors(player, pointThreePossibilities);
         }
 
@@ -325,7 +327,7 @@ public class PredictionEngine {
         // We still do climbing at the end, as it uses a different client velocity
         //
         // Force 1.13.2 and below players to have something to collide with horizontally to climb
-        if (player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+        if (player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
 
             // Calculate the Y velocity after friction
@@ -361,7 +363,7 @@ public class PredictionEngine {
             }
             // Water pushing movement is affected by initial velocity due to 0.003 eating pushing in the past
             if (vectorData.isKnockback() && player.baseTickWaterPushing.lengthSquared() != 0) {
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
+                if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
                     Vector3dm vec3 = player.baseTickWaterPushing.clone();
                     if (Math.abs(vectorData.vector.getX()) < 0.003 && Math.abs(vectorData.vector.getZ()) < 0.003 && player.baseTickWaterPushing.length() < 0.0045000000000000005D) {
                         vec3 = vec3.normalize().multiply(0.0045000000000000005);
@@ -402,7 +404,7 @@ public class PredictionEngine {
 
     private void addNonEffectiveAI(GrimPlayer player, Set<VectorData> data) {
         // For some reason on 1.21.5+ this no longer applies
-        if (!player.inVehicle() || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) return;
+        if (!player.inVehicle() || player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21_5)) return;
 
         for (VectorData vectorData : data) {
             vectorData.vector = vectorData.vector.clone().multiply(0.98);
@@ -433,12 +435,12 @@ public class PredictionEngine {
     // Renamed from applyPointZeroZeroThree to avoid confusion with applyZeroPointZeroThree
     public void applyMovementThreshold(GrimPlayer player, Set<VectorData> velocities) {
         double minimumMovement = 0.003D;
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
+        if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8)) {
             minimumMovement = 0.005D;
         }
 
         for (VectorData vector : velocities) {
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && !player.inVehicle()) {
+            if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21_5) && !player.inVehicle()) {
                 if (Collisions.getHorizontalDistanceSqr(vector.vector) < 9.0E-6) {
                     vector.vector.setX(0D);
                     vector.vector.setZ(0D);
@@ -714,7 +716,7 @@ public class PredictionEngine {
         //
         // Or the player is switching in and out of controlling a vehicle, in which friction messes it up
         //
-        if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(0) || player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && vector.vector.getY() > 0 && vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.lastX, vector.vector.getY() + player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
+        if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(0) || player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_13) && vector.vector.getY() > 0 && vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.lastX, vector.vector.getY() + player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
             box.expandToAbsoluteCoordinates(0, 0, 0);
         }
 

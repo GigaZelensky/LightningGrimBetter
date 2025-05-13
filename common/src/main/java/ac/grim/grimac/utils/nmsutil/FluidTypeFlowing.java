@@ -1,10 +1,12 @@
 package ac.grim.grimac.utils.nmsutil;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
 import ac.grim.grimac.api.math.Vector3dm;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -14,7 +16,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 public class FluidTypeFlowing {
     public static Vector3dm getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
         float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
-        ClientVersion version = player.getClientVersion();
+        PacketClientVersion version = player.getClientVersion();
 
         if (fluidLevel == 0) return new Vector3dm();
 
@@ -84,7 +86,7 @@ public class FluidTypeFlowing {
         if (type == StateTypes.ICE) return false;
 
         // 1.11 and below clients use a different method to determine solid faces
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
+        if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_12)) {
             if (type == StateTypes.PISTON || type == StateTypes.STICKY_PISTON) {
                 return data.getFacing().getOppositeFace() == direction ||
                         CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, 0, 0, 0).isFullBlock();
@@ -93,7 +95,7 @@ public class FluidTypeFlowing {
             }
         }
 
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_12)) {
+        if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_12)) {
             // No bush, cocoa, wart, reed
             // No double grass, tall grass, or vine
             // No button, flower pot, ladder, lever, rail, redstone, redstone wire, skull, torch, trip wire, or trip wire hook
@@ -101,7 +103,7 @@ public class FluidTypeFlowing {
             // No snow
             // Otherwise, solid
             return !Materials.isSolidBlockingBlacklist(type, player.getClientVersion());
-        } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_13_2)) {
+        } else if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_12) && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_13_2)) {
             // 1.12/1.13 exempts stairs, pistons, sticky pistons, and piston heads.
             // It also exempts shulker boxes, leaves, trapdoors, stained glass, beacons, cauldrons, glass, glowstone, ice, sea lanterns, and conduits.
             //
@@ -123,7 +125,7 @@ public class FluidTypeFlowing {
         } else {
             if (Materials.isLeaves(type)) {
                 // Leaves don't have solid faces in 1.13, they do in 1.14 and 1.15, and they don't in 1.16 and beyond
-                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2);
+                return player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14) && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_15_2);
             } else if (type == StateTypes.SNOW) {
                 return data.getLayers() == 8;
             } else if (Materials.isStairs(type)) {
@@ -131,7 +133,7 @@ public class FluidTypeFlowing {
             } else if (type == StateTypes.COMPOSTER) {
                 return true;
             } else if (type == StateTypes.SOUL_SAND) {
-                return player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16);
+                return player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_12_2) || player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_16);
             } else if (type == StateTypes.LADDER) {
                 return data.getFacing().getOppositeFace() == direction;
             } else if (BlockTags.TRAPDOORS.contains(type)) {

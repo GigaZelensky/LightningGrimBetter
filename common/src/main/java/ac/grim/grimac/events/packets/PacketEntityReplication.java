@@ -2,6 +2,10 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.packet.entity.PacketEntityType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -17,10 +21,8 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.EntityPositionData;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -114,10 +116,10 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             addEntity(packetOutEntity.getEntityId(), packetOutEntity.getUUID().orElse(null), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), null, packetOutEntity.getData());
         } else if (event.getPacketType() == PacketType.Play.Server.SPAWN_PLAYER) {
             WrapperPlayServerSpawnPlayer packetOutEntity = new WrapperPlayServerSpawnPlayer(event);
-            addEntity(packetOutEntity.getEntityId(), packetOutEntity.getUUID(), EntityTypes.PLAYER, packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getEntityMetadata(), 0);
+            addEntity(packetOutEntity.getEntityId(), packetOutEntity.getUUID(), PacketEntityTypes.PLAYER, packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getEntityMetadata(), 0);
         } else if (event.getPacketType() == PacketType.Play.Server.SPAWN_PAINTING) {
             WrapperPlayServerSpawnPainting packetOutEntity = new WrapperPlayServerSpawnPainting(event);
-            addEntity(packetOutEntity.getEntityId(), packetOutEntity.getUUID(), EntityTypes.PAINTING, packetOutEntity.getPosition().toVector3d(), 0, 0f, null, packetOutEntity.getDirection().getHorizontalIndex());
+            addEntity(packetOutEntity.getEntityId(), packetOutEntity.getUUID(), PacketEntityTypes.PAINTING, packetOutEntity.getPosition().toVector3d(), 0, 0f, null, packetOutEntity.getDirection().getHorizontalIndex());
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE) {
             WrapperPlayServerEntityRelativeMove move = new WrapperPlayServerEntityRelativeMove(event);
             handleMoveEntity(event, move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), null, null, true, true);
@@ -180,14 +182,14 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             //
             // Set to 24 so ViaVersion blocks it
             // 24 is the levitation effect
-            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && ViaVersionUtil.isAvailable() && type.getId(player.getClientVersion()) > 23) {
+            if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9) && ViaVersionUtil.isAvailable() && type.getId(player.getClientVersion()) > 23) {
                 event.setCancelled(true);
                 return;
             }
 
             // ViaVersion dolphin's grace also messes us up, set it to a potion effect that doesn't exist on 1.12
             // Effect 31 is bad omen
-            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && ViaVersionUtil.isAvailable() && type.getId(player.getClientVersion()) == 30) {
+            if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_13) && ViaVersionUtil.isAvailable() && type.getId(player.getClientVersion()) == 30) {
                 event.setCancelled(true);
                 return;
             }
@@ -258,7 +260,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
 
             if (slot.getWindowId() == 0) {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected && (player.getInventory().getHeldItem().getType() == slot.getItem().getType() || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
+                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected && (player.getInventory().getHeldItem().getType() == slot.getItem().getType() || player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8))) {
                         player.packetStateData.setSlowedByUsingItem(false);
 
                         if (player.isResetItemUsageOnItemUpdate()) {
@@ -268,7 +270,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 });
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
-                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected && (player.getInventory().getHeldItem().getType() == slot.getItem().getType() || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))) {
+                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected && (player.getInventory().getHeldItem().getType() == slot.getItem().getType() || player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8))) {
                         player.packetStateData.setSlowedByUsingItem(false);
 
                         if (player.isResetItemUsageOnItemUpdate()) {
@@ -424,7 +426,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 // Don't bother with client controlled vehicles though
                 boolean vanillaVehicleFlight = player.compensatedEntities.serverPlayerVehicle != null
                         && player.compensatedEntities.serverPlayerVehicle == entityId
-                        && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
+                        && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9)
                         // TODO: https://discord.com/channels/721686193061888071/721686193515003966/1310659538831020123
                         // Why does the server now send an entity rel move packet matching the player's vehicle movement every time?
                         && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)
@@ -435,7 +437,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 // This causes impossible hits, so grim must replace this with a teleport entity packet
                 // Not ideal, but neither is 1.8 players on a 1.9+ server.
                 if (vanillaVehicleFlight ||
-                        ((Math.abs(deltaX) >= 3.9375 || Math.abs(deltaY) >= 3.9375 || Math.abs(deltaZ) >= 3.9375) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9))) {
+                        ((Math.abs(deltaX) >= 3.9375 || Math.abs(deltaY) >= 3.9375 || Math.abs(deltaZ) >= 3.9375) && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9))) {
                     player.user.writePacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch, false));
                     event.setCancelled(true);
                     return;
@@ -481,7 +483,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         });
     }
 
-    public void addEntity(int entityID, UUID uuid, EntityType type, Vector3d position, float xRot, float yRot, List<EntityData<?>> entityMetadata, int extraData) {
+    public void addEntity(int entityID, UUID uuid, PacketEntityType type, Vector3d position, float xRot, float yRot, List<EntityData<?>> entityMetadata, int extraData) {
         if (despawnedEntitiesThisTransaction.contains(entityID)) {
             player.sendTransaction();
         }

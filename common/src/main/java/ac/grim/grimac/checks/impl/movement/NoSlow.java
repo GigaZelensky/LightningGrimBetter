@@ -1,12 +1,14 @@
 package ac.grim.grimac.checks.impl.movement;
 
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 @CheckData(name = "NoSlow", description = "Was not slowed while using an item", setback = 5)
 public class NoSlow extends Check implements PostPredictionCheck {
@@ -28,7 +30,7 @@ public class NoSlow extends Check implements PostPredictionCheck {
         // If the player was using an item for certain, and their predicted velocity had a flipped item
         if (player.packetStateData.isSlowedByUsingItem()) {
             // 1.8 users are not slowed the first tick they use an item, strangely
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) && didSlotChangeLastTick) {
+            if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8) && didSlotChangeLastTick) {
                 didSlotChangeLastTick = false;
                 flaggedLastTick = false;
             }

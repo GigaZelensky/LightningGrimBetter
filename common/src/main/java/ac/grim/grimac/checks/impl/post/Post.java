@@ -1,5 +1,8 @@
 package ac.grim.grimac.checks.impl.post;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -13,7 +16,6 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
 
@@ -88,23 +90,23 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
                 post.clear();
                 sentFlying = false;
             } else if (PLAYER_ABILITIES.equals(packetType)
-                    || (HELD_ITEM_CHANGE.equals(packetType) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8))
+                    || (HELD_ITEM_CHANGE.equals(packetType) && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8))
                     || INTERACT_ENTITY.equals(packetType) || PLAYER_BLOCK_PLACEMENT.equals(packetType)
                     || USE_ITEM.equals(packetType) || PLAYER_DIGGING.equals(packetType)) {
                 if (sentFlying) post.add(event.getPacketType());
-            } else if (CLICK_WINDOW.equals(packetType) && player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) {
+            } else if (CLICK_WINDOW.equals(packetType) && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_13)) {
                 // Why do 1.13+ players send the click window packet whenever? This doesn't make sense.
                 if (sentFlying) post.add(event.getPacketType());
             } else if (ANIMATION.equals(packetType)
-                    && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) // ViaVersion delays animations for 1.8 clients
+                    && (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) // ViaVersion delays animations for 1.8 clients
                     || PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) // when on 1.9+ servers
-                    && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) // 1.13 clicking inventory causes weird animations
+                    && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_13) // 1.13 clicking inventory causes weird animations
                     && isExemptFromSwingingCheck < player.lastTransactionReceived.get()) { // Exempt when the server sends animations because viaversion
                 if (sentFlying) post.add(event.getPacketType());
             } else if (ENTITY_ACTION.equals(packetType) // ViaRewind sends START_FALL_FLYING packets async for 1.8 clients on 1.9+ servers
-                    && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) || new WrapperPlayClientEntityAction(event).getAction() != WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA)) {
+                    && (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) || new WrapperPlayClientEntityAction(event).getAction() != WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA)) {
                 // https://github.com/GrimAnticheat/Grim/issues/824
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_3) && player.inVehicle()) {
+                if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_19_3) && player.inVehicle()) {
                     return;
                 }
                 if (sentFlying) post.add(event.getPacketType());

@@ -1,6 +1,9 @@
 package ac.grim.grimac.utils.collisions.blocks.connecting;
 
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
@@ -10,7 +13,6 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -50,7 +52,7 @@ public class DynamicConnecting {
         return avoxelshape;
     }
 
-    public boolean connectsTo(GrimPlayer player, ClientVersion v, int currX, int currY, int currZ, BlockFace direction) {
+    public boolean connectsTo(GrimPlayer player, PacketClientVersion v, int currX, int currY, int currZ, BlockFace direction) {
         WrappedBlockState targetBlock = player.compensatedWorld.getBlock(currX + direction.getModX(), currY + direction.getModY(), currZ + direction.getModZ());
         WrappedBlockState currBlock = player.compensatedWorld.getBlock(currX, currY, currZ);
         PacketStateType target = targetBlock.getType();
@@ -61,25 +63,25 @@ public class DynamicConnecting {
 
         // 1.12+ clients can connect to TnT while previous versions can't
         if (target == StateTypes.TNT)
-            return v.isNewerThanOrEquals(ClientVersion.V_1_12);
+            return v.isNewerThanOrEquals(PacketClientVersions.V_1_12);
 
         // 1.9-1.11 clients don't have BARRIER exemption
         // https://bugs.mojang.com/browse/MC-9565
         if (target == StateTypes.BARRIER)
-            return player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) ||
-                    player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) &&
-                            player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_11_1);
+            return player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_7_10) ||
+                    player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) &&
+                            player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_11_1);
 
         if (BlockTags.STAIRS.contains(target)) {
             // 1.12 clients generate their own data, 1.13 clients use the server's data
             // 1.11- versions don't allow fences to connect to the back sides of stairs
-            if (v.isOlderThan(ClientVersion.V_1_12) || (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_11) && v.isNewerThanOrEquals(ClientVersion.V_1_13)))
+            if (v.isOlderThan(PacketClientVersions.V_1_12) || (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_11) && v.isNewerThanOrEquals(PacketClientVersions.V_1_13)))
                 return false;
             return targetBlock.getFacing().getOppositeFace() == direction;
         } else if (canConnectToGate(fence) && BlockTags.FENCE_GATES.contains(target)) {
             // 1.4-1.11 clients don't check for fence gate direction
             // https://bugs.mojang.com/browse/MC-94016
-            if (v.isOlderThanOrEquals(ClientVersion.V_1_11_1)) return true;
+            if (v.isOlderThanOrEquals(PacketClientVersions.V_1_11_1)) return true;
 
             BlockFace f1 = targetBlock.getFacing();
             BlockFace f2 = f1.getOppositeFace();
@@ -94,9 +96,9 @@ public class DynamicConnecting {
     /**
      * Some blocks override isFullBlock whilst actually having a full state
      */
-    boolean isBlacklisted(PacketStateType m, PacketStateType fence, ClientVersion clientVersion) {
+    boolean isBlacklisted(PacketStateType m, PacketStateType fence, PacketClientVersion clientVersion) {
         if (BlockTags.LEAVES.contains(m))
-            return clientVersion.isNewerThan(ClientVersion.V_1_8) || !Materials.isGlassPane(fence);
+            return clientVersion.isNewerThan(PacketClientVersions.V_1_8) || !Materials.isGlassPane(fence);
         if (BlockTags.SHULKER_BOXES.contains(m)) return true;
         if (BlockTags.TRAPDOORS.contains(m)) return true;
 

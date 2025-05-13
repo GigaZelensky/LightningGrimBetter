@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -9,7 +10,8 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.nmsutil.BlockBreakSpeed;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
@@ -99,7 +101,7 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
                         return;
                     }
                 case CANCELLED_DIGGING, FINISHED_DIGGING:
-                    if (exemptPlacingWhileDigging || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10)) {
+                    if (exemptPlacingWhileDigging || player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_7_10)) {
                         return;
                     }
                     digging = true;

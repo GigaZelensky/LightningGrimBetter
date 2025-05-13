@@ -1,10 +1,10 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.player.PacketUser;
 import ac.grim.grimac.api.platform.init.StartableInitable;
 import ac.grim.grimac.api.platform.player.PlatformPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.protocol.player.User;
 
 public class ExemptOnlinePlayersOnReload implements StartableInitable {
 
@@ -13,7 +13,7 @@ public class ExemptOnlinePlayersOnReload implements StartableInitable {
     @Override
     public void start() {
         for (PlatformPlayer player : GrimAPI.INSTANCE.getPlatformPlayerFactory().getOnlinePlayers()) {
-            User user = PacketEvents.getAPI().getPlayerManager().getUser(player.getNative());
+            PacketUser user = PacketEvents.getAPI().getPlayerManager().getUser(player.getNative());
             GrimAPI.INSTANCE.getPlayerDataManager().exemptUsers.add(user);
         }
     }

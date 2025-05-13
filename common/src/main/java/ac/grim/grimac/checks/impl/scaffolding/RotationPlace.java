@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -10,7 +11,8 @@ import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
@@ -99,12 +101,12 @@ public class RotationPlace extends BlockPlaceCheck {
         // End checking if the player is in the block
 
         // 1.9+ players could be a tick behind because we don't get skipped ticks
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+        if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9)) {
             possibleLookDirs.add(new Vector3f(player.lastXRot, player.lastYRot, 0));
         }
 
         // 1.7 players do not have any of these issues! They are always on the latest look vector
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
+        if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_8)) {
             possibleLookDirs = Collections.singletonList(new Vector3f(player.xRot, player.yRot, 0));
         }
 

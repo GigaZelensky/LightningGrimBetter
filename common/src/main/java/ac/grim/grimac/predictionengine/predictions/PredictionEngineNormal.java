@@ -2,6 +2,9 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
@@ -9,7 +12,6 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
@@ -74,7 +76,7 @@ public class PredictionEngineNormal extends PredictionEngine {
 
         boolean walkingOnPowderSnow = false;
 
-        if (!player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
+        if (!player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_17) &&
                 player.compensatedWorld.getBlockType(player.x, player.y, player.z) == StateTypes.POWDER_SNOW) {
             PacketItemStack boots = player.getInventory().getBoots();
             walkingOnPowderSnow = boots != null && boots.getType() == PacketItemTypes.LEATHER_BOOTS;
@@ -83,7 +85,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         player.isClimbing = Collisions.onClimbable(player, player.x, player.y, player.z);
 
         // Force 1.13.2 and below players to have something to collide with horizontally to climb
-        if (player.lastWasClimbing == 0 && (player.pointThreeEstimator.isNearClimbable() || player.isClimbing) && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)
+        if (player.lastWasClimbing == 0 && (player.pointThreeEstimator.isNearClimbable() || player.isClimbing) && (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14)
                 || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5))) || walkingOnPowderSnow) {
             Vector3dm ladderVelocity = player.clientVelocity.clone().setY(0.2);

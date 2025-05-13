@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.RotationData;
@@ -12,7 +13,8 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
@@ -60,7 +62,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             // The added complexity isn't worth a feature that I have never seen used
             //
             // If you do actually need this make an issue on GitHub with an explanation for why
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
+            if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8)) {
                 if (teleport.isRelativeFlag(RelativeFlag.X)) {
                     pos = pos.add(new Vector3d(player.x, 0, 0));
                     teleport.setRelative(RelativeFlag.X, false);

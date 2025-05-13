@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.collisions.blocks.connecting;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -9,7 +11,6 @@ import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -30,7 +31,7 @@ public class DynamicCollisionWall extends DynamicConnecting implements Collision
      * @deprecated use DynamicHitboxWall
      */
     @Deprecated
-    public CollisionBox fetchRegularBox(GrimPlayer player, WrappedBlockState state, ClientVersion version, int x, int y, int z) {
+    public CollisionBox fetchRegularBox(GrimPlayer player, WrappedBlockState state, PacketClientVersion version, int x, int y, int z) {
         int north, south, west, east, up;
         north = south = west = east = up = 0;
 
@@ -57,7 +58,7 @@ public class DynamicCollisionWall extends DynamicConnecting implements Collision
         }
 
         // On 1.13+ clients the bounding box is much more complicated
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+        if (version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
             ComplexCollisionBox box = new ComplexCollisionBox(5);
 
             // Proper and faster way would be to compute all this beforehand
@@ -127,8 +128,8 @@ public class DynamicCollisionWall extends DynamicConnecting implements Collision
      * Lead to simulation falses. Fixing this rare edge case requires lots more effort than worth and is low priority
      */
     @Override
-    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
-        boolean isNewClient = version.isNewerThan(ClientVersion.V_1_12_2);
+    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
+        boolean isNewClient = version.isNewerThan(PacketClientVersions.V_1_12_2);
 
         // Fast path for new client + new server
         if (isNewServer && isNewClient) {

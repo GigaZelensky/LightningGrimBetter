@@ -3,12 +3,14 @@ package ac.grim.grimac.checks.impl.breaking;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -16,7 +18,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 @CheckData(name = "AirLiquidBreak", description = "Breaking a block that cannot be broken")
 public class AirLiquidBreak extends Check implements BlockBreakCheck {
-    public final boolean noFireHitbox = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2);
+    public final boolean noFireHitbox = player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_15_2);
     private int lastTick;
     private boolean didLastFlag;
     // Initialize to non-null values to prevent NPE when checking for blockType properties and if position equals old position

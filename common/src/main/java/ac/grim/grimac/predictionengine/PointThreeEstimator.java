@@ -2,6 +2,9 @@ package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.utils.collisions.CollisionData;
@@ -14,7 +17,6 @@ import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -404,7 +406,7 @@ public class PointThreeEstimator {
         // The player couldn't have skipped their Y tick here... no point to simulate (and stop a bypass)
         if (!vector.isZeroPointZeroThree()) return 0;
 
-        double minMovement = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.003 : 0.005;
+        double minMovement = player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) ? 0.003 : 0.005;
 
         // This should likely be refactored, but it works well.
         double yVel = vector.vector.getY();

@@ -15,6 +15,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
@@ -23,8 +25,8 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.util.Vector3d;
 
 // You may not copy the check unless you are licensed under GPL
@@ -39,7 +41,7 @@ public class ReachInterpolationData {
     private boolean expandNonRelative = false;
 
     public ReachInterpolationData(GrimPlayer player, SimpleCollisionBox startingLocation, TrackedPosition position, PacketEntity entity) {
-        final boolean isPointNine = !player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
+        final boolean isPointNine = !player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9);
 
         this.startingLocation = startingLocation;
         final Vector3d pos = position.getPos();
@@ -57,7 +59,7 @@ public class ReachInterpolationData {
             interpolationSteps = 10;
         } else if (entity.isMinecart()) {
             interpolationSteps = 5;
-        } else if (entity.getType() == EntityTypes.SHULKER) {
+        } else if (entity.getType() == PacketEntityTypes.SHULKER) {
             interpolationSteps = 1;
         } else if (entity.isLivingEntity()) {
             interpolationSteps = 3;

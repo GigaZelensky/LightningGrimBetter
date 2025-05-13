@@ -2,12 +2,12 @@ package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.event.events.GrimJoinEvent;
+import ac.grim.grimac.api.packet.player.PacketUser;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.reflection.FloodgateUtil;
 import ac.grim.grimac.utils.reflection.GeyserUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
-import com.github.retrooper.packetevents.protocol.player.User;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -16,8 +16,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerDataManager {
-    public final Collection<User> exemptUsers = ConcurrentHashMap.newKeySet();
-    private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
+    public final Collection<PacketUser> exemptUsers = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap<PacketUser, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
 
     private final GrimAPI grimAPI;
 
@@ -29,19 +29,19 @@ public class PlayerDataManager {
     public GrimPlayer getPlayer(final @NonNull UUID uuid) {
         // Is it safe to interact with this, or is this internal PacketEvents code?
         Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(uuid);
-        User user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
+        PacketUser user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
         return getPlayer(user);
     }
 
     @Nullable
-    public GrimPlayer getPlayer(final @NonNull User user) {
+    public GrimPlayer getPlayer(final @NonNull PacketUser user) {
         @Nullable GrimPlayer player = playerDataMap.get(user);
         if (player != null && player.platformPlayer != null && player.platformPlayer.isExternalPlayer())
             return null;
         return player;
     }
 
-    public boolean shouldCheck(@NonNull User user) {
+    public boolean shouldCheck(@NonNull PacketUser user) {
         if (exemptUsers.contains(user)) return false;
         if (!ChannelHelper.isOpen(user.getChannel())) return false;
 
@@ -71,7 +71,7 @@ public class PlayerDataManager {
         return true;
     }
 
-    public void addUser(final @NonNull User user) {
+    public void addUser(final @NonNull PacketUser user) {
         if (shouldCheck(user)) {
             GrimPlayer player = new GrimPlayer(user);
             playerDataMap.put(user, player);
@@ -79,7 +79,7 @@ public class PlayerDataManager {
         }
     }
 
-    public GrimPlayer remove(final @NonNull User user) {
+    public GrimPlayer remove(final @NonNull PacketUser user) {
         return playerDataMap.remove(user);
     }
 

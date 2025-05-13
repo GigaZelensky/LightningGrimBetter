@@ -1,12 +1,14 @@
 package ac.grim.grimac.predictionengine;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 public class GhostBlockDetector extends Check implements PostPredictionCheck {
 
@@ -24,7 +26,7 @@ public class GhostBlockDetector extends Check implements PostPredictionCheck {
         // Simply setback, don't ban, if a player gets a violation by a boat.
         // Note that we allow setting back to the ground for this one, to try and mitigate
         // the effect that this buggy behavior has on players
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+        if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)) {
             SimpleCollisionBox largeExpandedBB = player.boundingBox.copy().expand(12, 0.5, 12);
 
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {

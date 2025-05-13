@@ -3,7 +3,8 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 
@@ -18,10 +19,10 @@ public class JumpPower {
             jumpPower += 0.1f * (jumpBoost.getAsInt() + 1);
         }
 
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && jumpPower <= 1.0E-5f)
+        if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_20_5) && jumpPower <= 1.0E-5f)
             return;
 
-        vector.setY(player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) ? jumpPower : Math.max(jumpPower, vector.getY()));
+        vector.setY(player.getClientVersion().isOlderThan(PacketClientVersions.V_1_21_2) ? jumpPower : Math.max(jumpPower, vector.getY()));
 
         if (player.isSprinting) {
             float radRotation = player.xRot * ((float) Math.PI / 180);

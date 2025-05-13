@@ -9,7 +9,8 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -112,11 +113,11 @@ public class DynamicStair implements CollisionFactory {
     }
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
         int shapeOrdinal;
         // If server is 1.13+ and client is also 1.13+, we can read the block's data directly
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
-                && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+                && version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
             shapeOrdinal = toEnumShape(block.getShape()).ordinal();
         } else {
             EnumShape shape = getStairsShape(player, block, x, y, z);

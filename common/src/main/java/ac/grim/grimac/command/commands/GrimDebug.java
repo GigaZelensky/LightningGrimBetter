@@ -7,7 +7,7 @@ import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.protocol.player.User;
+import ac.grim.grimac.api.packet.player.PacketUser;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -90,7 +90,7 @@ public class GrimDebug implements BuildableCommand {
 
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(target.getUniqueId());
         if (grimPlayer == null) {
-            User user = PacketEvents.getAPI().getPlayerManager().getUser(sender.getPlatformPlayer().getNative());
+            PacketUser user = PacketEvents.getAPI().getPlayerManager().getUser(sender.getPlatformPlayer().getNative());
             sender.sendMessage(MessageUtil.getParsedComponent(sender, "player-not-found", "%prefix% &cPlayer is exempt or offline!"));
 
             if (user == null) {
@@ -98,7 +98,7 @@ public class GrimDebug implements BuildableCommand {
             } else {
                 boolean isExempt = GrimAPI.INSTANCE.getPlayerDataManager().shouldCheck(user);
                 if (!isExempt) {
-                    sender.sendMessage(Component.text("User connection state: " + user.getConnectionState(), NamedTextColor.RED));
+                    sender.sendMessage(Component.text("User encoder/decoder states: " + user.getPlayerEncoderState() + "/" + user.getPlayerDecoderState(), NamedTextColor.RED));
                 }
             }
         }

@@ -1,8 +1,12 @@
 package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.prediction.Phase;
 import ac.grim.grimac.checks.impl.vehicle.VehicleC;
@@ -38,9 +42,7 @@ import ac.grim.grimac.utils.nmsutil.Riptide;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import ac.grim.grimac.api.packet.item.PacketItemType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -66,7 +68,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             // The player doesn't control this vehicle, we don't care
             final boolean invalidVehicle = player.inVehicle() &&
                     (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9) ||
-                            player.getClientVersion().isOlderThan(ClientVersion.V_1_9));
+                            player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9));
 
             if (!invalidVehicle && !data.isTeleport()) {
                 // Teleport the player back to avoid players being able to simply ignore transactions
@@ -278,7 +280,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             if (riding instanceof PacketEntityRideable) {
                 VehicleC vehicleC = player.checkManager.getCheck(VehicleC.class);
 
-                PacketItemType requiredItem = riding.getType() == EntityTypes.PIG ? PacketItemTypes.CARROT_ON_A_STICK : PacketItemTypes.WARPED_FUNGUS_ON_A_STICK;
+                PacketItemType requiredItem = riding.getType() == PacketEntityTypes.PIG ? PacketItemTypes.CARROT_ON_A_STICK : PacketItemTypes.WARPED_FUNGUS_ON_A_STICK;
                 PacketItemStack mainHand = player.getInventory().getHeldItem();
                 PacketItemStack offHand = player.getInventory().getOffHand();
 
@@ -325,7 +327,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.isSprinting &= riding instanceof PacketEntityCamel; // camels can sprint
             player.isSneaking = false;
 
-            if (riding.getType() != EntityTypes.PIG && riding.getType() != EntityTypes.STRIDER) {
+            if (riding.getType() != PacketEntityTypes.PIG && riding.getType() != PacketEntityTypes.STRIDER) {
                 player.isClimbing = false;
             }
         }
@@ -355,18 +357,18 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(player.getMovementThreshold()).offset(0, -1, 0);
         Collisions.hasMaterial(player, steppingOnBB, (pair) -> {
             WrappedBlockState data = pair.first();
-            if (data.getType() == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+            if (data.getType() == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8)) {
                 player.uncertaintyHandler.isSteppingOnSlime = true;
                 player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
             }
             if (data.getType() == StateTypes.HONEY_BLOCK) {
-                if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)
-                        && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+                if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_14)
+                        && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8)) {
                     player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
                 }
                 player.uncertaintyHandler.isSteppingOnHoney = true;
             }
-            if (BlockTags.BEDS.contains(data.getType()) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
+            if (BlockTags.BEDS.contains(data.getType()) && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_12)) {
                 player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
             }
             if (BlockTags.ICE.contains(data.getType())) {
@@ -398,7 +400,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         // give them a decent amount of uncertainty and don't ban them for mojang's stupid mistake
         boolean isGlitchy = player.uncertaintyHandler.isNearGlitchyBlock;
 
-        player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
+        player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)
                 && Collisions.hasMaterial(player, expandedBB.copy().expand(0.2),
                 checkData -> BlockTags.ANVIL.contains(checkData.first().getType())
                         || checkData.first().getType() == StateTypes.CHEST || checkData.first().getType() == StateTypes.TRAPPED_CHEST);
@@ -413,7 +415,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             player.uncertaintyHandler.lastThirtyMillionHardBorder.reset();
         }
 
-        if (player.isFlying && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && player.compensatedWorld.containsLiquid(player.boundingBox)) {
+        if (player.isFlying && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_13) && player.compensatedWorld.containsLiquid(player.boundingBox)) {
             player.uncertaintyHandler.lastUnderwaterFlyingHack.reset();
         }
 
@@ -480,7 +482,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             new MovementTickerPlayer(player).livingEntityAIStep();
             PlayerBaseTick.updatePowderSnow(player);
             PlayerBaseTick.updatePlayerPose(player);
-        } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+        } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9)) {
             wasChecked = true;
             // The player and server are both on a version with client controlled entities
             // If either or both of the client server version has server controlled entities
@@ -495,10 +497,10 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             } else if (riding instanceof PacketEntityHorse) {
                 PlayerBaseTick.doBaseTick(player);
                 new MovementTickerHorse(player).livingEntityAIStep();
-            } else if (riding.getType() == EntityTypes.PIG) {
+            } else if (riding.getType() == PacketEntityTypes.PIG) {
                 PlayerBaseTick.doBaseTick(player);
                 new MovementTickerPig(player).livingEntityAIStep();
-            } else if (riding.getType() == EntityTypes.STRIDER) {
+            } else if (riding.getType() == PacketEntityTypes.STRIDER) {
                 PlayerBaseTick.doBaseTick(player);
                 new MovementTickerStrider(player).livingEntityAIStep();
                 MovementTickerStrider.floatStrider(player);

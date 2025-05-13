@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.KnownInput;
@@ -12,7 +13,8 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerInput;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSteerVehicle;
 
@@ -46,7 +48,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 // If the player is the first passenger, disregard this attempt to have the server control the entity
                 if ((riding.isBoat() || riding instanceof PacketEntityHorse) && riding.passengers.get(0) == player.compensatedEntities.self &&
                         // Although if the player has server controlled entities
-                        player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) &&
+                        player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) &&
                         // or the server controls the entities, then this is vanilla logic so allow it
                         PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
                     return;

@@ -1,13 +1,15 @@
 package ac.grim.grimac.checks.impl.multiactions;
 
+import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
 @CheckData(name = "MultiActionsG", description = "Attacking or using items while rowing a boat", experimental = true)
@@ -39,8 +41,8 @@ public class MultiActionsG extends BlockPlaceCheck {
     }
 
     public boolean isCheckActive() {
-        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && !player.vehicleData.wasVehicleSwitch // one tick off?
-                && player.inVehicle() && player.compensatedEntities.self.getRiding().getType().isInstanceOf(EntityTypes.BOAT)
+        return player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) && !player.vehicleData.wasVehicleSwitch // one tick off?
+                && player.inVehicle() && PacketEntityTypes.isTypeInstanceOf(player.compensatedEntities.self.getRiding().getType(), PacketEntityTypes.BOAT)
                 && (player.vehicleData.nextVehicleForward != 0 || player.vehicleData.nextVehicleHorizontal != 0);
     }
 }
