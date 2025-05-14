@@ -2,7 +2,6 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.api.math.Vector3dm;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 
 public class FluidFallingAdjustedMovement {

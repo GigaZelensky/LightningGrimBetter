@@ -87,10 +87,10 @@ public class FluidTypeFlowing {
         // 1.11 and below clients use a different method to determine solid faces
         if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_12)) {
             if (type == PacketStateTypes.PISTON || type == PacketStateTypes.STICKY_PISTON) {
-                return data.getFacing().getOppositeFace() == direction ||
+                return data.facing().getOppositeFace() == direction ||
                         CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, 0, 0, 0).isFullBlock();
             } else if (type == PacketStateTypes.PISTON_HEAD) {
-                return data.getFacing() == direction;
+                return data.facing() == direction;
             }
         }
 
@@ -128,15 +128,15 @@ public class FluidTypeFlowing {
             } else if (type == PacketStateTypes.SNOW) {
                 return data.getLayers() == 8;
             } else if (Materials.isStairs(type)) {
-                return data.getFacing() == direction;
+                return data.facing() == direction;
             } else if (type == PacketStateTypes.COMPOSTER) {
                 return true;
             } else if (type == PacketStateTypes.SOUL_SAND) {
                 return player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_12_2) || player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_16);
             } else if (type == PacketStateTypes.LADDER) {
-                return data.getFacing().getOppositeFace() == direction;
+                return data.facing().getOppositeFace() == direction;
             } else if (BlockTags.TRAPDOORS.contains(type)) {
-                return data.getFacing().getOppositeFace() == direction && data.isOpen();
+                return data.facing().getOppositeFace() == direction && data.isOpen();
             } else if (BlockTags.DOORS.contains(type)) {
                 CollisionData collisionData = CollisionData.getData(type);
 

@@ -9,6 +9,7 @@ import ac.grim.grimac.api.packet.player.PacketUser;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
+import ac.grim.grimac.api.packet.world.chunk.PacketChunk;
 import ac.grim.grimac.api.packet.world.enums.North;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.change.BlockModification;
@@ -32,7 +33,6 @@ import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v1_16.Chunk_v1_9;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.DataPalette;
@@ -253,7 +253,7 @@ public class CompensatedWorld implements ICompensatedWorld {
         return false;
     }
 
-    private static BaseChunk create() {
+    private static PacketChunk create() {
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18)) {
             return new Chunk_v1_18();
         } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)) {
@@ -293,7 +293,7 @@ public class CompensatedWorld implements ICompensatedWorld {
         if (column != null) {
             if (column.chunks().length <= (offsetY >> 4) || (offsetY >> 4) < 0) return;
 
-            BaseChunk chunk = column.chunks()[offsetY >> 4];
+            PacketChunk chunk = column.chunks()[offsetY >> 4];
 
             if (chunk == null) {
                 chunk = create();
@@ -302,13 +302,13 @@ public class CompensatedWorld implements ICompensatedWorld {
                 // Sets entire chunk to air
                 // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
                 // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
-                chunk.set(null, 0, 0, 0, 0);
+                chunk.set(0, 0, 0, 0);
             }
 
             // The method also gets called for the previous state before replacement
             player.pointThreeEstimator.handleChangeBlock(x, y, z, chunk.get(blockVersion, x & 0xF, offsetY & 0xF, z & 0xF));
 
-            chunk.set(null, x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
+            chunk.set(x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
 
             // Handle stupidity such as fluids changing in idle ticks.
             player.pointThreeEstimator.handleChangeBlock(x, y, z, PacketBlockState.getByGlobalId(blockVersion, combinedID));
@@ -320,21 +320,21 @@ public class CompensatedWorld implements ICompensatedWorld {
         final PacketStateType type = data.getType();
         if (Materials.isClientSideOpenableDoor(type, player.getClientVersion())) {
             PacketBlockState otherDoor = getBlock(blockX,
-                    blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ);
+                    blockY + (data.half() == Half.LOWER ? 1 : -1), blockZ);
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 if (BlockTags.DOORS.contains(otherDoor.getType())) {
                     otherDoor.setOpen(!otherDoor.isOpen());
-                    updateBlock(blockX, blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ, otherDoor.getGlobalId());
+                    updateBlock(blockX, blockY + (data.half() == Half.LOWER ? 1 : -1), blockZ, otherDoor.getGlobalId());
                 }
                 data.setOpen(!data.isOpen());
                 updateBlock(blockX, blockY, blockZ, data.getGlobalId());
             } else {
                 // 1.12 attempts to change the bottom half of the door first
-                if (data.getHalf() == Half.LOWER) {
+                if (data.half() == Half.LOWER) {
                     data.setOpen(!data.isOpen());
                     updateBlock(blockX, blockY, blockZ, data.getGlobalId());
-                } else if (BlockTags.DOORS.contains(otherDoor.getType()) && otherDoor.getHalf() == Half.LOWER) {
+                } else if (BlockTags.DOORS.contains(otherDoor.getType()) && otherDoor.half() == Half.LOWER) {
                     // Then tries setting the first bit of whatever is below it, disregarding it's type
                     otherDoor.setOpen(!otherDoor.isOpen());
                     updateBlock(blockX, blockY - 1, blockZ, otherDoor.getGlobalId());
@@ -387,7 +387,7 @@ public class CompensatedWorld implements ICompensatedWorld {
             BlockFace direction;
             if (data.entity == null) {
                 PacketBlockState state = getBlock(data.blockPos.getX(), data.blockPos.getY(), data.blockPos.getZ());
-                direction = state.getFacing();
+                direction = state.facing();
             } else {
                 direction = ((PacketEntityShulker) data.entity).facing.getOppositeFace();
             }
@@ -454,7 +454,7 @@ public class CompensatedWorld implements ICompensatedWorld {
             y -= minHeight;
             if (column == null || y < 0 || (y >> 4) >= column.chunks().length) return airData;
 
-            BaseChunk chunk = column.chunks()[y >> 4];
+            PacketChunk chunk = column.chunks()[y >> 4];
             if (chunk != null) {
                 return chunk.get(blockVersion, x & 0xF, y & 0xF, z & 0xF);
             }
@@ -489,25 +489,25 @@ public class CompensatedWorld implements ICompensatedWorld {
                         isPowered = true;
                         break;
                     case NORTH:
-                        isPowered = block.getNorth() == North.TRUE;
+                        isPowered = block.north() == North.TRUE;
                         if (isPowered && (badOne == BlockFace.NORTH || badTwo == BlockFace.NORTH)) {
                             return 0;
                         }
                         break;
                     case SOUTH:
-                        isPowered = block.getSouth() == South.TRUE;
+                        isPowered = block.south() == South.TRUE;
                         if (isPowered && (badOne == BlockFace.SOUTH || badTwo == BlockFace.SOUTH)) {
                             return 0;
                         }
                         break;
                     case WEST:
-                        isPowered = block.getWest() == West.TRUE;
+                        isPowered = block.west() == West.TRUE;
                         if (isPowered && (badOne == BlockFace.WEST || badTwo == BlockFace.WEST)) {
                             return 0;
                         }
                         break;
                     case EAST:
-                        isPowered = block.getEast() == East.TRUE;
+                        isPowered = block.east() == East.TRUE;
                         if (isPowered && (badOne == BlockFace.EAST || badTwo == BlockFace.EAST)) {
                             return 0;
                         }
@@ -519,13 +519,13 @@ public class CompensatedWorld implements ICompensatedWorld {
 
             return isPowered ? block.getPower() : 0;
         } else if (block.getType() == PacketStateTypes.REDSTONE_WALL_TORCH) {
-            return block.getFacing() != face && block.isLit() ? 15 : 0;
+            return block.facing() != face && block.isLit() ? 15 : 0;
         } else if (block.getType() == PacketStateTypes.DAYLIGHT_DETECTOR) {
             return block.getPower();
         } else if (block.getType() == PacketStateTypes.OBSERVER) {
-            return block.getFacing() == face && block.isPowered() ? 15 : 0;
+            return block.facing() == face && block.isPowered() ? 15 : 0;
         } else if (block.getType() == PacketStateTypes.REPEATER) {
-            return block.getFacing() == face && block.isPowered() ? 15 : 0;
+            return block.facing() == face && block.isPowered() ? 15 : 0;
         } else if (block.getType() == PacketStateTypes.LECTERN) {
             return block.isPowered() ? 15 : 0;
         } else if (block.getType() == PacketStateTypes.TARGET) {
@@ -546,15 +546,15 @@ public class CompensatedWorld implements ICompensatedWorld {
         } else if (block.getType() == PacketStateTypes.REDSTONE_TORCH) {
             return face != BlockFace.UP && block.isLit() ? 15 : 0;
         } else if (block.getType() == PacketStateTypes.LEVER || BlockTags.BUTTONS.contains(block.getType())) {
-            return block.getFacing().getOppositeFace() == face && block.isPowered() ? 15 : 0;
+            return block.facing().getOppositeFace() == face && block.isPowered() ? 15 : 0;
         } else if (block.getType() == PacketStateTypes.REDSTONE_WALL_TORCH) {
             return face == BlockFace.DOWN && block.isPowered() ? 15 : 0;
         } else if (block.getType() == PacketStateTypes.LECTERN) {
             return face == BlockFace.UP && block.isPowered() ? 15 : 0;
         } else if (block.getType() == PacketStateTypes.OBSERVER) {
-            return block.getFacing() == face && block.isPowered() ? 15 : 0;
+            return block.facing() == face && block.isPowered() ? 15 : 0;
         } else if (block.getType() == PacketStateTypes.REPEATER) {
-            return block.getFacing() == face && block.isPowered() ? 15 : 0;
+            return block.facing() == face && block.isPowered() ? 15 : 0;
         } else if (block.getType() == PacketStateTypes.REDSTONE_WIRE) {
             BlockFace needed = face.getOppositeFace();
 
@@ -567,25 +567,25 @@ public class CompensatedWorld implements ICompensatedWorld {
                 case UP:
                     break;
                 case NORTH:
-                    isPowered = block.getNorth() == North.TRUE;
+                    isPowered = block.north() == North.TRUE;
                     if (isPowered && (badOne == BlockFace.NORTH || badTwo == BlockFace.NORTH)) {
                         return 0;
                     }
                     break;
                 case SOUTH:
-                    isPowered = block.getSouth() == South.TRUE;
+                    isPowered = block.south() == South.TRUE;
                     if (isPowered && (badOne == BlockFace.SOUTH || badTwo == BlockFace.SOUTH)) {
                         return 0;
                     }
                     break;
                 case WEST:
-                    isPowered = block.getWest() == West.TRUE;
+                    isPowered = block.west() == West.TRUE;
                     if (isPowered && (badOne == BlockFace.WEST || badTwo == BlockFace.WEST)) {
                         return 0;
                     }
                     break;
                 case EAST:
-                    isPowered = block.getEast() == East.TRUE;
+                    isPowered = block.east() == East.TRUE;
                     if (isPowered && (badOne == BlockFace.EAST || badTwo == BlockFace.EAST)) {
                         return 0;
                     }

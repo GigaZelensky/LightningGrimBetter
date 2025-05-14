@@ -15,7 +15,7 @@ public class TrapDoorHandler implements CollisionFactory {
         double var2 = 0.1875;
 
         if (block.isOpen()) {
-            switch (block.getFacing()) {
+            switch (block.facing()) {
                 case SOUTH:
                     return new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 1.0, var2, false);
                 case NORTH:
@@ -26,7 +26,7 @@ public class TrapDoorHandler implements CollisionFactory {
                     return new SimpleCollisionBox(1.0 - var2, 0.0, 0.0, 1.0, 1.0, 1.0, false);
             }
         } else {
-            if (block.getHalf() == Half.BOTTOM) {
+            if (block.half() == Half.BOTTOM) {
                 return new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, var2, 1.0, false);
             } else {
                 return new SimpleCollisionBox(0.0, 1.0 - var2, 0.0, 1.0, 1.0, 1.0, false);

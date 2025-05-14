@@ -14,7 +14,7 @@ public class PistonBaseCollision implements CollisionFactory {
     public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, PacketBlockState block, int x, int y, int z) {
         if (!block.isExtended()) return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
-        return switch (block.getFacing()) {
+        return switch (block.facing()) {
             case UP -> new HexCollisionBox(0, 0, 0, 16, 12, 16);
             case NORTH -> new HexCollisionBox(0, 0, 4, 16, 16, 16);
             case SOUTH -> new HexCollisionBox(0, 0, 0, 16, 16, 12);

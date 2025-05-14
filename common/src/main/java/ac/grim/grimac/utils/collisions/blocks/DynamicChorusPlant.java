@@ -73,10 +73,10 @@ public class DynamicChorusPlant implements CollisionFactory {
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
             // Player is 1.13 on 1.13 server
             directions = new HashSet<>();
-            if (block.getWest() == West.TRUE) directions.add(BlockFace.WEST);
-            if (block.getEast() == East.TRUE) directions.add(BlockFace.EAST);
-            if (block.getNorth() == North.TRUE) directions.add(BlockFace.NORTH);
-            if (block.getSouth() == South.TRUE) directions.add(BlockFace.SOUTH);
+            if (block.west() == West.TRUE) directions.add(BlockFace.WEST);
+            if (block.east() == East.TRUE) directions.add(BlockFace.EAST);
+            if (block.north() == North.TRUE) directions.add(BlockFace.NORTH);
+            if (block.south() == South.TRUE) directions.add(BlockFace.SOUTH);
             if (block.isUp()) directions.add(BlockFace.UP);
             if (block.isDown()) directions.add(BlockFace.DOWN);
         } else {

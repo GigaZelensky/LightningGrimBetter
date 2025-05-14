@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
+import ac.grim.grimac.api.packet.world.chunk.PacketChunk;
 import ac.grim.grimac.events.packets.PacketWorldBorder;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
@@ -21,7 +22,6 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.Direction;
-import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import ac.grim.grimac.api.packet.block.PacketBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -300,12 +300,12 @@ public class Collisions {
                 Column chunk = player.compensatedWorld.getChunk(currChunkX, currChunkZ);
                 if (chunk == null) continue;
 
-                BaseChunk[] sections = chunk.chunks();
+                PacketChunk[] sections = chunk.chunks();
 
                 for (int y = minYIterate; y <= maxYIterate; ++y) {
                     int sectionIndex = (y >> 4) - minSection;
 
-                    BaseChunk section = sections[sectionIndex];
+                    PacketChunk section = sections[sectionIndex];
 
                     if (section == null || (IS_FOURTEEN && section.isEmpty())) { // Check for empty on 1.13+ servers
                         // empty
@@ -913,10 +913,10 @@ public class Collisions {
                 Column chunk = player.compensatedWorld.getChunk(currChunkX, currChunkZ);
 
                 if (chunk == null) continue;
-                BaseChunk[] sections = chunk.chunks();
+                PacketChunk[] sections = chunk.chunks();
 
                 for (int y = minYIterate; y <= maxYIterate; ++y) {
-                    BaseChunk section = sections[(y >> 4) - minSection];
+                    PacketChunk section = sections[(y >> 4) - minSection];
 
                     if (section == null || (IS_FOURTEEN && section.isEmpty())) { // Check for empty on 1.13+ servers
                         // empty
@@ -978,10 +978,10 @@ public class Collisions {
                 Column chunk = player.compensatedWorld.getChunk(currChunkX, currChunkZ);
 
                 if (chunk == null) continue;
-                BaseChunk[] sections = chunk.chunks();
+                PacketChunk[] sections = chunk.chunks();
 
                 for (int y = minYIterate; y <= maxYIterate; ++y) {
-                    BaseChunk section = sections[(y >> 4) - minSection];
+                    PacketChunk section = sections[(y >> 4) - minSection];
 
                     if (section == null || (IS_FOURTEEN && section.isEmpty())) { // Check for empty on 1.13+ servers
                         // empty
@@ -1051,7 +1051,7 @@ public class Collisions {
             PacketBlockState blockBelow = player.compensatedWorld.getBlock(x, y - 1, z);
 
             if (blockBelow.getType() == PacketStateTypes.LADDER) {
-                return blockData.getFacing() == blockBelow.getFacing();
+                return blockData.facing() == blockBelow.facing();
             }
         }
 

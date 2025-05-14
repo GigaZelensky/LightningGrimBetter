@@ -54,10 +54,10 @@ public class DynamicHitboxFence extends DynamicConnecting implements HitBoxFacto
         // 1.13+ servers on 1.13+ clients send the full fence data
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
                 && version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
-            east = block.getEast() != East.FALSE;
-            north = block.getNorth() != North.FALSE;
-            south = block.getSouth() != South.FALSE;
-            west = block.getWest() != West.FALSE;
+            east = block.east() != East.FALSE;
+            north = block.north() != North.FALSE;
+            south = block.south() != South.FALSE;
+            west = block.west() != West.FALSE;
         } else {
             east = connectsTo(player, version, x, y, z, BlockFace.EAST);
             north = connectsTo(player, version, x, y, z, BlockFace.NORTH);

@@ -166,16 +166,16 @@ public class BlockPlace {
             }
             if (!state.isUp()) return true;
             if (!state.isDown()) return true;
-            if (state.getNorth() == North.FALSE) return true;
-            if (state.getSouth() == South.FALSE) return true;
-            if (state.getEast() == East.FALSE) return true;
-            return state.getWest() == West.FALSE;
+            if (state.north() == North.FALSE) return true;
+            if (state.south() == South.FALSE) return true;
+            if (state.east() == East.FALSE) return true;
+            return state.west() == West.FALSE;
         }
         if (state.getType() == PacketStateTypes.SCAFFOLDING) {
             return heldItem == PacketStateTypes.SCAFFOLDING;
         }
         if (BlockTags.SLABS.contains(state.getType())) {
-            if (state.getTypeData() == Type.DOUBLE || state.getType() != heldItem) return false;
+            if (state.typeData() == Type.DOUBLE || state.getType() != heldItem) return false;
 
             // Here vanilla refers from
             // Set check can replace -> get block -> call block canBeReplaced -> check can replace boolean (default true)
@@ -183,7 +183,7 @@ public class BlockPlace {
             // as this code is quite old.
             boolean flag = getClickedLocation().getY() > 0.5D;
             BlockFace clickedFace = getDirection();
-            if (state.getTypeData() == Type.BOTTOM) {
+            if (state.typeData() == Type.BOTTOM) {
                 return clickedFace == BlockFace.UP || flag && isFaceHorizontal();
             } else {
                 return clickedFace == BlockFace.DOWN || !flag && isFaceHorizontal();
@@ -202,10 +202,10 @@ public class BlockPlace {
             if (heldItem != state.getType()) return false;
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && !state.isUp())
                 return true;
-            if (state.getNorth() == North.FALSE) return true;
-            if (state.getSouth() == South.FALSE) return true;
-            if (state.getEast() == East.FALSE) return true;
-            return state.getWest() == West.FALSE;
+            if (state.north() == North.FALSE) return true;
+            if (state.south() == South.FALSE) return true;
+            if (state.east() == East.FALSE) return true;
+            return state.west() == West.FALSE;
         }
         if (state.getType() == PacketStateTypes.LADDER && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_13)) {
             return true;
@@ -283,23 +283,23 @@ public class BlockPlace {
             return state.getLayers() == 8 || face == BlockFace.DOWN;
         } else if (BlockTags.STAIRS.contains(blockMaterial)) {
             if (face == BlockFace.UP) {
-                return state.getHalf() == Half.TOP;
+                return state.half() == Half.TOP;
             }
             if (face == BlockFace.DOWN) {
-                return state.getHalf() == Half.BOTTOM;
+                return state.half() == Half.BOTTOM;
             }
 
-            return state.getFacing() == bukkitFace;
+            return state.facing() == bukkitFace;
         } else if (blockMaterial == PacketStateTypes.COMPOSTER) { // Composters have solid faces except for on the top
             return face != BlockFace.UP;
         } else if (blockMaterial == PacketStateTypes.SOUL_SAND) { // Soul sand is considered to be a full block when placing things
             return true;
         } else if (blockMaterial == PacketStateTypes.LADDER) { // Yes, although it breaks immediately, you can place blocks on ladders
-            return state.getFacing().getOppositeFace() == bukkitFace;
+            return state.facing().getOppositeFace() == bukkitFace;
         } else if (BlockTags.TRAPDOORS.contains(blockMaterial)) { // You can place blocks that need solid faces on trapdoors
-            return (state.getFacing().getOppositeFace() == bukkitFace && state.isOpen()) ||
-                    (state.getHalf() == Half.TOP && !state.isOpen() && bukkitFace == BlockFace.UP) ||
-                    (state.getHalf() == Half.BOTTOM && !state.isOpen() && bukkitFace == BlockFace.DOWN);
+            return (state.facing().getOppositeFace() == bukkitFace && state.isOpen()) ||
+                    (state.half() == Half.TOP && !state.isOpen() && bukkitFace == BlockFace.UP) ||
+                    (state.half() == Half.BOTTOM && !state.isOpen() && bukkitFace == BlockFace.DOWN);
         } else if (BlockTags.DOORS.contains(blockMaterial)) { // You can place blocks that need solid faces on doors
             CollisionData data = CollisionData.getData(blockMaterial);
 

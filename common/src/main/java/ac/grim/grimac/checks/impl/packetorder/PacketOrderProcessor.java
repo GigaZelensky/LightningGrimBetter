@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -85,7 +86,7 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
         }
 
         if (packetType == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
-            if (new WrapperPlayClientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER) {
+            if (MCPacket.getAPI().packetFactory().newClientPlayerBlockPlacementPacket(event).blockFace() == BlockFace.OTHER) {
                 using = true;
             } else {
                 placing = true;

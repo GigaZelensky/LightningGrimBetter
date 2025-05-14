@@ -7,8 +7,6 @@ import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.types.client.play.ClientPlayerBlockPlacementPacket;
 import ac.grim.grimac.api.packet.util.vec.ImmutableVector3f;
 import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
-import ac.grim.grimac.api.packet.util.vec.Vector3f;
-import ac.grim.grimac.api.packet.util.vec.Vector3i;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -16,7 +14,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 
 @CheckData(name = "BadPacketsU", description = "Sent impossible use item packet")
 public class BadPacketsU extends Check implements PacketCheck {
@@ -29,7 +26,7 @@ public class BadPacketsU extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
             final ClientPlayerBlockPlacementPacket packet = MCPacket.getAPI().packetFactory().newClientPlayerBlockPlacementPacket(event);
             // BlockFace.OTHER is USE_ITEM for pre 1.9
-            if (packet.getFace() == BlockFace.OTHER) {
+            if (packet.blockFace() == BlockFace.OTHER) {
 
                 // This packet is always sent at (-1, -1, -1) at (0, 0, 0) on the block
                 // except y gets wrapped?

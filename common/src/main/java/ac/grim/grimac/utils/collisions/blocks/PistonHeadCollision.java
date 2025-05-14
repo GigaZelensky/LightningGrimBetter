@@ -39,7 +39,7 @@ public class PistonHeadCollision implements CollisionFactory {
             longAmount = 0;
 
 
-        return switch (block.getFacing()) {
+        return switch (block.facing()) {
             case UP -> new ComplexCollisionBox(2,
                     new HexCollisionBox(0, 12, 0, 16, 16, 16),
                     new HexCollisionBox(6, 0 - longAmount, 6, 10, 12, 10));

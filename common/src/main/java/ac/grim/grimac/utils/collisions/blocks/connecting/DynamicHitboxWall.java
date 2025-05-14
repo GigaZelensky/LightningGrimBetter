@@ -38,10 +38,10 @@ public class DynamicHitboxWall extends DynamicConnecting implements HitBoxFactor
 
         if (isModernServer()) {
             boolean sixteen = PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_16);
-            north = getConnectionValue(state.getNorth(), sixteen);
-            east = getConnectionValue(state.getEast(), sixteen);
-            south = getConnectionValue(state.getSouth(), sixteen);
-            west = getConnectionValue(state.getWest(), sixteen);
+            north = getConnectionValue(state.north(), sixteen);
+            east = getConnectionValue(state.east(), sixteen);
+            south = getConnectionValue(state.south(), sixteen);
+            west = getConnectionValue(state.west(), sixteen);
             up = state.isUp() ? 1 : 0;
         } else {
             north = connectsTo(player, version, x, y, z, BlockFace.NORTH) ? 1 : 0;

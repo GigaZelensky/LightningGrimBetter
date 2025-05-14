@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -10,7 +11,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 
 @CheckData(name = "PacketOrderM", experimental = true)
 public class PacketOrderM extends Check implements PostPredictionCheck {
@@ -41,7 +41,7 @@ public class PacketOrderM extends Check implements PostPredictionCheck {
 
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM
                 || event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT
-                && new WrapperPlayClientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER) {
+                && MCPacket.getAPI().packetFactory().newClientPlayerBlockPlacementPacket(event).blockFace() == BlockFace.OTHER) {
             if (!interacting) {
                 usingWithoutInteract = true;
             }

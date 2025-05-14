@@ -10,7 +10,6 @@ import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.FluidFallingAdjustedMovement;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 
 import java.util.HashSet;

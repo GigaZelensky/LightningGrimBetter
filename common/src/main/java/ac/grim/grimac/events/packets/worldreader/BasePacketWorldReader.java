@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
+import ac.grim.grimac.api.packet.world.chunk.PacketChunk;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgePlayerDigging;
@@ -112,7 +112,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         event.setLastUsedWrapper(null);
     }
 
-    public void addChunkToCache(PacketSendEvent event, GrimPlayer player, BaseChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {
+    public void addChunkToCache(PacketSendEvent event, GrimPlayer player, PacketChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {
         double chunkCenterX = (chunkX << 4) + 8;
         double chunkCenterZ = (chunkZ << 4) + 8;
         boolean shouldPostTrans = Math.abs(player.x - chunkCenterX) < 16 && Math.abs(player.z - chunkCenterZ) < 16;

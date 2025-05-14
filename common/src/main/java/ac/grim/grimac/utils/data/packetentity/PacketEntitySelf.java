@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.data.packetentity;
 
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.impl.sprint.SprintD;

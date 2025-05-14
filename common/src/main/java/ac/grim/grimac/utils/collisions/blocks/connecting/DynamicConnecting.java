@@ -76,13 +76,13 @@ public class DynamicConnecting {
             // 1.11- versions don't allow fences to connect to the back sides of stairs
             if (v.isOlderThan(PacketClientVersions.V_1_12) || (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_11) && v.isNewerThanOrEquals(PacketClientVersions.V_1_13)))
                 return false;
-            return targetBlock.getFacing().getOppositeFace() == direction;
+            return targetBlock.facing().getOppositeFace() == direction;
         } else if (canConnectToGate(fence) && BlockTags.FENCE_GATES.contains(target)) {
             // 1.4-1.11 clients don't check for fence gate direction
             // https://bugs.mojang.com/browse/MC-94016
             if (v.isOlderThanOrEquals(PacketClientVersions.V_1_11_1)) return true;
 
-            BlockFace f1 = targetBlock.getFacing();
+            BlockFace f1 = targetBlock.facing();
             BlockFace f2 = f1.getOppositeFace();
             return direction != f1 && direction != f2;
         } else {

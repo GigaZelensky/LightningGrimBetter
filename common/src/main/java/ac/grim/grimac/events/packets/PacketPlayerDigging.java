@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.item.*;
 import ac.grim.grimac.api.packet.nbt.PacketNBTCompound;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
@@ -20,7 +21,6 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
@@ -219,7 +219,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             player.packetStateData.lastSlotSelected = slot;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM || (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT && new WrapperPlayClientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER)) {
+        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM || (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT && MCPacket.getAPI().packetFactory().newClientPlayerBlockPlacementPacket(event).blockFace() == BlockFace.OTHER)) {
             final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 

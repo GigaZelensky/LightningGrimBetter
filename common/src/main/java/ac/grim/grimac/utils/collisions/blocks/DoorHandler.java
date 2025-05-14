@@ -44,16 +44,16 @@ public class DoorHandler implements CollisionFactory {
         //TODO: This needs to be updated to support corrupted door collision
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)
                 || version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) {
-            if (door.getHalf() == Half.LOWER) {
+            if (door.half() == Half.LOWER) {
                 PacketBlockState above = player.compensatedWorld.getBlock(x, y + 1, z);
 
-                facingDirection = door.getFacing();
+                facingDirection = door.facing();
                 isClosed = !door.isOpen();
 
                 // Doors have to be the same material in 1.12 for their block data to be connected together
                 // For example, if you somehow manage to get a jungle top with an oak bottom, the data isn't shared
                 if (above.getType() == door.getType()) {
-                    isRightHinge = above.getHinge() == Hinge.RIGHT;
+                    isRightHinge = above.hinge() == Hinge.RIGHT;
                 } else {
                     // Default missing value
                     isRightHinge = false;
@@ -61,10 +61,10 @@ public class DoorHandler implements CollisionFactory {
             } else {
                 PacketBlockState below = player.compensatedWorld.getBlock(x, y - 1, z);
 
-                if (below.getType() == door.getType() && below.getHalf() == Half.LOWER) {
+                if (below.getType() == door.getType() && below.half() == Half.LOWER) {
                     isClosed = !below.isOpen();
-                    facingDirection = below.getFacing();
-                    isRightHinge = door.getHinge() == Hinge.RIGHT;
+                    facingDirection = below.facing();
+                    isRightHinge = door.hinge() == Hinge.RIGHT;
                 } else {
                     facingDirection = BlockFace.EAST;
                     isClosed = true;
@@ -72,9 +72,9 @@ public class DoorHandler implements CollisionFactory {
                 }
             }
         } else {
-            facingDirection = door.getFacing();
+            facingDirection = door.facing();
             isClosed = !door.isOpen();
-            isRightHinge = door.getHinge() == Hinge.RIGHT;
+            isRightHinge = door.hinge() == Hinge.RIGHT;
         }
 
         return switch (facingDirection) {

@@ -38,14 +38,14 @@ public class DynamicCollisionWall extends DynamicConnecting implements Collision
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_12_2)) {
             boolean sixteen = PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_16);
 
-            if (state.getNorth() != North.NONE)
-                north += state.getNorth() == North.LOW || sixteen ? 1 : 2;
-            if (state.getEast() != East.NONE)
-                east += state.getEast() == East.LOW || sixteen ? 1 : 2;
-            if (state.getSouth() != South.NONE)
-                south += state.getSouth() == South.LOW || sixteen ? 1 : 2;
-            if (state.getWest() != West.NONE)
-                west += state.getWest() == West.LOW || sixteen ? 1 : 2;
+            if (state.north() != North.NONE)
+                north += state.north() == North.LOW || sixteen ? 1 : 2;
+            if (state.east() != East.NONE)
+                east += state.east() == East.LOW || sixteen ? 1 : 2;
+            if (state.south() != South.NONE)
+                south += state.south() == South.LOW || sixteen ? 1 : 2;
+            if (state.west() != West.NONE)
+                west += state.west() == West.LOW || sixteen ? 1 : 2;
 
             if (state.isUp())
                 up = 1;
@@ -133,10 +133,10 @@ public class DynamicCollisionWall extends DynamicConnecting implements Collision
 
         // Fast path for new client + new server
         if (isNewServer && isNewClient) {
-            boolean north = block.getNorth() != North.NONE;
-            boolean south = block.getSouth() != South.NONE;
-            boolean west = block.getWest() != West.NONE;
-            boolean east = block.getEast() != East.NONE;
+            boolean north = block.north() != North.NONE;
+            boolean south = block.south() != South.NONE;
+            boolean west = block.west() != West.NONE;
+            boolean east = block.east() != East.NONE;
 
             return block.isUp()
                     ? COLLISION_BOXES[getAABBIndex(north, east, south, west)].copy().union(new HexCollisionBox(4, 0, 4, 12, 24, 12))
@@ -144,10 +144,10 @@ public class DynamicCollisionWall extends DynamicConnecting implements Collision
         }
 
         // Handle connections for old server or old client
-        boolean north = isNewServer ? block.getNorth() != North.NONE : connectsTo(player, version, x, y, z, BlockFace.NORTH);
-        boolean south = isNewServer ? block.getSouth() != South.NONE : connectsTo(player, version, x, y, z, BlockFace.SOUTH);
-        boolean west = isNewServer ? block.getWest() != West.NONE : connectsTo(player, version, x, y, z, BlockFace.WEST);
-        boolean east = isNewServer ? block.getEast() != East.NONE : connectsTo(player, version, x, y, z, BlockFace.EAST);
+        boolean north = isNewServer ? block.north() != North.NONE : connectsTo(player, version, x, y, z, BlockFace.NORTH);
+        boolean south = isNewServer ? block.south() != South.NONE : connectsTo(player, version, x, y, z, BlockFace.SOUTH);
+        boolean west = isNewServer ? block.west() != West.NONE : connectsTo(player, version, x, y, z, BlockFace.WEST);
+        boolean east = isNewServer ? block.east() != East.NONE : connectsTo(player, version, x, y, z, BlockFace.EAST);
 
         // Only calculate up for new client on old server
         if (!isNewServer && isNewClient) {

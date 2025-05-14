@@ -38,7 +38,7 @@ import java.util.Set;
 // Expansion to the CollisionData class, which is different than regular ray tracing hitboxes
 public enum HitboxData implements HitBoxFactory {
 
-    RAILS((player, item, version, data, isTargetBlock, x, y, z) -> switch (data.getShape()) {
+    RAILS((player, item, version, data, isTargetBlock, x, y, z) -> switch (data.shape()) {
         case ASCENDING_NORTH, ASCENDING_SOUTH, ASCENDING_EAST, ASCENDING_WEST -> {
             if (version.isOlderThan(PacketClientVersions.V_1_8)) {
                 PacketStateType railType = data.getType();
@@ -75,7 +75,7 @@ public enum HitboxData implements HitBoxFactory {
         // This technically should be taken from the block data/made multi-version/run block updates... but that's too far even for me
         // This way is so much easier and works unless the magic stick wand is used
         boolean isInWall;
-        boolean isXAxis = data.getFacing() == BlockFace.WEST || data.getFacing() == BlockFace.EAST;
+        boolean isXAxis = data.facing() == BlockFace.WEST || data.facing() == BlockFace.EAST;
         if (isXAxis) {
             boolean zPosWall = Materials.isWall(player.compensatedWorld.getBlockType(x, y, z + 1));
             boolean zNegWall = Materials.isWall(player.compensatedWorld.getBlockType(x, y, z - 1));
@@ -99,8 +99,8 @@ public enum HitboxData implements HitBoxFactory {
     PANE(new DynamicHitboxPane(), Materials.getPanes().toArray(new PacketStateType[0])),
 
     LEVER(((player, item, version, data, isTargetBlock, x, y, z) -> {
-        Face face = data.getFace();
-        BlockFace facing = data.getFacing();
+        Face face = data.face();
+        BlockFace facing = data.facing();
         if (version.isOlderThan(PacketClientVersions.V_1_13)) {
             double f = 0.1875;
 
@@ -151,8 +151,8 @@ public enum HitboxData implements HitBoxFactory {
     }), PacketStateTypes.LEVER),
 
     BUTTON((player, item, version, data, isTargetBlock, x, y, z) -> {
-        final Face face = data.getFace();
-        final BlockFace facing = data.getFacing();
+        final Face face = data.face();
+        final BlockFace facing = data.facing();
         final boolean powered = data.isPowered();
 
 
@@ -221,7 +221,7 @@ public enum HitboxData implements HitBoxFactory {
 
     WALL(new DynamicHitboxWall(), BlockTags.WALLS.getStates().toArray(new PacketStateType[0])),
 
-    WALL_SIGN((player, item, version, data, isTargetBlock, x, y, z) -> switch (data.getFacing()) {
+    WALL_SIGN((player, item, version, data, isTargetBlock, x, y, z) -> switch (data.facing()) {
         case NORTH -> new HexCollisionBox(0.0, 4.5, 14.0, 16.0, 12.5, 16.0);
         case SOUTH -> new HexCollisionBox(0.0, 4.5, 0.0, 16.0, 12.5, 2.0);
         case EAST -> new HexCollisionBox(0.0, 4.5, 0.0, 2.0, 12.5, 16.0);
@@ -229,7 +229,7 @@ public enum HitboxData implements HitBoxFactory {
         default -> NoCollisionBox.INSTANCE;
     }, BlockTags.WALL_SIGNS.getStates().toArray(new PacketStateType[0])),
 
-    WALL_HANGING_SIGN((player, item, version, data, isTargetBlock, x, y, z) -> switch (data.getFacing()) {
+    WALL_HANGING_SIGN((player, item, version, data, isTargetBlock, x, y, z) -> switch (data.facing()) {
         case NORTH, SOUTH -> new ComplexCollisionBox(2,
                 new HexCollisionBox(0.0D, 14.0D, 6.0D, 16.0D, 16.0D, 10.0D),
                 new HexCollisionBox(1.0D, 0.0D, 7.0D, 15.0D, 10.0D, 9.0D));
@@ -260,7 +260,7 @@ public enum HitboxData implements HitBoxFactory {
             return WALL_SIGN.dynamic.fetch(player, item, version, data, isTargetBlock, x, y, z);
         }
 
-        return switch (data.getFacing()) {
+        return switch (data.facing()) {
             case NORTH -> new HexCollisionBox(0.0, 0.0, 14.0, 16.0, 12.5, 16.0);
             case EAST -> new HexCollisionBox(0.0, 0.0, 0.0, 2.0, 12.5, 16.0);
             case WEST -> new HexCollisionBox(14.0, 0.0, 0.0, 16.0, 12.5, 16.0);
@@ -328,15 +328,15 @@ public enum HitboxData implements HitBoxFactory {
                 new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D),
                 new HexCollisionBox(4.0D, 2.0D, 4.0D, 12.0D, 14.0D, 12.0D));
 
-        if (data.getFacing() == BlockFace.WEST) {
+        if (data.facing() == BlockFace.WEST) {
             common.add(new HexCollisionBox(1.0D, 10.0D, 0.0D, 5.333333D, 14.0D, 16.0D));
             common.add(new HexCollisionBox(5.333333D, 12.0D, 0.0D, 9.666667D, 16.0D, 16.0D));
             common.add(new HexCollisionBox(9.666667D, 14.0D, 0.0D, 14.0D, 18.0D, 16.0D));
-        } else if (data.getFacing() == BlockFace.NORTH) {
+        } else if (data.facing() == BlockFace.NORTH) {
             common.add(new HexCollisionBox(0.0D, 10.0D, 1.0D, 16.0D, 14.0D, 5.333333D));
             common.add(new HexCollisionBox(0.0D, 12.0D, 5.333333D, 16.0D, 16.0D, 9.666667D));
             common.add(new HexCollisionBox(0.0D, 14.0D, 9.666667D, 16.0D, 18.0D, 14.0D));
-        } else if (data.getFacing() == BlockFace.EAST) {
+        } else if (data.facing() == BlockFace.EAST) {
             common.add(new HexCollisionBox(10.666667D, 10.0D, 0.0D, 15.0D, 14.0D, 16.0D));
             common.add(new HexCollisionBox(6.333333D, 12.0D, 0.0D, 10.666667D, 16.0D, 16.0D));
             common.add(new HexCollisionBox(2.0D, 14.0D, 0.0D, 6.333333D, 18.0D, 16.0D));
@@ -359,16 +359,16 @@ public enum HitboxData implements HitBoxFactory {
             if (data.isDown()) {
                 box.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D));
             }
-            if (data.getWest() == West.TRUE) {
+            if (data.west() == West.TRUE) {
                 box.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 16.0D, 16.0D));
             }
-            if (data.getEast() == East.TRUE) {
+            if (data.east() == East.TRUE) {
                 box.add(new HexCollisionBox(15.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D));
             }
-            if (data.getNorth() == North.TRUE) {
+            if (data.north() == North.TRUE) {
                 box.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 1.0D));
             }
-            if (data.getSouth() == South.TRUE) {
+            if (data.south() == South.TRUE) {
                 box.add(new HexCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D));
             }
 
@@ -395,7 +395,7 @@ public enum HitboxData implements HitBoxFactory {
             final SimpleCollisionBox[] UPPER_SHAPE_BY_AGE = new SimpleCollisionBox[]{new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 11.0D, 13.0D), FULL_UPPER_SHAPE};
             final SimpleCollisionBox[] LOWER_SHAPE_BY_AGE = new SimpleCollisionBox[]{COLLISION_SHAPE_BULB, new HexCollisionBox(3.0D, -1.0D, 3.0D, 13.0D, 14.0D, 13.0D), FULL_LOWER_SHAPE, FULL_LOWER_SHAPE, FULL_LOWER_SHAPE};
 
-            return data.getHalf() == Half.UPPER ? UPPER_SHAPE_BY_AGE[Math.min(Math.abs(4 - (data.getAge() + 1)), UPPER_SHAPE_BY_AGE.length - 1)] : LOWER_SHAPE_BY_AGE[data.getAge()];
+            return data.half() == Half.UPPER ? UPPER_SHAPE_BY_AGE[Math.min(Math.abs(4 - (data.getAge() + 1)), UPPER_SHAPE_BY_AGE.length - 1)] : LOWER_SHAPE_BY_AGE[data.getAge()];
         } else {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
         }
@@ -414,7 +414,7 @@ public enum HitboxData implements HitBoxFactory {
         if (version.isOlderThan(PacketClientVersions.V_1_13))
             return new HexCollisionBox(7.0D, 0.0D, 7.0D, 9.0D, 16.0D, 9.0D);
 
-        return switch (data.getFacing()) {
+        return switch (data.facing()) {
             case SOUTH -> new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 16.0D);
             case WEST -> new HexCollisionBox(0.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D);
             case NORTH -> new HexCollisionBox(6.0D, 0.0D, 0.0D, 10.0D, 10.0D, 10.0D);
@@ -427,7 +427,7 @@ public enum HitboxData implements HitBoxFactory {
 
     // Hitbox/Outline is Same as Collision
     COCOA_BEANS((player, item, version, data, isTargetBlock, x, y, z) ->
-            CollisionData.getCocoa(version, data.getAge(), data.getFacing()), PacketStateTypes.COCOA),
+            CollisionData.getCocoa(version, data.getAge(), data.facing()), PacketStateTypes.COCOA),
 
     // Easier to just use no collision box
     // Redstone wire is very complex with its collision shapes and has many de-syncs
@@ -499,7 +499,7 @@ public enum HitboxData implements HitBoxFactory {
 
     TALL_PLANT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), PacketStateTypes.TALL_GRASS, PacketStateTypes.LARGE_FERN),
 
-    BAMBOO((player, item, version, data, isTargetBlock, x, y, z) -> data.getLeaves() == Leaves.LARGE
+    BAMBOO((player, item, version, data, isTargetBlock, x, y, z) -> data.leaves() == Leaves.LARGE
             ? new HexOffsetCollisionBox(data.getType(), 3.0, 0.0, 3.0, 13.0, 16.0, 13.0)
             : new HexOffsetCollisionBox(data.getType(), 5.0, 0.0, 5.0, 11.0, 16.0, 11.0), PacketStateTypes.BAMBOO),
 
@@ -520,7 +520,7 @@ public enum HitboxData implements HitBoxFactory {
                 new HexCollisionBox(0.0D, 0.0D, 14.0D, 2.0D, 16.0D, 16.0D),
                 new HexCollisionBox(14.0D, 0.0D, 14.0D, 16.0D, 16.0D, 16.0D));
 
-        if (data.getHalf() == Half.LOWER) { // Add the unstable shape to the collision boxes
+        if (data.half() == Half.LOWER) { // Add the unstable shape to the collision boxes
             box.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 2.0D, 2.0D, 16.0D));
             box.add(new HexCollisionBox(14.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D));
             box.add(new HexCollisionBox(0.0D, 0.0D, 14.0D, 16.0D, 2.0D, 16.0D));
@@ -536,19 +536,19 @@ public enum HitboxData implements HitBoxFactory {
 
         ComplexCollisionBox box = new ComplexCollisionBox(2);
 
-        if (data.getFacing() == BlockFace.NORTH) { // Stem
+        if (data.facing() == BlockFace.NORTH) { // Stem
             box.add(new HexCollisionBox(5.0D, 0.0D, 9.0D, 11.0D, 15.0D, 15.0D));
-        } else if (data.getFacing() == BlockFace.SOUTH) {
+        } else if (data.facing() == BlockFace.SOUTH) {
             box.add(new HexCollisionBox(5.0D, 0.0D, 1.0D, 11.0D, 15.0D, 7.0D));
-        } else if (data.getFacing() == BlockFace.EAST) {
+        } else if (data.facing() == BlockFace.EAST) {
             box.add(new HexCollisionBox(1.0D, 0.0D, 5.0D, 7.0D, 15.0D, 11.0D));
         } else {
             box.add(new HexCollisionBox(9.0D, 0.0D, 5.0D, 15.0D, 15.0D, 11.0D));
         }
 
-        if (data.getTilt() == Tilt.NONE || data.getTilt() == Tilt.UNSTABLE) {
+        if (data.tilt() == Tilt.NONE || data.tilt() == Tilt.UNSTABLE) {
             box.add(new HexCollisionBox(0.0, 11.0, 0.0, 16.0, 15.0, 16.0));
-        } else if (data.getTilt() == Tilt.PARTIAL) {
+        } else if (data.tilt() == Tilt.PARTIAL) {
             box.add(new HexCollisionBox(0.0, 11.0, 0.0, 16.0, 13.0, 16.0));
         }
 
@@ -558,7 +558,7 @@ public enum HitboxData implements HitBoxFactory {
 
     PINK_PETALS_BLOCK((player, item, version, data, isTargetBlock, x, y, z) -> {
         if (version.isNewerThan(PacketClientVersions.V_1_20_2)) {
-            return getFlowerBedHitBox(data.getFlowerAmount(), data.getFacing().getHorizontalId());
+            return getFlowerBedHitBox(data.getFlowerAmount(), data.facing().getHorizontalId());
         } else if (version.isNewerThan(PacketClientVersions.V_1_19_3)) {
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D);
         } else if (version.isNewerThan(PacketClientVersions.V_1_12_2)) {
@@ -600,13 +600,13 @@ public enum HitboxData implements HitBoxFactory {
 
     LEAF_LITTER((player, item, version, data, isTargetBlock, x, y, z)
             -> version.isNewerThan(PacketClientVersions.V_1_21_4)
-            ? getFlowerBedHitBox(data.getSegmentAmount(), data.getFacing().getHorizontalId())
+            ? getFlowerBedHitBox(data.getSegmentAmount(), data.facing().getHorizontalId())
             // GLOW_LICHEN Facing Upwards, can't call glow lichen dynamic because data has no isUp() key
             : new HexCollisionBox(0.0D, 15.0D, 0.0D, 16.0D, 16.0D, 16.0D), PacketStateTypes.LEAF_LITTER),
 
     WILDFLOWERS((player, item, version, data, isTargetBlock, x, y, z)
             -> version.isNewerThan(PacketClientVersions.V_1_21_4)
-            ? getFlowerBedHitBox(data.getFlowerAmount(), data.getFacing().getHorizontalId())
+            ? getFlowerBedHitBox(data.getFlowerAmount(), data.facing().getHorizontalId())
             // GLOW_LICHEN Facing Upwards, can't call glow lichen dynamic because data has no isUp() key
             : new HexCollisionBox(0.0D, 15.0D, 0.0D, 16.0D, 16.0D, 16.0D), PacketStateTypes.WILDFLOWERS),
 

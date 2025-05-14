@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.data.attribute;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.protocol.attribute.Attribute;

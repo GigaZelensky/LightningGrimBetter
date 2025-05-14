@@ -62,16 +62,16 @@ public enum CollisionData implements CollisionFactory {
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && block.isUp())
             boxes.add(new HexCollisionBox(0.0D, 15.0D, 0.0D, 16.0D, 16.0D, 16.0D));
 
-        if (block.getWest() == West.TRUE)
+        if (block.west() == West.TRUE)
             boxes.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 16.0D, 16.0D));
 
-        if (block.getEast() == East.TRUE)
+        if (block.east() == East.TRUE)
             boxes.add(new HexCollisionBox(15.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D));
 
-        if (block.getNorth() == North.TRUE)
+        if (block.north() == North.TRUE)
             boxes.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 1.0D));
 
-        if (block.getSouth() == South.TRUE)
+        if (block.south() == South.TRUE)
             boxes.add(new HexCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D));
 
         // This is where fire differs from vine with its hitbox
@@ -142,7 +142,7 @@ public enum CollisionData implements CollisionFactory {
             PacketStateTypes.DETECTOR_RAIL, PacketStateTypes.POWERED_RAIL),
 
     ANVIL((player, version, data, x, y, z) -> {
-        BlockFace face = data.getFacing();
+        BlockFace face = data.facing();
         // Anvil collision box was changed in 1.13 to be more accurate
         // https://www.mcpk.wiki/wiki/Version_Differences
         // The base is 0.75×0.75, and its floor is 0.25b high.
@@ -175,7 +175,7 @@ public enum CollisionData implements CollisionFactory {
     WALL(new DynamicCollisionWall(), BlockTags.WALLS.getStates().toArray(new PacketStateType[0])),
 
     SLAB((player, version, data, x, y, z) -> {
-        Type slabType = data.getTypeData();
+        Type slabType = data.typeData();
         if (slabType == Type.DOUBLE) {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
         } else if (slabType == Type.BOTTOM) {
@@ -194,7 +194,7 @@ public enum CollisionData implements CollisionFactory {
     PIGLIN_HEAD(new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D), PacketStateTypes.PIGLIN_HEAD),
 
     // Overwrite previous SKULL enum for legacy, where head and wall skull isn't separate
-    WALL_SKULL((player, version, data, x, y, z) -> switch (data.getFacing()) {
+    WALL_SKULL((player, version, data, x, y, z) -> switch (data.facing()) {
         case SOUTH -> new SimpleCollisionBox(0.25F, 0.25F, 0.0F, 0.75F, 0.75F, 0.5F, false);
         case WEST -> new SimpleCollisionBox(0.5F, 0.25F, 0.25F, 1.0F, 0.75F, 0.75F, false);
         case EAST -> new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F, false);
@@ -202,7 +202,7 @@ public enum CollisionData implements CollisionFactory {
     }, PacketStateTypes.CREEPER_WALL_HEAD, PacketStateTypes.DRAGON_WALL_HEAD, PacketStateTypes.PLAYER_WALL_HEAD, PacketStateTypes.ZOMBIE_WALL_HEAD,
             PacketStateTypes.SKELETON_WALL_SKULL, PacketStateTypes.WITHER_SKELETON_WALL_SKULL),
 
-    PIGLIN_WALL_HEAD((player, version, data, x, y, z) -> switch (data.getFacing()) {
+    PIGLIN_WALL_HEAD((player, version, data, x, y, z) -> switch (data.facing()) {
         case SOUTH -> new HexCollisionBox(3.0D, 4.0D, 0.0D, 13.0D, 12.0D, 8.0D);
         case EAST -> new HexCollisionBox(0.0D, 4.0D, 3.0D, 8.0D, 12.0D, 13.0D);
         case WEST -> new HexCollisionBox(8.0D, 4.0D, 3.0D, 16.0D, 12.0D, 13.0D);
@@ -215,7 +215,7 @@ public enum CollisionData implements CollisionFactory {
         if (version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
             ComplexCollisionBox hopperBox = new ComplexCollisionBox(7);
 
-            switch (data.getFacing()) {
+            switch (data.facing()) {
                 case DOWN:
                     hopperBox.add(new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 4.0D, 10.0D));
                     break;
@@ -262,7 +262,7 @@ public enum CollisionData implements CollisionFactory {
         return new SimpleCollisionBox(eatenPosition, 0, 0.0625, 1 - 0.0625, height, 1 - 0.0625, false);
     }, PacketStateTypes.CAKE),
 
-    COCOA_BEANS((player, version, data, x, y, z) -> getCocoa(version, data.getAge(), data.getFacing()), PacketStateTypes.COCOA),
+    COCOA_BEANS((player, version, data, x, y, z) -> getCocoa(version, data.getAge(), data.facing()), PacketStateTypes.COCOA),
 
     STONE_CUTTER((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(PacketClientVersions.V_1_13_2))
@@ -304,9 +304,9 @@ public enum CollisionData implements CollisionFactory {
         if (version.isOlderThanOrEquals(PacketClientVersions.V_1_13_2))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
-        BlockFace direction = data.getFacing();
+        BlockFace direction = data.facing();
 
-        if (data.getAttachment() == Attachment.FLOOR) {
+        if (data.attachment() == Attachment.FLOOR) {
             return direction != BlockFace.NORTH && direction != BlockFace.SOUTH ?
                     new HexCollisionBox(4.0D, 0.0D, 0.0D, 12.0D, 16.0D, 16.0D) :
                     new HexCollisionBox(0.0D, 0.0D, 4.0D, 16.0D, 16.0D, 12.0D);
@@ -317,9 +317,9 @@ public enum CollisionData implements CollisionFactory {
                 new HexCollisionBox(5.0D, 6.0D, 5.0D, 11.0D, 13.0D, 11.0D),
                 new HexCollisionBox(4.0D, 4.0D, 4.0D, 12.0D, 6.0D, 12.0D));
 
-        if (data.getAttachment() == Attachment.CEILING) {
+        if (data.attachment() == Attachment.CEILING) {
             complex.add(new HexCollisionBox(7.0D, 13.0D, 7.0D, 9.0D, 16.0D, 9.0D));
-        } else if (data.getAttachment() == Attachment.DOUBLE_WALL) {
+        } else if (data.attachment() == Attachment.DOUBLE_WALL) {
             if (direction != BlockFace.NORTH && direction != BlockFace.SOUTH) {
                 complex.add(new HexCollisionBox(0.0D, 13.0D, 7.0D, 16.0D, 15.0D, 9.0D));
             } else {
@@ -365,7 +365,7 @@ public enum CollisionData implements CollisionFactory {
         if (version.isOlderThanOrEquals(PacketClientVersions.V_1_8))
             width = 2;
 
-        return switch (data.getFacing()) {
+        return switch (data.facing()) {
             case NORTH -> new HexCollisionBox(0.0D, 0.0D, 16.0D - width, 16.0D, 16.0D, 16.0D);
             case SOUTH -> new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, width);
             case WEST -> new HexCollisionBox(16.0D - width, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
@@ -424,7 +424,7 @@ public enum CollisionData implements CollisionFactory {
     DRAGON_EGG_BLOCK(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), PacketStateTypes.DRAGON_EGG),
 
     GRINDSTONE((player, version, data, x, y, z) -> {
-        BlockFace facing = data.getFacing();
+        BlockFace facing = data.facing();
 
         // ViaVersion replacement block - Anvil
         if (version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) {
@@ -454,7 +454,7 @@ public enum CollisionData implements CollisionFactory {
             return complexAnvil;
         }
 
-        Face attachment = data.getFace();
+        Face attachment = data.face();
         if (attachment == Face.FLOOR) {
             if (facing == BlockFace.NORTH || facing == BlockFace.SOUTH) {
                 return new ComplexCollisionBox(5,
@@ -532,9 +532,9 @@ public enum CollisionData implements CollisionFactory {
             return PANE.fetch(player, version, data, x, y, z);
         }
 
-        if (data.getAxis() == Axis.X) {
+        if (data.axis() == Axis.X) {
             return new HexCollisionBox(0.0D, 6.5D, 6.5D, 16.0D, 9.5D, 9.5D);
-        } else if (data.getAxis() == Axis.Y) {
+        } else if (data.axis() == Axis.Y) {
             return new HexCollisionBox(6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D);
         }
 
@@ -547,7 +547,7 @@ public enum CollisionData implements CollisionFactory {
         if (data.isOpen())
             return NoCollisionBox.INSTANCE;
 
-        return switch (data.getFacing()) {
+        return switch (data.facing()) {
             case NORTH, SOUTH ->
                     new SimpleCollisionBox(0.0F, 0.0F, 0.375F, 1.0F, 1.5F, 0.625F, false);
             case WEST, EAST ->
@@ -665,7 +665,7 @@ public enum CollisionData implements CollisionFactory {
 
         ComplexCollisionBox baseBox = new ComplexCollisionBox(3, new HexCollisionBox(0.0D, 3.0D, 0.0D, 16.0D, 9.0D, 16.0D));
 
-        switch (data.getFacing()) {
+        switch (data.facing()) {
             case NORTH:
                 baseBox.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 3.0D, 3.0D, 3.0D));
                 baseBox.add(new HexCollisionBox(13.0D, 0.0D, 0.0D, 16.0D, 3.0D, 3.0D));
@@ -697,7 +697,7 @@ public enum CollisionData implements CollisionFactory {
             0.625, 0.625, 0.625, false),
             PacketStateTypes.STRUCTURE_VOID),
 
-    END_ROD((player, version, data, x, y, z) -> getEndRod(version, data.getFacing()), PacketStateTypes.END_ROD, PacketStateTypes.LIGHTNING_ROD),
+    END_ROD((player, version, data, x, y, z) -> getEndRod(version, data.facing()), PacketStateTypes.END_ROD, PacketStateTypes.LIGHTNING_ROD),
 
     CAULDRON((player, version, data, x, y, z) -> {
         if (version.isNewerThan(PacketClientVersions.V_1_13_2)) { // changed in 19w13a, 1.14 Snapshot
@@ -769,7 +769,7 @@ public enum CollisionData implements CollisionFactory {
     POT(new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D),
             BlockTags.FLOWER_POTS.getStates().toArray(new PacketStateType[0])),
 
-    WALL_SIGN((player, version, data, x, y, z) -> switch (data.getFacing()) {
+    WALL_SIGN((player, version, data, x, y, z) -> switch (data.facing()) {
         case NORTH -> new HexCollisionBox(0.0D, 4.5D, 14.0D, 16.0D, 12.5D, 16.0D);
         case SOUTH -> new HexCollisionBox(0.0D, 4.5D, 0.0D, 16.0D, 12.5D, 2.0D);
         case WEST -> new HexCollisionBox(14.0D, 4.5D, 0.0D, 16.0D, 12.5D, 16.0D);
@@ -777,7 +777,7 @@ public enum CollisionData implements CollisionFactory {
         default -> NoCollisionBox.INSTANCE;
     }, BlockTags.WALL_SIGNS.getStates().toArray(new PacketStateType[0])),
 
-    WALL_FAN((player, version, data, x, y, z) -> switch (data.getFacing()) {
+    WALL_FAN((player, version, data, x, y, z) -> switch (data.facing()) {
         case NORTH -> new HexCollisionBox(0.0D, 4.0D, 5.0D, 16.0D, 12.0D, 16.0D);
         case SOUTH -> new HexCollisionBox(0.0D, 4.0D, 0.0D, 16.0D, 12.0D, 11.0D);
         case WEST -> new HexCollisionBox(5.0D, 4.0D, 0.0D, 16.0D, 12.0D, 16.0D);
@@ -827,7 +827,7 @@ public enum CollisionData implements CollisionFactory {
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
     }, PacketStateTypes.TRIPWIRE),
 
-    TRIPWIRE_HOOK((player, version, data, x, y, z) -> switch (data.getFacing()) {
+    TRIPWIRE_HOOK((player, version, data, x, y, z) -> switch (data.facing()) {
         case NORTH -> new HexCollisionBox(5.0D, 0.0D, 10.0D, 11.0D, 10.0D, 16.0D);
         case SOUTH -> new HexCollisionBox(5.0D, 0.0D, 0.0D, 11.0D, 10.0D, 6.0D);
         case WEST -> new HexCollisionBox(10.0D, 0.0D, 5.0D, 16.0D, 10.0D, 11.0D);
@@ -837,7 +837,7 @@ public enum CollisionData implements CollisionFactory {
     TORCH(new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D),
             PacketStateTypes.TORCH, PacketStateTypes.REDSTONE_TORCH),
 
-    WALL_TORCH((player, version, data, x, y, z) -> switch (data.getFacing()) {
+    WALL_TORCH((player, version, data, x, y, z) -> switch (data.facing()) {
         case NORTH -> new HexCollisionBox(5.5D, 3.0D, 11.0D, 10.5D, 13.0D, 16.0D);
         case SOUTH -> new HexCollisionBox(5.5D, 3.0D, 0.0D, 10.5D, 13.0D, 5.0D);
         case WEST -> new HexCollisionBox(11.0D, 3.0D, 5.5D, 16.0D, 13.0D, 10.5D);
@@ -882,7 +882,7 @@ public enum CollisionData implements CollisionFactory {
     }, PacketStateTypes.DECORATED_POT),
 
     BIG_DRIPLEAF((player, version, data, x, y, z) -> {
-        Tilt tilt = data.getTilt();
+        Tilt tilt = data.tilt();
         if (version.isOlderThanOrEquals(PacketClientVersions.V_1_16_4)) {
             if (tilt == Tilt.FULL) {
                 return new SimpleCollisionBox(0, 0, 0, 1, 0.5, 1, false);
@@ -906,17 +906,17 @@ public enum CollisionData implements CollisionFactory {
 
         SimpleCollisionBox box;
 
-        if (data.getThickness() == Thickness.TIP_MERGE) {
+        if (data.thickness() == Thickness.TIP_MERGE) {
             box = new HexOffsetCollisionBox(data.getType(), 5.0, 0.0, 5.0, 11.0, 16.0, 11.0);
-        } else if (data.getThickness() == Thickness.TIP) {
-            if (data.getVerticalDirection() == VerticalDirection.DOWN) {
+        } else if (data.thickness() == Thickness.TIP) {
+            if (data.verticalDirection() == VerticalDirection.DOWN) {
                 box = new HexOffsetCollisionBox(data.getType(), 5.0, 5.0, 5.0, 11.0, 16.0, 11.0);
             } else {
                 box = new HexOffsetCollisionBox(data.getType(), 5.0, 0.0, 5.0, 11.0, 11.0, 11.0);
             }
-        } else if (data.getThickness() == Thickness.FRUSTUM) {
+        } else if (data.thickness() == Thickness.FRUSTUM) {
             box = new HexOffsetCollisionBox(data.getType(), 4.0, 0.0, 4.0, 12.0, 16.0, 12.0);
-        } else if (data.getThickness() == Thickness.MIDDLE) {
+        } else if (data.thickness() == Thickness.MIDDLE) {
             box = new HexOffsetCollisionBox(data.getType(), 3.0, 0.0, 3.0, 13.0, 16.0, 13.0);
         } else {
             box = new HexOffsetCollisionBox(data.getType(), 2.0, 0.0, 2.0, 14.0, 16.0, 14.0);
@@ -946,7 +946,7 @@ public enum CollisionData implements CollisionFactory {
     }, PacketStateTypes.POWDER_SNOW),
 
     NETHER_PORTAL((player, version, data, x, y, z) -> {
-        if (data.getAxis() == Axis.X) {
+        if (data.axis() == Axis.X) {
             return new HexCollisionBox(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
         }
         return new HexCollisionBox(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D);
@@ -956,13 +956,13 @@ public enum CollisionData implements CollisionFactory {
             new HexCollisionBox(0.0, 8.0, 0.0, 16.0, 16.0, 16.0),
             new HexCollisionBox(6.0, 0.0, 6.0, 10.0, 8.0, 10.0)), PacketStateTypes.AZALEA, PacketStateTypes.FLOWERING_AZALEA),
 
-    AMETHYST_CLUSTER((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 7, 3), PacketStateTypes.AMETHYST_CLUSTER),
+    AMETHYST_CLUSTER((player, version, data, x, y, z) -> getAmethystBox(version, data.facing(), 7, 3), PacketStateTypes.AMETHYST_CLUSTER),
 
-    SMALL_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 3, 4), PacketStateTypes.SMALL_AMETHYST_BUD),
+    SMALL_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.facing(), 3, 4), PacketStateTypes.SMALL_AMETHYST_BUD),
 
-    MEDIUM_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 4, 3), PacketStateTypes.MEDIUM_AMETHYST_BUD),
+    MEDIUM_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.facing(), 4, 3), PacketStateTypes.MEDIUM_AMETHYST_BUD),
 
-    LARGE_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 5, 3), PacketStateTypes.LARGE_AMETHYST_BUD),
+    LARGE_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.facing(), 5, 3), PacketStateTypes.LARGE_AMETHYST_BUD),
 
     MUD_BLOCK((player, version, data, x, y, z) -> {
         if (version.isNewerThanOrEquals(PacketClientVersions.V_1_19)) {
@@ -1008,14 +1008,14 @@ public enum CollisionData implements CollisionFactory {
             if (data.getAge() == 0) {
                 return COLLISION_SHAPE_BULB;
             } else {
-                return data.getHalf() == Half.LOWER ? COLLISION_SHAPE_CROP : NoCollisionBox.INSTANCE;
+                return data.half() == Half.LOWER ? COLLISION_SHAPE_CROP : NoCollisionBox.INSTANCE;
             }
         } else {
             return NoCollisionBox.INSTANCE;
         }
     }, PacketStateTypes.PITCHER_CROP),
 
-    WALL_HANGING_SIGNS((player, version, data, x, y, z) -> switch (data.getFacing()) {
+    WALL_HANGING_SIGNS((player, version, data, x, y, z) -> switch (data.facing()) {
         case NORTH, SOUTH -> new HexCollisionBox(0.0, 14.0, 6.0, 16.0, 16.0, 10.0);
         case WEST, EAST -> new HexCollisionBox(6.0, 14.0, 0.0, 10.0, 16.0, 16.0);
         default -> NoCollisionBox.INSTANCE;

@@ -21,15 +21,15 @@ public class DynamicChest implements CollisionFactory {
         // 1.13+ clients on 1.13+ servers
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
                 && version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
-            if (chest.getTypeData() == Type.SINGLE) {
+            if (chest.typeData() == Type.SINGLE) {
                 return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 14.0D, 15.0D);
             }
 
-            if (chest.getFacing() == BlockFace.SOUTH && chest.getTypeData() == Type.RIGHT || chest.getFacing() == BlockFace.NORTH && chest.getTypeData() == Type.LEFT) {
+            if (chest.facing() == BlockFace.SOUTH && chest.typeData() == Type.RIGHT || chest.facing() == BlockFace.NORTH && chest.typeData() == Type.LEFT) {
                 return new HexCollisionBox(1.0D, 0.0D, 1.0D, 16.0D, 14.0D, 15.0D); // Connected to the east face
-            } else if (chest.getFacing() == BlockFace.SOUTH && chest.getTypeData() == Type.LEFT || chest.getFacing() == BlockFace.NORTH && chest.getTypeData() == Type.RIGHT) {
+            } else if (chest.facing() == BlockFace.SOUTH && chest.typeData() == Type.LEFT || chest.facing() == BlockFace.NORTH && chest.typeData() == Type.RIGHT) {
                 return new HexCollisionBox(0.0D, 0.0D, 1.0D, 15.0D, 14.0D, 15.0D); // Connected to the west face
-            } else if (chest.getFacing() == BlockFace.WEST && chest.getTypeData() == Type.RIGHT || chest.getFacing() == BlockFace.EAST && chest.getTypeData() == Type.LEFT) {
+            } else if (chest.facing() == BlockFace.WEST && chest.typeData() == Type.RIGHT || chest.facing() == BlockFace.EAST && chest.typeData() == Type.LEFT) {
                 return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 14.0D, 16.0D); // Connected to the south face
             } else {
                 return new HexCollisionBox(1.0D, 0.0D, 0.0D, 15.0D, 14.0D, 15.0D); // Connected to the north face
@@ -40,7 +40,7 @@ public class DynamicChest implements CollisionFactory {
         // 1.12 clients on 1.12 servers
         // 1.12 clients on 1.12 servers
         // 1.13 clients on 1.12 servers
-        if (chest.getFacing() == BlockFace.EAST || chest.getFacing() == BlockFace.WEST) {
+        if (chest.facing() == BlockFace.EAST || chest.facing() == BlockFace.WEST) {
             PacketBlockState westState = player.compensatedWorld.getBlock(x - 1, y, z);
 
             if (westState.getType() == chest.getType()) {

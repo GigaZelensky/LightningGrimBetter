@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
@@ -9,7 +10,6 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 
 @CheckData(name = "PacketOrderN", experimental = true)
 public class PacketOrderN extends BlockPlaceCheck {
@@ -38,7 +38,7 @@ public class PacketOrderN extends BlockPlaceCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM
                 || event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT
-                && new WrapperPlayClientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER) {
+                && MCPacket.getAPI().packetFactory().newClientPlayerBlockPlacementPacket(event).blockFace() == BlockFace.OTHER) {
             if (!placing) {
                 usingWithoutPlacing = true;
             }

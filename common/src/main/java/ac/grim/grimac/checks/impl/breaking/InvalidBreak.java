@@ -6,7 +6,6 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 

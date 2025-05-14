@@ -17,7 +17,6 @@ package ac.grim.grimac.checks.impl.combat;
 
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;

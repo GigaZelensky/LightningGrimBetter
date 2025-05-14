@@ -8,15 +8,15 @@ import ac.grim.grimac.api.packet.world.PacketStateTypes;
 
 public class Dripstone {
     public static PacketBlockState update(GrimPlayer player, PacketBlockState toPlace, int x, int y, int z, boolean secondaryUse) {
-        VerticalDirection primaryDirection = toPlace.getVerticalDirection();
-        VerticalDirection opposite = toPlace.getVerticalDirection() == VerticalDirection.UP ? VerticalDirection.DOWN : VerticalDirection.UP;
+        VerticalDirection primaryDirection = toPlace.verticalDirection();
+        VerticalDirection opposite = toPlace.verticalDirection() == VerticalDirection.UP ? VerticalDirection.DOWN : VerticalDirection.UP;
 
         PacketBlockState typePlacingOn = player.compensatedWorld.getBlock(x, y + (primaryDirection == VerticalDirection.UP ? 1 : -1), z);
 
         if (isPointedDripstoneWithDirection(typePlacingOn, opposite)) {
             // Use tip if the player is sneaking, or if it already is merged (somehow)
             // secondary use is flipped, for some reason, remember!
-            Thickness thick = secondaryUse && typePlacingOn.getThickness() != Thickness.TIP_MERGE ? Thickness.TIP : Thickness.TIP_MERGE;
+            Thickness thick = secondaryUse && typePlacingOn.thickness() != Thickness.TIP_MERGE ? Thickness.TIP : Thickness.TIP_MERGE;
 
             toPlace.setThickness(thick);
         } else {
@@ -24,7 +24,7 @@ public class Dripstone {
             if (!isPointedDripstoneWithDirection(typePlacingOn, primaryDirection)) {
                 toPlace.setThickness(Thickness.TIP);
             } else {
-                Thickness dripThick = typePlacingOn.getThickness();
+                Thickness dripThick = typePlacingOn.thickness();
                 if (dripThick != Thickness.TIP && dripThick != Thickness.TIP_MERGE) {
                     // Look downwards
                     PacketBlockState oppositeData = player.compensatedWorld.getBlock(x, y + (opposite == VerticalDirection.UP ? 1 : -1), z);
@@ -40,6 +40,6 @@ public class Dripstone {
     }
 
     private static boolean isPointedDripstoneWithDirection(PacketBlockState unknown, VerticalDirection direction) {
-        return unknown.getType() == PacketStateTypes.POINTED_DRIPSTONE && unknown.getVerticalDirection() == direction;
+        return unknown.getType() == PacketStateTypes.POINTED_DRIPSTONE && unknown.verticalDirection() == direction;
     }
 }

@@ -201,7 +201,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (player.gamemode == GameMode.SPECTATOR || player.gamemode == GameMode.ADVENTURE)
                 return;
 
-            if (place.getFace() == BlockFace.OTHER) {
+            if (place.getFace().blockFace == BlockFace.OTHER) {
                 PacketItemStack placedWith = player.getInventory().getHeldItem();
                 if (place.getHand() == InteractionHand.OFF_HAND) {
                     placedWith = player.getInventory().getOffHand();
@@ -234,7 +234,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // The offhand is unable to interact with blocks like this... try to stop some desync points before they happen
             if ((!player.isSneaking || onlyAir) && place.getHand() == InteractionHand.MAIN_HAND) {
                 Vector3i blockPosition = place.getBlockPosition();
-                BlockPlace blockPlace = new BlockPlace(player, place.getHand(), blockPosition, place.getFaceId(), place.getFace(), placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false), place.getSequence());
+                BlockPlace blockPlace = new BlockPlace(player, place.getHand(), blockPosition, place.getFaceId(), place.getFace().blockFace, placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false), place.getSequence());
 
                 // Right-clicking a trapdoor/door/etc.
                 PacketStateType placedAgainst = blockPlace.getPlacedAgainstMaterial();
@@ -263,7 +263,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 return;
 
             Vector3i blockPosition = place.getBlockPosition();
-            BlockFace face = place.getFace();
+            BlockFace face = place.getFace().blockFace;
             PacketItemStack placedWith = player.getInventory().getHeldItem();
             if (place.getHand() == InteractionHand.OFF_HAND) {
                 placedWith = player.getInventory().getOffHand();
@@ -566,7 +566,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             final DiggingAction action = packet.getAction();
 
             if (action == DiggingAction.START_DIGGING || action == DiggingAction.FINISHED_DIGGING || action == DiggingAction.CANCELLED_DIGGING) {
-                final BlockBreak blockBreak = new BlockBreak(player, packet.getBlockPosition(), packet.getBlockFace(), packet.getBlockFaceId(), action, packet.getSequence(), player.compensatedWorld.getBlock(packet.getBlockPosition()));
+                final BlockBreak blockBreak = new BlockBreak(player, packet.getBlockPosition(), packet.getBlockFace().blockFace, packet.getBlockFaceId(), action, packet.getSequence(), player.compensatedWorld.getBlock(packet.getBlockPosition()));
 
                 player.checkManager.onBlockBreak(blockBreak);
 
@@ -624,11 +624,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             // This is the use item packet
-            if (packet.getFace() == BlockFace.OTHER && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
+            if (packet.getFace().blockFace == BlockFace.OTHER && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
                 player.placeUseItemPackets.add(new BlockPlaceSnapshot(packet, player.isSneaking));
             } else {
                 // Anti-air place
-                BlockPlace blockPlace = new BlockPlace(player, packet.getHand(), packet.getBlockPosition(), packet.getFaceId(), packet.getFace(), placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false), packet.getSequence());
+                BlockPlace blockPlace = new BlockPlace(player, packet.getHand(), packet.getBlockPosition(), packet.getFaceId(), packet.getFace().blockFace, placedWith, WorldRayTrace.getNearestBlockHitResult(player, null, true, false, false), packet.getSequence());
                 blockPlace.setCursor(packet.getCursorPosition());
 
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_11) && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_11)) {

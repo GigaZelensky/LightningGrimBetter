@@ -35,11 +35,11 @@ public class DynamicStair implements CollisionFactory {
     private static final int[] SHAPE_BY_STATE = new int[]{12, 5, 3, 10, 14, 13, 7, 11, 13, 7, 11, 14, 8, 4, 1, 2, 4, 1, 2, 8};
 
     public static EnumShape getStairsShape(GrimPlayer player, PacketBlockState originalStairs, int x, int y, int z) {
-        BlockFace facing = originalStairs.getFacing();
+        BlockFace facing = originalStairs.facing();
         PacketBlockState offsetOne = player.compensatedWorld.getBlock(x + facing.getModX(), y + facing.getModY(), z + facing.getModZ());
 
-        if (Materials.isStairs(offsetOne.getType()) && originalStairs.getHalf() == offsetOne.getHalf()) {
-            BlockFace enumfacing1 = offsetOne.getFacing();
+        if (Materials.isStairs(offsetOne.getType()) && originalStairs.half() == offsetOne.half()) {
+            BlockFace enumfacing1 = offsetOne.facing();
 
             if (isDifferentAxis(facing, enumfacing1) && canTakeShape(player, originalStairs, x + enumfacing1.getOppositeFace().getModX(), y + enumfacing1.getOppositeFace().getModY(), z + enumfacing1.getOppositeFace().getModZ())) {
                 if (enumfacing1 == rotateYCCW(facing)) {
@@ -52,8 +52,8 @@ public class DynamicStair implements CollisionFactory {
 
         PacketBlockState offsetTwo = player.compensatedWorld.getBlock(x + facing.getOppositeFace().getModX(), y + facing.getOppositeFace().getModY(), z + facing.getOppositeFace().getModZ());
 
-        if (Materials.isStairs(offsetTwo.getType()) && originalStairs.getHalf() == offsetTwo.getHalf()) {
-            BlockFace enumfacing2 = offsetTwo.getFacing();
+        if (Materials.isStairs(offsetTwo.getType()) && originalStairs.half() == offsetTwo.half()) {
+            BlockFace enumfacing2 = offsetTwo.facing();
 
             if (isDifferentAxis(facing, enumfacing2) && canTakeShape(player, originalStairs, x + enumfacing2.getModX(), y + enumfacing2.getModY(), z + enumfacing2.getModZ())) {
                 if (enumfacing2 == rotateYCCW(facing)) {
@@ -70,8 +70,8 @@ public class DynamicStair implements CollisionFactory {
     private static boolean canTakeShape(GrimPlayer player, PacketBlockState stairOne, int x, int y, int z) {
         PacketBlockState otherStair = player.compensatedWorld.getBlock(x, y, z);
         return !(BlockTags.STAIRS.contains(otherStair.getType())) ||
-                (stairOne.getFacing() != otherStair.getFacing() ||
-                        stairOne.getHalf() != otherStair.getHalf());
+                (stairOne.facing() != otherStair.facing() ||
+                        stairOne.half() != otherStair.half());
     }
 
     private static boolean isDifferentAxis(BlockFace faceOne, BlockFace faceTwo) {
@@ -118,16 +118,16 @@ public class DynamicStair implements CollisionFactory {
         // If server is 1.13+ and client is also 1.13+, we can read the block's data directly
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
                 && version.isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
-            shapeOrdinal = toEnumShape(block.getShape()).ordinal();
+            shapeOrdinal = toEnumShape(block.shape()).ordinal();
         } else {
             EnumShape shape = getStairsShape(player, block, x, y, z);
             shapeOrdinal = shape.ordinal();
         }
-        return (block.getHalf() == Half.BOTTOM ? BOTTOM_SHAPES : TOP_SHAPES)[SHAPE_BY_STATE[getShapeIndex(block, shapeOrdinal)]].copy();
+        return (block.half() == Half.BOTTOM ? BOTTOM_SHAPES : TOP_SHAPES)[SHAPE_BY_STATE[getShapeIndex(block, shapeOrdinal)]].copy();
     }
 
     private int getShapeIndex(PacketBlockState state, int shapeOrdinal) {
-        return shapeOrdinal * 4 + directionToValue(state.getFacing());
+        return shapeOrdinal * 4 + directionToValue(state.facing());
     }
 
     private int directionToValue(BlockFace face) {

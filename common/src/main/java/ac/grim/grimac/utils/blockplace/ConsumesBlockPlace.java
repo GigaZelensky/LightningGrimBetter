@@ -103,8 +103,8 @@ public class ConsumesBlockPlace {
 
     private static boolean isProperHit(PacketBlockState bell, BlockFace direction, double p_49742_) {
         if (direction != BlockFace.UP && direction != BlockFace.DOWN && !(p_49742_ > (double) 0.8124F)) {
-            BlockFace dir = bell.getFacing();
-            Attachment attachment = bell.getAttachment();
+            BlockFace dir = bell.facing();
+            Attachment attachment = bell.attachment();
             BlockFace dir2 = BlockFace.valueOf(direction.name());
 
             return switch (attachment) {

@@ -125,7 +125,7 @@ public enum BlockPlaceResult {
         //  No placing a ladder against another ladder
         if (!place.isReplaceClicked()) {
             PacketBlockState existing = player.compensatedWorld.getBlock(place.getPlacedAgainstBlockLocation());
-            if (existing.getType() == PacketStateTypes.LADDER && existing.getFacing() == place.getDirection()) {
+            if (existing.getType() == PacketStateTypes.LADDER && existing.facing() == place.getDirection()) {
                 return;
             }
         }
@@ -327,7 +327,7 @@ public enum BlockPlaceResult {
         PacketBlockState typePlacingOn = place.getDirectionalState(primaryDir.getOppositeFace()); // Block we are placing on
 
         // Check to see if we can place on the block or there is dripstone on the block that we are placing on also pointing upwards
-        boolean primarySameType = typePlacingOn.getInternalData().containsKey(StateValue.VERTICAL_DIRECTION) && typePlacingOn.getVerticalDirection().name().equals(primaryDir.name());
+        boolean primarySameType = typePlacingOn.getInternalData().containsKey(StateValue.VERTICAL_DIRECTION) && typePlacingOn.verticalDirection().name().equals(primaryDir.name());
         boolean primaryValid = place.isFullFace(primaryDir.getOppositeFace()) || primarySameType;
 
         // Try to use the opposite direction, just to see if switching directions makes it valid.
@@ -335,7 +335,7 @@ public enum BlockPlaceResult {
             BlockFace secondaryDirection = primaryDir.getOppositeFace(); // See if placing it DOWNWARDS is valid
             PacketBlockState secondaryType = place.getDirectionalState(secondaryDirection.getOppositeFace()); // Get the block above us
             // Check if the dripstone above us is also facing downwards
-            boolean secondarySameType = secondaryType.getInternalData().containsKey(StateValue.VERTICAL_DIRECTION) && secondaryType.getVerticalDirection().name().equals(primaryDir.name());
+            boolean secondarySameType = secondaryType.getInternalData().containsKey(StateValue.VERTICAL_DIRECTION) && secondaryType.verticalDirection().name().equals(primaryDir.name());
 
             primaryDir = secondaryDirection;
             // Update block survivability
@@ -614,28 +614,28 @@ public enum BlockPlaceResult {
                     }
                     continue;
                 case NORTH:
-                    if (multiFace.getNorth() == North.TRUE) continue;
+                    if (multiFace.north() == North.TRUE) continue;
                     if (place.isFullFace(face)) {
                         multiFace.setNorth(North.TRUE);
                         break;
                     }
                     continue;
                 case SOUTH:
-                    if (multiFace.getSouth() == South.TRUE) continue;
+                    if (multiFace.south() == South.TRUE) continue;
                     if (place.isFullFace(face)) {
                         multiFace.setSouth(South.TRUE);
                         break;
                     }
                     continue;
                 case EAST:
-                    if (multiFace.getEast() == East.TRUE) continue;
+                    if (multiFace.east() == East.TRUE) continue;
                     if (place.isFullFace(face)) {
                         multiFace.setEast(East.TRUE);
                         return;
                     }
                     continue;
                 case WEST:
-                    if (multiFace.getWest() == West.TRUE) continue;
+                    if (multiFace.west() == West.TRUE) continue;
                     if (place.isFullFace(face)) {
                         multiFace.setWest(West.TRUE);
                         break;
@@ -885,7 +885,7 @@ public enum BlockPlaceResult {
 
         // 1.8 has special placing requirements
         if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)) {
-            PacketBlockState dirState = place.getDirectionalState(door.getFacing().getOppositeFace());
+            PacketBlockState dirState = place.getDirectionalState(door.facing().getOppositeFace());
             boolean fullFace = CollisionData.getData(dirState.getType()).getMovementCollisionBox(player, player.getClientVersion(), dirState).isFullBlock();
             boolean blacklisted = BlockTags.ICE.contains(dirState.getType()) || BlockTags.GLASS_BLOCKS.contains(dirState.getType()) ||
                     dirState.getType() == PacketStateTypes.TNT || BlockTags.LEAVES.contains(dirState.getType()) ||
@@ -931,11 +931,11 @@ public enum BlockPlaceResult {
 
             boolean isCCWLower = false;
             if (BlockTags.DOORS.contains(ccwState.getType()))
-                isCCWLower = ccwState.getHalf() == Half.LOWER;
+                isCCWLower = ccwState.half() == Half.LOWER;
 
             boolean isCWLower = false;
             if (BlockTags.DOORS.contains(cwState.getType()))
-                isCWLower = ccwState.getHalf() == Half.LOWER;
+                isCWLower = ccwState.half() == Half.LOWER;
 
             Hinge hinge;
             if ((!isCCWLower || isCWLower) && i <= 0) {
