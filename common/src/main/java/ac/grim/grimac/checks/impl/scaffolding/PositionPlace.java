@@ -1,11 +1,11 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 @CheckData(name = "PositionPlace")
 public class PositionPlace extends BlockPlaceCheck {
@@ -16,7 +16,7 @@ public class PositionPlace extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        if (place.getMaterial() == StateTypes.SCAFFOLDING || player.inVehicle()) return;
+        if (place.getMaterial() == PacketStateTypes.SCAFFOLDING || player.inVehicle()) return;
 
         SimpleCollisionBox combined = getCombinedBox(place);
 

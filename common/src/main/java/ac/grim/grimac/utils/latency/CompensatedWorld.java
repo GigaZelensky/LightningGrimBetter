@@ -3,11 +3,13 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.data.boxes.BaseSCB;
 import ac.grim.grimac.api.data.world.ICompensatedWorld;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.player.PacketUser;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
+import ac.grim.grimac.api.packet.world.enums.North;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.change.BlockModification;
 import ac.grim.grimac.utils.chunks.Column;
@@ -29,7 +31,7 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v1_16.Chunk_v1_9;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
@@ -38,14 +40,11 @@ import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalett
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.PaletteType;
 import com.github.retrooper.packetevents.protocol.world.chunk.storage.LegacyFlexibleStorage;
 import com.github.retrooper.packetevents.protocol.world.dimension.DimensionType;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.East;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
-import com.github.retrooper.packetevents.protocol.world.states.enums.North;
-import com.github.retrooper.packetevents.protocol.world.states.enums.South;
-import com.github.retrooper.packetevents.protocol.world.states.enums.West;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import ac.grim.grimac.api.packet.world.enums.East;
+import ac.grim.grimac.api.packet.world.enums.Half;
+import ac.grim.grimac.api.packet.world.enums.South;
+import ac.grim.grimac.api.packet.world.enums.West;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -70,7 +69,7 @@ import java.util.Set;
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld implements ICompensatedWorld {
     public static final PacketClientVersion blockVersion = PacketEvents.getAPI().getServerManager().getVersion().toClientVersion();
-    private static final WrappedBlockState airData = WrappedBlockState.getByGlobalId(blockVersion, 0);
+    private static final PacketBlockState airData = PacketBlockState.getByGlobalId(blockVersion, 0);
     public final GrimPlayer player;
     public final Long2ObjectMap<Column> chunks;
     // Packet locations for blocks
@@ -157,14 +156,14 @@ public class CompensatedWorld implements ICompensatedWorld {
             player.blockHistory.add(
                     new BlockModification(
                             getBlock(vector3i),
-                            WrappedBlockState.getByGlobalId(originalBlockId),
+                            PacketBlockState.getByGlobalId(originalBlockId),
                             vector3i,
                             GrimAPI.INSTANCE.getTickManager().currentTick,
                             BlockModification.Cause.HANDLE_NETTY_SYNC_TRANSACTION
                     )
             );
             updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), originalBlockId);
-            WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, originalBlockId);
+            PacketBlockState state = PacketBlockState.getByGlobalId(blockVersion, originalBlockId);
 
             // The player will teleport themselves if they get stuck in the reverted block
             if (playerPosition != null && CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isIntersected(player.boundingBox)) {
@@ -263,7 +262,7 @@ public class CompensatedWorld implements ICompensatedWorld {
         return new Chunk_v1_9(0, new DataPalette(new ListPalette(4), new LegacyFlexibleStorage(4, 4096), PaletteType.CHUNK));
     }
 
-    public void updateBlock(Vector3i pos, WrappedBlockState state) {
+    public void updateBlock(Vector3i pos, PacketBlockState state) {
         updateBlock(pos.getX(), pos.getY(), pos.getZ(), state.getGlobalId());
     }
 
@@ -312,15 +311,15 @@ public class CompensatedWorld implements ICompensatedWorld {
             chunk.set(null, x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
 
             // Handle stupidity such as fluids changing in idle ticks.
-            player.pointThreeEstimator.handleChangeBlock(x, y, z, WrappedBlockState.getByGlobalId(blockVersion, combinedID));
+            player.pointThreeEstimator.handleChangeBlock(x, y, z, PacketBlockState.getByGlobalId(blockVersion, combinedID));
         }
     }
 
     public void tickOpenable(int blockX, int blockY, int blockZ) {
-        final WrappedBlockState data = getBlock(blockX, blockY, blockZ);
+        final PacketBlockState data = getBlock(blockX, blockY, blockZ);
         final PacketStateType type = data.getType();
         if (Materials.isClientSideOpenableDoor(type, player.getClientVersion())) {
-            WrappedBlockState otherDoor = getBlock(blockX,
+            PacketBlockState otherDoor = getBlock(blockX,
                     blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ);
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
@@ -387,7 +386,7 @@ public class CompensatedWorld implements ICompensatedWorld {
 
             BlockFace direction;
             if (data.entity == null) {
-                WrappedBlockState state = getBlock(data.blockPos.getX(), data.blockPos.getY(), data.blockPos.getZ());
+                PacketBlockState state = getBlock(data.blockPos.getX(), data.blockPos.getY(), data.blockPos.getZ());
                 direction = state.getFacing();
             } else {
                 direction = ((PacketEntityShulker) data.entity).facing.getOppositeFace();
@@ -442,11 +441,11 @@ public class CompensatedWorld implements ICompensatedWorld {
         });
     }
 
-    public WrappedBlockState getBlock(Vector3i position) {
+    public PacketBlockState getBlock(Vector3i position) {
         return getBlock(position.x, position.y, position.z);
     }
 
-    public WrappedBlockState getBlock(int x, int y, int z) {
+    public PacketBlockState getBlock(int x, int y, int z) {
         if (noNegativeBlocks && y < 0) return airData;
 
         try {
@@ -469,15 +468,15 @@ public class CompensatedWorld implements ICompensatedWorld {
     // Trapped chests give power but there's no packet to the client to actually apply this... ignore trapped chests
     // just like mojang did!
     public int getRawPowerAtState(BlockFace face, int x, int y, int z) {
-        WrappedBlockState block = getBlock(x, y, z);
+        PacketBlockState block = getBlock(x, y, z);
 
-        if (block.getType() == StateTypes.REDSTONE_BLOCK) {
+        if (block.getType() == PacketStateTypes.REDSTONE_BLOCK) {
             return 15;
-        } else if (block.getType() == StateTypes.DETECTOR_RAIL) { // Rails have directional requirement
+        } else if (block.getType() == PacketStateTypes.DETECTOR_RAIL) { // Rails have directional requirement
             return block.isPowered() ? 15 : 0;
-        } else if (block.getType() == StateTypes.REDSTONE_TORCH) {
+        } else if (block.getType() == PacketStateTypes.REDSTONE_TORCH) {
             return face != BlockFace.UP && block.isLit() ? 15 : 0;
-        } else if (block.getType() == StateTypes.REDSTONE_WIRE) {
+        } else if (block.getType() == PacketStateTypes.REDSTONE_WIRE) {
             BlockFace needed = face.getOppositeFace();
 
             BlockFace badOne = needed.getCW();
@@ -519,17 +518,17 @@ public class CompensatedWorld implements ICompensatedWorld {
             }
 
             return isPowered ? block.getPower() : 0;
-        } else if (block.getType() == StateTypes.REDSTONE_WALL_TORCH) {
+        } else if (block.getType() == PacketStateTypes.REDSTONE_WALL_TORCH) {
             return block.getFacing() != face && block.isLit() ? 15 : 0;
-        } else if (block.getType() == StateTypes.DAYLIGHT_DETECTOR) {
+        } else if (block.getType() == PacketStateTypes.DAYLIGHT_DETECTOR) {
             return block.getPower();
-        } else if (block.getType() == StateTypes.OBSERVER) {
+        } else if (block.getType() == PacketStateTypes.OBSERVER) {
             return block.getFacing() == face && block.isPowered() ? 15 : 0;
-        } else if (block.getType() == StateTypes.REPEATER) {
+        } else if (block.getType() == PacketStateTypes.REPEATER) {
             return block.getFacing() == face && block.isPowered() ? 15 : 0;
-        } else if (block.getType() == StateTypes.LECTERN) {
+        } else if (block.getType() == PacketStateTypes.LECTERN) {
             return block.isPowered() ? 15 : 0;
-        } else if (block.getType() == StateTypes.TARGET) {
+        } else if (block.getType() == PacketStateTypes.TARGET) {
             return block.getPower();
         }
 
@@ -538,24 +537,25 @@ public class CompensatedWorld implements ICompensatedWorld {
 
     // Redstone can power blocks indirectly by directly powering a block next to the block to power
     public int getDirectSignalAtState(BlockFace face, int x, int y, int z) {
-        WrappedBlockState block = getBlock(x, y, z);
+        PacketBlockState block = getBlock(x, y, z);
 
-        if (block.getType() == StateTypes.DETECTOR_RAIL) { // Rails hard power block below itself
+        if (block.getType() == PacketStateTypes.DETECTOR_RAIL) { // Rails hard power block below itself
+            // TODO (Packet Rewrite) confirm replacement is correct
             boolean isPowered = (boolean) block.getInternalData().getOrDefault(StateValue.POWERED, false);
             return face == BlockFace.UP && isPowered ? 15 : 0;
-        } else if (block.getType() == StateTypes.REDSTONE_TORCH) {
+        } else if (block.getType() == PacketStateTypes.REDSTONE_TORCH) {
             return face != BlockFace.UP && block.isLit() ? 15 : 0;
-        } else if (block.getType() == StateTypes.LEVER || BlockTags.BUTTONS.contains(block.getType())) {
+        } else if (block.getType() == PacketStateTypes.LEVER || BlockTags.BUTTONS.contains(block.getType())) {
             return block.getFacing().getOppositeFace() == face && block.isPowered() ? 15 : 0;
-        } else if (block.getType() == StateTypes.REDSTONE_WALL_TORCH) {
+        } else if (block.getType() == PacketStateTypes.REDSTONE_WALL_TORCH) {
             return face == BlockFace.DOWN && block.isPowered() ? 15 : 0;
-        } else if (block.getType() == StateTypes.LECTERN) {
+        } else if (block.getType() == PacketStateTypes.LECTERN) {
             return face == BlockFace.UP && block.isPowered() ? 15 : 0;
-        } else if (block.getType() == StateTypes.OBSERVER) {
+        } else if (block.getType() == PacketStateTypes.OBSERVER) {
             return block.getFacing() == face && block.isPowered() ? 15 : 0;
-        } else if (block.getType() == StateTypes.REPEATER) {
+        } else if (block.getType() == PacketStateTypes.REPEATER) {
             return block.getFacing() == face && block.isPowered() ? 15 : 0;
-        } else if (block.getType() == StateTypes.REDSTONE_WIRE) {
+        } else if (block.getType() == PacketStateTypes.REDSTONE_WIRE) {
             BlockFace needed = face.getOppositeFace();
 
             BlockFace badOne = needed.getCW();
@@ -622,7 +622,7 @@ public class CompensatedWorld implements ICompensatedWorld {
         return getBlock((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z)).getType();
     }
 
-    public WrappedBlockState getBlock(double x, double y, double z) {
+    public PacketBlockState getBlock(double x, double y, double z) {
         return getBlock((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
 
@@ -631,20 +631,20 @@ public class CompensatedWorld implements ICompensatedWorld {
     }
 
     public boolean isWaterSourceBlock(int x, int y, int z) {
-        WrappedBlockState bukkitBlock = getBlock(x, y, z);
+        PacketBlockState bukkitBlock = getBlock(x, y, z);
         return Materials.isWaterSource(player.getClientVersion(), bukkitBlock);
     }
 
     public boolean containsLiquid(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data.first()) || data.first().getType() == StateTypes.LAVA);
+        return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data.first()) || data.first().getType() == PacketStateTypes.LAVA);
     }
 
     public double getLavaFluidLevelAt(int x, int y, int z) {
-        WrappedBlockState magicBlockState = getBlock(x, y, z);
-        WrappedBlockState magicBlockStateAbove = getBlock(x, y + 1, z);
+        PacketBlockState magicBlockState = getBlock(x, y, z);
+        PacketBlockState magicBlockStateAbove = getBlock(x, y + 1, z);
 
-        if (magicBlockState.getType() != StateTypes.LAVA) return 0;
-        if (magicBlockStateAbove.getType() == StateTypes.LAVA) return 1;
+        if (magicBlockState.getType() != PacketStateTypes.LAVA) return 0;
+        if (magicBlockStateAbove.getType() == PacketStateTypes.LAVA) return 1;
 
         int level = magicBlockState.getLevel();
 
@@ -658,7 +658,7 @@ public class CompensatedWorld implements ICompensatedWorld {
     }
 
     public boolean containsLava(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> data.first().getType() == StateTypes.LAVA);
+        return Collisions.hasMaterial(player, var0, data -> data.first().getType() == PacketStateTypes.LAVA);
     }
 
     public double getWaterFluidLevelAt(double x, double y, double z) {
@@ -666,7 +666,7 @@ public class CompensatedWorld implements ICompensatedWorld {
     }
 
     public double getWaterFluidLevelAt(int x, int y, int z) {
-        WrappedBlockState wrappedBlock = getBlock(x, y, z);
+        PacketBlockState wrappedBlock = getBlock(x, y, z);
         boolean isWater = Materials.isWater(player.getClientVersion(), wrappedBlock);
 
         if (!isWater) return 0;
@@ -677,7 +677,7 @@ public class CompensatedWorld implements ICompensatedWorld {
         }
 
         // If it is water or flowing water
-        if (wrappedBlock.getType() == StateTypes.WATER) {
+        if (wrappedBlock.getType() == PacketStateTypes.WATER) {
             int level = wrappedBlock.getLevel();
 
             // Falling water has a level of 8
@@ -704,7 +704,7 @@ public class CompensatedWorld implements ICompensatedWorld {
         maxHeight = minHeight + dimension.getHeight();
     }
 
-    public WrappedBlockState getBlock(Vector3dm aboveCCWPos) {
+    public PacketBlockState getBlock(Vector3dm aboveCCWPos) {
         return getBlock(aboveCCWPos.getX(), aboveCCWPos.getY(), aboveCCWPos.getZ());
     }
 }

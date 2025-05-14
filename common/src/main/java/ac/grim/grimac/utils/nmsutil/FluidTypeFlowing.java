@@ -2,16 +2,15 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
 import ac.grim.grimac.api.math.Vector3dm;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import ac.grim.grimac.api.packet.item.PacketStateType;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 public class FluidTypeFlowing {
     public static Vector3dm getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
@@ -59,8 +58,8 @@ public class FluidTypeFlowing {
 
         // Fluid level 1-7 is for regular fluid heights
         // Fluid level 8-15 is for falling fluids
-        WrappedBlockState state = player.compensatedWorld.getBlock(originalX, originalY, originalZ);
-        if ((state.getType() == StateTypes.WATER || state.getType() == StateTypes.LAVA) && state.getLevel() >= 8) {
+        PacketBlockState state = player.compensatedWorld.getBlock(originalX, originalY, originalZ);
+        if ((state.getType() == PacketStateTypes.WATER || state.getType() == PacketStateTypes.LAVA) && state.getLevel() >= 8) {
             for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
                 if (isSolidFace(player, originalX, originalY, originalZ, enumdirection) || isSolidFace(player, originalX, originalY + 1, originalZ, enumdirection)) {
                     vec3d = normalizeVectorWithoutNaN(vec3d).add(new Vector3dm(0.0D, -6.0D, 0.0D));
@@ -79,18 +78,18 @@ public class FluidTypeFlowing {
         int x = originalX + direction.getModX();
         int z = originalZ + direction.getModZ();
 
-        WrappedBlockState data = player.compensatedWorld.getBlock(x, y, z);
+        PacketBlockState data = player.compensatedWorld.getBlock(x, y, z);
         PacketStateType type = data.getType();
 
         if (isSame(player, x, y, z, originalX, y, originalZ)) return false;
-        if (type == StateTypes.ICE) return false;
+        if (type == PacketStateTypes.ICE) return false;
 
         // 1.11 and below clients use a different method to determine solid faces
         if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_12)) {
-            if (type == StateTypes.PISTON || type == StateTypes.STICKY_PISTON) {
+            if (type == PacketStateTypes.PISTON || type == PacketStateTypes.STICKY_PISTON) {
                 return data.getFacing().getOppositeFace() == direction ||
                         CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, 0, 0, 0).isFullBlock();
-            } else if (type == StateTypes.PISTON_HEAD) {
+            } else if (type == PacketStateTypes.PISTON_HEAD) {
                 return data.getFacing() == direction;
             }
         }
@@ -114,27 +113,27 @@ public class FluidTypeFlowing {
                     || BlockTags.TRAPDOORS.contains(type))
                 return false;
 
-            if (type == StateTypes.BEACON || BlockTags.CAULDRONS.contains(type)
-                    || type == StateTypes.GLOWSTONE || type == StateTypes.SEA_LANTERN || type == StateTypes.CONDUIT)
+            if (type == PacketStateTypes.BEACON || BlockTags.CAULDRONS.contains(type)
+                    || type == PacketStateTypes.GLOWSTONE || type == PacketStateTypes.SEA_LANTERN || type == PacketStateTypes.CONDUIT)
                 return false;
 
-            if (type == StateTypes.PISTON || type == StateTypes.STICKY_PISTON || type == StateTypes.PISTON_HEAD)
+            if (type == PacketStateTypes.PISTON || type == PacketStateTypes.STICKY_PISTON || type == PacketStateTypes.PISTON_HEAD)
                 return false;
 
-            return type == StateTypes.SOUL_SAND || (CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).isFullBlock());
+            return type == PacketStateTypes.SOUL_SAND || (CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).isFullBlock());
         } else {
             if (Materials.isLeaves(type)) {
                 // Leaves don't have solid faces in 1.13, they do in 1.14 and 1.15, and they don't in 1.16 and beyond
                 return player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14) && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_15_2);
-            } else if (type == StateTypes.SNOW) {
+            } else if (type == PacketStateTypes.SNOW) {
                 return data.getLayers() == 8;
             } else if (Materials.isStairs(type)) {
                 return data.getFacing() == direction;
-            } else if (type == StateTypes.COMPOSTER) {
+            } else if (type == PacketStateTypes.COMPOSTER) {
                 return true;
-            } else if (type == StateTypes.SOUL_SAND) {
+            } else if (type == PacketStateTypes.SOUL_SAND) {
                 return player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_12_2) || player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_16);
-            } else if (type == StateTypes.LADDER) {
+            } else if (type == PacketStateTypes.LADDER) {
                 return data.getFacing().getOppositeFace() == direction;
             } else if (BlockTags.TRAPDOORS.contains(type)) {
                 return data.getFacing().getOppositeFace() == direction && data.isOpen();

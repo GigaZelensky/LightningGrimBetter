@@ -1,7 +1,5 @@
 package ac.grim.grimac.checks.impl.prediction;
 
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -10,9 +8,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Collisions;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +36,8 @@ public class Phase extends Check implements PostPredictionCheck {
                 if (newBB.isIntersected(box) && !oldBB.isIntersected(box)) {
                     if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8)) {
                         // A bit of a hacky way to get the block state, but this is much faster to use the tuinity method for grabbing collision boxes
-                        WrappedBlockState state = player.compensatedWorld.getBlock((box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2, (box.minZ + box.maxZ) / 2);
-                        if (BlockTags.ANVIL.contains(state.getType()) || state.getType() == StateTypes.CHEST || state.getType() == StateTypes.TRAPPED_CHEST) {
+                        PacketBlockState state = player.compensatedWorld.getBlock((box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2, (box.minZ + box.maxZ) / 2);
+                        if (BlockTags.ANVIL.contains(state.getType()) || state.getType() == PacketStateTypes.CHEST || state.getType() == PacketStateTypes.TRAPPED_CHEST) {
                             continue; // 1.8 glitchy block, ignore
                         }
                     }

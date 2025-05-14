@@ -1,10 +1,12 @@
 package ac.grim.grimac.utils.collisions;
 
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
+import ac.grim.grimac.api.packet.world.enums.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
@@ -31,22 +33,11 @@ import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import ac.grim.grimac.api.packet.item.PacketItemStack;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Attachment;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Axis;
-import com.github.retrooper.packetevents.protocol.world.states.enums.East;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Face;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
-import com.github.retrooper.packetevents.protocol.world.states.enums.North;
-import com.github.retrooper.packetevents.protocol.world.states.enums.South;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Thickness;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Tilt;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Type;
-import com.github.retrooper.packetevents.protocol.world.states.enums.VerticalDirection;
-import com.github.retrooper.packetevents.protocol.world.states.enums.West;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import ac.grim.grimac.api.packet.world.enums.Axis;
+import ac.grim.grimac.api.packet.world.enums.Thickness;
+import ac.grim.grimac.api.packet.world.enums.Tilt;
+import ac.grim.grimac.api.packet.world.enums.VerticalDirection;
 import com.viaversion.viaversion.api.Via;
 
 import java.util.Arrays;
@@ -84,12 +75,12 @@ public enum CollisionData implements CollisionFactory {
             boxes.add(new HexCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D));
 
         // This is where fire differs from vine with its hitbox
-        if (block.getType() == StateTypes.FIRE && boxes.isNull())
+        if (block.getType() == PacketStateTypes.FIRE && boxes.isNull())
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
 
         return boxes;
 
-    }, StateTypes.VINE, StateTypes.FIRE),
+    }, PacketStateTypes.VINE, PacketStateTypes.FIRE),
 
     LAVA((player, version, block, x, y, z) -> {
         if (MovementTickerStrider.isAbove(player) && player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider) {
@@ -99,7 +90,7 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return NoCollisionBox.INSTANCE;
-    }, StateTypes.LAVA),
+    }, PacketStateTypes.LAVA),
 
     BREWING_STAND((player, version, block, x, y, z) -> {
         int base = 0;
@@ -119,7 +110,7 @@ public enum CollisionData implements CollisionFactory {
                 new HexCollisionBox(base, 0, base, 16 - base, 2, 16 - base),
                 new SimpleCollisionBox(0.4375, 0.0, 0.4375, 0.5625, 0.875, 0.5625, false));
 
-    }, StateTypes.BREWING_STAND),
+    }, PacketStateTypes.BREWING_STAND),
 
     BAMBOO((player, version, block, x, y, z) -> {
         // ViaVersion replacement, sugarcane
@@ -127,7 +118,7 @@ public enum CollisionData implements CollisionFactory {
             return NoCollisionBox.INSTANCE;
         }
         return new HexOffsetCollisionBox(block.getType(), 6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D);
-    }, StateTypes.BAMBOO),
+    }, PacketStateTypes.BAMBOO),
 
     COMPOSTER((player, version, block, x, y, z) -> {
         double height = 0.125;
@@ -144,11 +135,11 @@ public enum CollisionData implements CollisionFactory {
                 new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1, false),
                 new SimpleCollisionBox(0, height, 0, 1, 1, 0.125, false),
                 new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1, false));
-    }, StateTypes.COMPOSTER),
+    }, PacketStateTypes.COMPOSTER),
 
     RAIL(new SimpleCollisionBox(0, 0, 0, 1, 0.125, 0, false),
-            StateTypes.RAIL, StateTypes.ACTIVATOR_RAIL,
-            StateTypes.DETECTOR_RAIL, StateTypes.POWERED_RAIL),
+            PacketStateTypes.RAIL, PacketStateTypes.ACTIVATOR_RAIL,
+            PacketStateTypes.DETECTOR_RAIL, PacketStateTypes.POWERED_RAIL),
 
     ANVIL((player, version, data, x, y, z) -> {
         BlockFace face = data.getFacing();
@@ -197,10 +188,10 @@ public enum CollisionData implements CollisionFactory {
     }, BlockTags.SLABS.getStates().toArray(new PacketStateType[0])),
 
     SKULL(new SimpleCollisionBox(0.25F, 0.0F, 0.25F, 0.75F, 0.5F, 0.75F, false),
-            StateTypes.CREEPER_HEAD, StateTypes.ZOMBIE_HEAD, StateTypes.DRAGON_HEAD, StateTypes.PLAYER_HEAD,
-            StateTypes.SKELETON_SKULL, StateTypes.WITHER_SKELETON_SKULL, StateTypes.HEAVY_CORE),
+            PacketStateTypes.CREEPER_HEAD, PacketStateTypes.ZOMBIE_HEAD, PacketStateTypes.DRAGON_HEAD, PacketStateTypes.PLAYER_HEAD,
+            PacketStateTypes.SKELETON_SKULL, PacketStateTypes.WITHER_SKELETON_SKULL, PacketStateTypes.HEAVY_CORE),
 
-    PIGLIN_HEAD(new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D), StateTypes.PIGLIN_HEAD),
+    PIGLIN_HEAD(new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D), PacketStateTypes.PIGLIN_HEAD),
 
     // Overwrite previous SKULL enum for legacy, where head and wall skull isn't separate
     WALL_SKULL((player, version, data, x, y, z) -> switch (data.getFacing()) {
@@ -208,15 +199,15 @@ public enum CollisionData implements CollisionFactory {
         case WEST -> new SimpleCollisionBox(0.5F, 0.25F, 0.25F, 1.0F, 0.75F, 0.75F, false);
         case EAST -> new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F, false);
         default -> new SimpleCollisionBox(0.25F, 0.25F, 0.5F, 0.75F, 0.75F, 1.0F, false);
-    }, StateTypes.CREEPER_WALL_HEAD, StateTypes.DRAGON_WALL_HEAD, StateTypes.PLAYER_WALL_HEAD, StateTypes.ZOMBIE_WALL_HEAD,
-            StateTypes.SKELETON_WALL_SKULL, StateTypes.WITHER_SKELETON_WALL_SKULL),
+    }, PacketStateTypes.CREEPER_WALL_HEAD, PacketStateTypes.DRAGON_WALL_HEAD, PacketStateTypes.PLAYER_WALL_HEAD, PacketStateTypes.ZOMBIE_WALL_HEAD,
+            PacketStateTypes.SKELETON_WALL_SKULL, PacketStateTypes.WITHER_SKELETON_WALL_SKULL),
 
     PIGLIN_WALL_HEAD((player, version, data, x, y, z) -> switch (data.getFacing()) {
         case SOUTH -> new HexCollisionBox(3.0D, 4.0D, 0.0D, 13.0D, 12.0D, 8.0D);
         case EAST -> new HexCollisionBox(0.0D, 4.0D, 3.0D, 8.0D, 12.0D, 13.0D);
         case WEST -> new HexCollisionBox(8.0D, 4.0D, 3.0D, 16.0D, 12.0D, 13.0D);
         default -> new HexCollisionBox(3.0D, 4.0D, 8.0D, 13.0D, 12.0D, 16.0D);
-    }, StateTypes.PIGLIN_WALL_HEAD),
+    }, PacketStateTypes.PIGLIN_WALL_HEAD),
 
     DOOR(new DoorHandler(), BlockTags.DOORS.getStates().toArray(new PacketStateType[0])),
 
@@ -261,7 +252,7 @@ public enum CollisionData implements CollisionFactory {
                     new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1, false));
         }
 
-    }, StateTypes.HOPPER),
+    }, PacketStateTypes.HOPPER),
 
     CAKE((player, version, data, x, y, z) -> {
         double height = 0.5;
@@ -269,16 +260,16 @@ public enum CollisionData implements CollisionFactory {
             height = 0.4375;
         double eatenPosition = (1 + (data.getBites()) * 2) / 16D;
         return new SimpleCollisionBox(eatenPosition, 0, 0.0625, 1 - 0.0625, height, 1 - 0.0625, false);
-    }, StateTypes.CAKE),
+    }, PacketStateTypes.CAKE),
 
-    COCOA_BEANS((player, version, data, x, y, z) -> getCocoa(version, data.getAge(), data.getFacing()), StateTypes.COCOA),
+    COCOA_BEANS((player, version, data, x, y, z) -> getCocoa(version, data.getAge(), data.getFacing()), PacketStateTypes.COCOA),
 
     STONE_CUTTER((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(PacketClientVersions.V_1_13_2))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D);
-    }, StateTypes.STONECUTTER),
+    }, PacketStateTypes.STONECUTTER),
 
     CORAL_FAN(NoCollisionBox.INSTANCE, BlockTags.CORALS.getStates().toArray(new PacketStateType[0])),
 
@@ -295,18 +286,18 @@ public enum CollisionData implements CollisionFactory {
     BUTTON(NoCollisionBox.INSTANCE, BlockTags.BUTTONS.getStates().toArray(new PacketStateType[0])),
 
     // All states that unconditionally have no collision and are not in a group where every member also has no collision.
-    NO_COLLISION(NoCollisionBox.INSTANCE, StateTypes.TWISTING_VINES_PLANT, StateTypes.WEEPING_VINES_PLANT,
-            StateTypes.TWISTING_VINES, StateTypes.WEEPING_VINES, StateTypes.CAVE_VINES, StateTypes.CAVE_VINES_PLANT,
-            StateTypes.TALL_SEAGRASS, StateTypes.SEAGRASS, StateTypes.SHORT_GRASS, StateTypes.FERN, StateTypes.NETHER_SPROUTS,
-            StateTypes.DEAD_BUSH, StateTypes.SUGAR_CANE, StateTypes.SWEET_BERRY_BUSH, StateTypes.WARPED_ROOTS,
-            StateTypes.CRIMSON_ROOTS, StateTypes.TORCHFLOWER_CROP, StateTypes.PINK_PETALS, StateTypes.TALL_GRASS,
-            StateTypes.LARGE_FERN, StateTypes.BAMBOO_SAPLING, StateTypes.HANGING_ROOTS,
-            StateTypes.SMALL_DRIPLEAF, StateTypes.END_PORTAL, StateTypes.LEVER, StateTypes.PUMPKIN_STEM, StateTypes.MELON_STEM,
-            StateTypes.ATTACHED_MELON_STEM, StateTypes.ATTACHED_PUMPKIN_STEM, StateTypes.BEETROOTS, StateTypes.POTATOES,
-            StateTypes.WHEAT, StateTypes.CARROTS, StateTypes.NETHER_WART, StateTypes.MOVING_PISTON, StateTypes.AIR, StateTypes.CAVE_AIR,
-            StateTypes.VOID_AIR, StateTypes.LIGHT, StateTypes.WATER),
+    NO_COLLISION(NoCollisionBox.INSTANCE, PacketStateTypes.TWISTING_VINES_PLANT, PacketStateTypes.WEEPING_VINES_PLANT,
+            PacketStateTypes.TWISTING_VINES, PacketStateTypes.WEEPING_VINES, PacketStateTypes.CAVE_VINES, PacketStateTypes.CAVE_VINES_PLANT,
+            PacketStateTypes.TALL_SEAGRASS, PacketStateTypes.SEAGRASS, PacketStateTypes.SHORT_GRASS, PacketStateTypes.FERN, PacketStateTypes.NETHER_SPROUTS,
+            PacketStateTypes.DEAD_BUSH, PacketStateTypes.SUGAR_CANE, PacketStateTypes.SWEET_BERRY_BUSH, PacketStateTypes.WARPED_ROOTS,
+            PacketStateTypes.CRIMSON_ROOTS, PacketStateTypes.TORCHFLOWER_CROP, PacketStateTypes.PINK_PETALS, PacketStateTypes.TALL_GRASS,
+            PacketStateTypes.LARGE_FERN, PacketStateTypes.BAMBOO_SAPLING, PacketStateTypes.HANGING_ROOTS,
+            PacketStateTypes.SMALL_DRIPLEAF, PacketStateTypes.END_PORTAL, PacketStateTypes.LEVER, PacketStateTypes.PUMPKIN_STEM, PacketStateTypes.MELON_STEM,
+            PacketStateTypes.ATTACHED_MELON_STEM, PacketStateTypes.ATTACHED_PUMPKIN_STEM, PacketStateTypes.BEETROOTS, PacketStateTypes.POTATOES,
+            PacketStateTypes.WHEAT, PacketStateTypes.CARROTS, PacketStateTypes.NETHER_WART, PacketStateTypes.MOVING_PISTON, PacketStateTypes.AIR, PacketStateTypes.CAVE_AIR,
+            PacketStateTypes.VOID_AIR, PacketStateTypes.LIGHT, PacketStateTypes.WATER),
 
-    KELP(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D), StateTypes.KELP),
+    KELP(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D), PacketStateTypes.KELP),
     // Kelp block is a full block, so it by default is correct
 
     BELL((player, version, data, x, y, z) -> {
@@ -348,7 +339,7 @@ public enum CollisionData implements CollisionFactory {
 
         return complex;
 
-    }, StateTypes.BELL),
+    }, PacketStateTypes.BELL),
 
     SCAFFOLDING((player, version, data, x, y, z) -> {
         // ViaVersion replacement block - hay block
@@ -367,7 +358,7 @@ public enum CollisionData implements CollisionFactory {
         return data.getDistance() != 0 && data.isBottom() && player.lastY > y - 1e-5 ?
                 new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D) :
                 NoCollisionBox.INSTANCE;
-    }, StateTypes.SCAFFOLDING),
+    }, PacketStateTypes.SCAFFOLDING),
 
     LADDER((player, version, data, x, y, z) -> {
         int width = 3;
@@ -380,7 +371,7 @@ public enum CollisionData implements CollisionFactory {
             case WEST -> new HexCollisionBox(16.0D - width, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
             default -> new HexCollisionBox(0.0D, 0.0D, 0.0D, width, 16.0D, 16.0D);
         };
-    }, StateTypes.LADDER),
+    }, PacketStateTypes.LADDER),
 
     CAMPFIRE((player, version, data, x, y, z) -> {
         // ViaVersion replacement block - slab if not lit or fire if lit
@@ -394,7 +385,7 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 7.0D, 16.0D);
-    }, StateTypes.CAMPFIRE, StateTypes.SOUL_CAMPFIRE),
+    }, PacketStateTypes.CAMPFIRE, PacketStateTypes.SOUL_CAMPFIRE),
 
     LANTERN((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2))
@@ -410,7 +401,7 @@ public enum CollisionData implements CollisionFactory {
                 new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 7.0D, 11.0D),
                 new HexCollisionBox(6.0D, 7.0D, 6.0D, 10.0D, 9.0D, 10.0D));
 
-    }, StateTypes.LANTERN, StateTypes.SOUL_LANTERN),
+    }, PacketStateTypes.LANTERN, PacketStateTypes.SOUL_LANTERN),
 
 
     LECTERN((player, version, data, x, y, z) -> {
@@ -420,7 +411,7 @@ public enum CollisionData implements CollisionFactory {
         return new ComplexCollisionBox(2,
                 new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D), // base
                 new HexCollisionBox(4.0D, 2.0D, 4.0D, 12.0D, 14.0D, 12.0D)); // post
-    }, StateTypes.LECTERN),
+    }, PacketStateTypes.LECTERN),
 
 
     HONEY_BLOCK((player, version, data, x, y, z) -> {
@@ -428,9 +419,9 @@ public enum CollisionData implements CollisionFactory {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 15.0D, 15.0D); // post
-    }, StateTypes.HONEY_BLOCK),
+    }, PacketStateTypes.HONEY_BLOCK),
 
-    DRAGON_EGG_BLOCK(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), StateTypes.DRAGON_EGG),
+    DRAGON_EGG_BLOCK(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), PacketStateTypes.DRAGON_EGG),
 
     GRINDSTONE((player, version, data, x, y, z) -> {
         BlockFace facing = data.getFacing();
@@ -531,7 +522,7 @@ public enum CollisionData implements CollisionFactory {
 
         return NoCollisionBox.INSTANCE;
 
-    }, StateTypes.GRINDSTONE),
+    }, PacketStateTypes.GRINDSTONE),
 
     PANE(new DynamicCollisionPane(), Materials.getPanes().toArray(new PacketStateType[0])),
 
@@ -548,9 +539,9 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return new HexCollisionBox(6.5D, 6.5D, 0.0D, 9.5D, 9.5D, 16.0D);
-    }, StateTypes.CHAIN),
+    }, PacketStateTypes.CHAIN),
 
-    CHORUS_PLANT(new DynamicChorusPlant(), StateTypes.CHORUS_PLANT),
+    CHORUS_PLANT(new DynamicChorusPlant(), PacketStateTypes.CHORUS_PLANT),
 
     FENCE_GATE((player, version, data, x, y, z) -> {
         if (data.isOpen())
@@ -580,18 +571,18 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return new SimpleCollisionBox(0, 0, 0, 1, (layers - 1) * 0.125, 1);
-    }, StateTypes.SNOW),
+    }, PacketStateTypes.SNOW),
 
     STAIR(new DynamicStair(), BlockTags.STAIRS.getStates().toArray(new PacketStateType[0])),
 
-    CHEST(new DynamicChest(), StateTypes.CHEST, StateTypes.TRAPPED_CHEST),
+    CHEST(new DynamicChest(), PacketStateTypes.CHEST, PacketStateTypes.TRAPPED_CHEST),
 
     ENDER_CHEST(new SimpleCollisionBox(0.0625F, 0.0F, 0.0625F,
             0.9375F, 0.875F, 0.9375F, false),
-            StateTypes.ENDER_CHEST),
+            PacketStateTypes.ENDER_CHEST),
 
     ENCHANTING_TABLE(new SimpleCollisionBox(0, 0, 0, 1, 1 - 0.25, 1, false),
-            StateTypes.ENCHANTING_TABLE),
+            PacketStateTypes.ENCHANTING_TABLE),
 
     FRAME((player, version, data, x, y, z) -> {
         ComplexCollisionBox complexCollisionBox = new ComplexCollisionBox(2, new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 13.0D, 16.0D));
@@ -606,7 +597,7 @@ public enum CollisionData implements CollisionFactory {
 
         return complexCollisionBox;
 
-    }, StateTypes.END_PORTAL_FRAME),
+    }, PacketStateTypes.END_PORTAL_FRAME),
 
     CARPET((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(PacketClientVersions.V_1_7_10))
@@ -615,7 +606,7 @@ public enum CollisionData implements CollisionFactory {
         return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F, false);
     }, BlockTags.WOOL_CARPETS.getStates().toArray(new PacketStateType[0])),
 
-    MOSS_CARPET(CARPET, StateTypes.MOSS_CARPET),
+    MOSS_CARPET(CARPET, PacketStateTypes.MOSS_CARPET),
 
     PALE_MOSS_CARPET((player, version, data, x, y, z) -> {
         if (!data.isBottom()) {
@@ -627,10 +618,10 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F, false);
-    }, StateTypes.PALE_MOSS_CARPET),
+    }, PacketStateTypes.PALE_MOSS_CARPET),
 
     DAYLIGHT(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.375, 1.0F, false),
-            StateTypes.DAYLIGHT_DETECTOR),
+            PacketStateTypes.DAYLIGHT_DETECTOR),
 
     FARMLAND((player, version, data, x, y, z) -> {
         // Thanks Mojang for changing block collisions without changing protocol version!
@@ -647,7 +638,7 @@ public enum CollisionData implements CollisionFactory {
 
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
-    }, StateTypes.FARMLAND),
+    }, PacketStateTypes.FARMLAND),
 
     GRASS_PATH((player, version, data, x, y, z) -> {
         if (version.isNewerThanOrEquals(PacketClientVersions.V_1_9))
@@ -655,7 +646,7 @@ public enum CollisionData implements CollisionFactory {
 
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
-    }, StateTypes.DIRT_PATH),
+    }, PacketStateTypes.DIRT_PATH),
 
     LILYPAD((player, version, data, x, y, z) -> {
         // Boats break lilypads client sided on 1.12- clients.
@@ -665,7 +656,7 @@ public enum CollisionData implements CollisionFactory {
         if (version.isOlderThan(PacketClientVersions.V_1_9))
             return new SimpleCollisionBox(0.0f, 0.0F, 0.0f, 1.0f, 0.015625F, 1.0f, false);
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.5D, 15.0D);
-    }, StateTypes.LILY_PAD),
+    }, PacketStateTypes.LILY_PAD),
 
     BED((player, version, data, x, y, z) -> {
         // It's all the same box on 1.14 clients
@@ -700,13 +691,13 @@ public enum CollisionData implements CollisionFactory {
 
 
     DIODES(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F, false),
-            StateTypes.REPEATER, StateTypes.COMPARATOR),
+            PacketStateTypes.REPEATER, PacketStateTypes.COMPARATOR),
 
     STRUCTURE_VOID(new SimpleCollisionBox(0.375, 0.375, 0.375,
             0.625, 0.625, 0.625, false),
-            StateTypes.STRUCTURE_VOID),
+            PacketStateTypes.STRUCTURE_VOID),
 
-    END_ROD((player, version, data, x, y, z) -> getEndRod(version, data.getFacing()), StateTypes.END_ROD, StateTypes.LIGHTNING_ROD),
+    END_ROD((player, version, data, x, y, z) -> getEndRod(version, data.getFacing()), PacketStateTypes.END_ROD, PacketStateTypes.LIGHTNING_ROD),
 
     CAULDRON((player, version, data, x, y, z) -> {
         if (version.isNewerThan(PacketClientVersions.V_1_13_2)) { // changed in 19w13a, 1.14 Snapshot
@@ -742,17 +733,17 @@ public enum CollisionData implements CollisionFactory {
     }, BlockTags.CAULDRONS.getStates().toArray(new PacketStateType[0])),
 
     CACTUS(new SimpleCollisionBox(0.0625, 0, 0.0625,
-            1 - 0.0625, 1 - 0.0625, 1 - 0.0625, false), StateTypes.CACTUS),
+            1 - 0.0625, 1 - 0.0625, 1 - 0.0625, false), PacketStateTypes.CACTUS),
 
 
-    PISTON_BASE(new PistonBaseCollision(), StateTypes.PISTON, StateTypes.STICKY_PISTON),
+    PISTON_BASE(new PistonBaseCollision(), PacketStateTypes.PISTON, PacketStateTypes.STICKY_PISTON),
 
-    PISTON_HEAD(new PistonHeadCollision(), StateTypes.PISTON_HEAD),
+    PISTON_HEAD(new PistonHeadCollision(), PacketStateTypes.PISTON_HEAD),
 
     SOULSAND(new SimpleCollisionBox(0, 0, 0, 1, 0.875, 1, false),
-            StateTypes.SOUL_SAND),
+            PacketStateTypes.SOUL_SAND),
 
-    PICKLE((player, version, data, x, y, z) -> getPicklesBox(version, data.getPickles()), StateTypes.SEA_PICKLE),
+    PICKLE((player, version, data, x, y, z) -> getPicklesBox(version, data.getPickles()), PacketStateTypes.SEA_PICKLE),
 
     TURTLEEGG((player, version, data, x, y, z) -> {
         // ViaVersion replacement block (West facing cocoa beans)
@@ -765,7 +756,7 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 7.0D, 15.0D);
-    }, StateTypes.TURTLE_EGG),
+    }, PacketStateTypes.TURTLE_EGG),
 
     CONDUIT((player, version, data, x, y, z) -> {
         // ViaVersion replacement block - Beacon
@@ -773,7 +764,7 @@ public enum CollisionData implements CollisionFactory {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return new HexCollisionBox(5.0D, 5.0D, 5.0D, 11.0D, 11.0D, 11.0D);
-    }, StateTypes.CONDUIT),
+    }, PacketStateTypes.CONDUIT),
 
     POT(new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D),
             BlockTags.FLOWER_POTS.getStates().toArray(new PacketStateType[0])),
@@ -795,8 +786,8 @@ public enum CollisionData implements CollisionFactory {
 
     CORAL_PLANT((player, version, data, x, y, z) -> new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 15.0D, 14.0D), Stream.concat(
                     Arrays.stream(BlockTags.CORAL_PLANTS.getStates().toArray(new PacketStateType[0])),
-                    Stream.of(StateTypes.DEAD_HORN_CORAL, StateTypes.DEAD_TUBE_CORAL, StateTypes.DEAD_BRAIN_CORAL,
-                            StateTypes.DEAD_BUBBLE_CORAL, StateTypes.DEAD_FIRE_CORAL)
+                    Stream.of(PacketStateTypes.DEAD_HORN_CORAL, PacketStateTypes.DEAD_TUBE_CORAL, PacketStateTypes.DEAD_BRAIN_CORAL,
+                            PacketStateTypes.DEAD_BUBBLE_CORAL, PacketStateTypes.DEAD_FIRE_CORAL)
             )
             .distinct()  // This will remove duplicates
             .toArray(PacketStateType[]::new)
@@ -827,24 +818,24 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.0D, 15.0D);
-    }, StateTypes.LIGHT_WEIGHTED_PRESSURE_PLATE, StateTypes.HEAVY_WEIGHTED_PRESSURE_PLATE),
+    }, PacketStateTypes.LIGHT_WEIGHTED_PRESSURE_PLATE, PacketStateTypes.HEAVY_WEIGHTED_PRESSURE_PLATE),
 
     TRIPWIRE((player, version, data, x, y, z) -> {
         if (data.isAttached()) {
             return new HexCollisionBox(0.0D, 1.0D, 0.0D, 16.0D, 2.5D, 16.0D);
         }
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
-    }, StateTypes.TRIPWIRE),
+    }, PacketStateTypes.TRIPWIRE),
 
     TRIPWIRE_HOOK((player, version, data, x, y, z) -> switch (data.getFacing()) {
         case NORTH -> new HexCollisionBox(5.0D, 0.0D, 10.0D, 11.0D, 10.0D, 16.0D);
         case SOUTH -> new HexCollisionBox(5.0D, 0.0D, 0.0D, 11.0D, 10.0D, 6.0D);
         case WEST -> new HexCollisionBox(10.0D, 0.0D, 5.0D, 16.0D, 10.0D, 11.0D);
         default -> new HexCollisionBox(0.0D, 0.0D, 5.0D, 6.0D, 10.0D, 11.0D);
-    }, StateTypes.TRIPWIRE_HOOK),
+    }, PacketStateTypes.TRIPWIRE_HOOK),
 
     TORCH(new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D),
-            StateTypes.TORCH, StateTypes.REDSTONE_TORCH),
+            PacketStateTypes.TORCH, PacketStateTypes.REDSTONE_TORCH),
 
     WALL_TORCH((player, version, data, x, y, z) -> switch (data.getFacing()) {
         case NORTH -> new HexCollisionBox(5.5D, 3.0D, 11.0D, 10.5D, 13.0D, 16.0D);
@@ -853,7 +844,7 @@ public enum CollisionData implements CollisionFactory {
         case EAST -> new HexCollisionBox(0.0D, 3.0D, 5.5D, 5.0D, 13.0D, 10.5D);
         // 1.13 separates wall and normal torches, 1.12 does not
         default -> new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D);
-    }, StateTypes.WALL_TORCH, StateTypes.REDSTONE_WALL_TORCH),
+    }, PacketStateTypes.WALL_TORCH, PacketStateTypes.REDSTONE_WALL_TORCH),
 
     // 1.17 blocks
     CANDLE((player, version, data, x, y, z) -> {
@@ -880,7 +871,7 @@ public enum CollisionData implements CollisionFactory {
         }
     }, BlockTags.CANDLE_CAKES.getStates().toArray(new PacketStateType[0])),
 
-    SCULK_SENSOR(new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 8.0, 16.0), StateTypes.SCULK_SENSOR, StateTypes.CALIBRATED_SCULK_SENSOR),
+    SCULK_SENSOR(new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 8.0, 16.0), PacketStateTypes.SCULK_SENSOR, PacketStateTypes.CALIBRATED_SCULK_SENSOR),
 
     DECORATED_POT((player, version, data, x, y, z) -> {
         if (version.isNewerThan(PacketClientVersions.V_1_19_3)) {
@@ -888,7 +879,7 @@ public enum CollisionData implements CollisionFactory {
         } else { // ViaVersion replacement is a Brick
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
         }
-    }, StateTypes.DECORATED_POT),
+    }, PacketStateTypes.DECORATED_POT),
 
     BIG_DRIPLEAF((player, version, data, x, y, z) -> {
         Tilt tilt = data.getTilt();
@@ -907,7 +898,7 @@ public enum CollisionData implements CollisionFactory {
                 return NoCollisionBox.INSTANCE;
             }
         }
-    }, StateTypes.BIG_DRIPLEAF),
+    }, PacketStateTypes.BIG_DRIPLEAF),
 
     POINTED_DRIPSTONE((player, version, data, x, y, z) -> {
         if (version.isOlderThan(PacketClientVersions.V_1_17))
@@ -932,7 +923,7 @@ public enum CollisionData implements CollisionFactory {
         }
 
         return box;
-    }, StateTypes.POINTED_DRIPSTONE),
+    }, PacketStateTypes.POINTED_DRIPSTONE),
 
     POWDER_SNOW((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(PacketClientVersions.V_1_16_4))
@@ -952,33 +943,33 @@ public enum CollisionData implements CollisionFactory {
 
         return NoCollisionBox.INSTANCE;
 
-    }, StateTypes.POWDER_SNOW),
+    }, PacketStateTypes.POWDER_SNOW),
 
     NETHER_PORTAL((player, version, data, x, y, z) -> {
         if (data.getAxis() == Axis.X) {
             return new HexCollisionBox(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
         }
         return new HexCollisionBox(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D);
-    }, StateTypes.NETHER_PORTAL),
+    }, PacketStateTypes.NETHER_PORTAL),
 
     AZALEA((player, version, data, x, y, z) -> new ComplexCollisionBox(2,
             new HexCollisionBox(0.0, 8.0, 0.0, 16.0, 16.0, 16.0),
-            new HexCollisionBox(6.0, 0.0, 6.0, 10.0, 8.0, 10.0)), StateTypes.AZALEA, StateTypes.FLOWERING_AZALEA),
+            new HexCollisionBox(6.0, 0.0, 6.0, 10.0, 8.0, 10.0)), PacketStateTypes.AZALEA, PacketStateTypes.FLOWERING_AZALEA),
 
-    AMETHYST_CLUSTER((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 7, 3), StateTypes.AMETHYST_CLUSTER),
+    AMETHYST_CLUSTER((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 7, 3), PacketStateTypes.AMETHYST_CLUSTER),
 
-    SMALL_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 3, 4), StateTypes.SMALL_AMETHYST_BUD),
+    SMALL_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 3, 4), PacketStateTypes.SMALL_AMETHYST_BUD),
 
-    MEDIUM_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 4, 3), StateTypes.MEDIUM_AMETHYST_BUD),
+    MEDIUM_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 4, 3), PacketStateTypes.MEDIUM_AMETHYST_BUD),
 
-    LARGE_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 5, 3), StateTypes.LARGE_AMETHYST_BUD),
+    LARGE_AMETHYST_BUD((player, version, data, x, y, z) -> getAmethystBox(version, data.getFacing(), 5, 3), PacketStateTypes.LARGE_AMETHYST_BUD),
 
     MUD_BLOCK((player, version, data, x, y, z) -> {
         if (version.isNewerThanOrEquals(PacketClientVersions.V_1_19)) {
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D);
         }
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
-    }, StateTypes.MUD),
+    }, PacketStateTypes.MUD),
 
     MANGROVE_PROPAGULE_BLOCK((player, version, data, x, y, z) -> {
         if (!data.isHanging()) {
@@ -991,7 +982,7 @@ public enum CollisionData implements CollisionFactory {
             case 3 -> new HexCollisionBox(7.0D, 3.0D, 7.0D, 9.0D, 16.0D, 9.0D);
             default -> new HexCollisionBox(7.0D, 0.0D, 7.0D, 9.0D, 16.0D, 9.0D);
         };
-    }, StateTypes.MANGROVE_PROPAGULE),
+    }, PacketStateTypes.MANGROVE_PROPAGULE),
 
     SCULK_SHRIKER((player, version, data, x, y, z) -> {
         if (version.isNewerThan(PacketClientVersions.V_1_18_2)) {
@@ -999,7 +990,7 @@ public enum CollisionData implements CollisionFactory {
         } else {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
         }
-    }, StateTypes.SCULK_SHRIEKER),
+    }, PacketStateTypes.SCULK_SHRIEKER),
 
     SNIFFER_EGG((player, version, data, x, y, z) -> {
         if (version.isNewerThan(PacketClientVersions.V_1_19_4)) {
@@ -1007,7 +998,7 @@ public enum CollisionData implements CollisionFactory {
         } else {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
         }
-    }, StateTypes.SNIFFER_EGG),
+    }, PacketStateTypes.SNIFFER_EGG),
 
     PITCHER_CROP((player, version, data, x, y, z) -> {
         if (version.isNewerThan(PacketClientVersions.V_1_19_4)) {
@@ -1022,7 +1013,7 @@ public enum CollisionData implements CollisionFactory {
         } else {
             return NoCollisionBox.INSTANCE;
         }
-    }, StateTypes.PITCHER_CROP),
+    }, PacketStateTypes.PITCHER_CROP),
 
     WALL_HANGING_SIGNS((player, version, data, x, y, z) -> switch (data.getFacing()) {
         case NORTH, SOUTH -> new HexCollisionBox(0.0, 14.0, 6.0, 16.0, 16.0, 10.0);
@@ -1030,7 +1021,7 @@ public enum CollisionData implements CollisionFactory {
         default -> NoCollisionBox.INSTANCE;
     }, BlockTags.WALL_HANGING_SIGNS.getStates().toArray(new PacketStateType[0])),
 
-    DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), StateTypes.STONE);
+    DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), PacketStateTypes.STONE);
 
     // This should be an array... but a hashmap will do for now...
     private static final Map<PacketStateType, CollisionData> rawLookupMap = new IdentityHashMap<>();
@@ -1061,7 +1052,7 @@ public enum CollisionData implements CollisionFactory {
         this.materials = mList.toArray(new PacketStateType[0]);
     }
 
-    private static CollisionBox getAmethystBox(PacketClientVersion version, com.github.retrooper.packetevents.protocol.world.BlockFace facing, int param_0, int param_1) {
+    private static CollisionBox getAmethystBox(PacketClientVersion version, BlockFace facing, int param_0, int param_1) {
         if (version.isOlderThanOrEquals(PacketClientVersions.V_1_16_4))
             return NoCollisionBox.INSTANCE;
 
@@ -1158,7 +1149,7 @@ public enum CollisionData implements CollisionFactory {
     // Would pre-computing all states be worth the memory cost? I doubt it
     public static CollisionData getData(PacketStateType state) { // TODO: Find a better hack for lava and scaffolding
         // What the fuck mojang, why put noCollision() and then give PITCHER_CROP collision?
-        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING || state == StateTypes.PITCHER_CROP || state == StateTypes.HEAVY_CORE || state == StateTypes.PALE_MOSS_CARPET || BlockTags.WALL_HANGING_SIGNS.contains(state) ? rawLookupMap.getOrDefault(state, DEFAULT) : NO_COLLISION;
+        return state.isSolid() || state == PacketStateTypes.LAVA || state == PacketStateTypes.SCAFFOLDING || state == PacketStateTypes.PITCHER_CROP || state == PacketStateTypes.HEAVY_CORE || state == PacketStateTypes.PALE_MOSS_CARPET || BlockTags.WALL_HANGING_SIGNS.contains(state) ? rawLookupMap.getOrDefault(state, DEFAULT) : NO_COLLISION;
     }
 
     // TODO: This is wrong if a block doesn't have any hitbox and isn't specified, light block?
@@ -1166,11 +1157,11 @@ public enum CollisionData implements CollisionFactory {
         return rawLookupMap.getOrDefault(state, DEFAULT);
     }
 
-    public CollisionBox getMovementCollisionBox(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox getMovementCollisionBox(GrimPlayer player, PacketClientVersion version, PacketBlockState block, int x, int y, int z) {
         return fetch(player, version, block, x, y, z).offset(x, y, z);
     }
 
-    public CollisionBox getMovementCollisionBox(GrimPlayer player, PacketClientVersion version, WrappedBlockState block) {
+    public CollisionBox getMovementCollisionBox(GrimPlayer player, PacketClientVersion version, PacketBlockState block) {
         if (this.box != null)
             return this.box.copy();
 
@@ -1178,7 +1169,7 @@ public enum CollisionData implements CollisionFactory {
     }
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, PacketBlockState block, int x, int y, int z) {
         return box != null ? box.copy() : new DynamicCollisionBox(player, version, dynamic, block);
     }
 }

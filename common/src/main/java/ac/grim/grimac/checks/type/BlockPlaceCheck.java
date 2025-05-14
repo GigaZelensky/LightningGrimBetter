@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.type;
 
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -10,7 +11,6 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 
 import java.util.ArrayList;
@@ -24,22 +24,22 @@ public class BlockPlaceCheck extends Check implements RotationCheck, BlockBreakC
         // Fences and walls aren't worth checking.
         weirdBoxes.addAll(new ArrayList<>(BlockTags.FENCES.getStates()));
         weirdBoxes.addAll(new ArrayList<>(BlockTags.WALLS.getStates()));
-        weirdBoxes.add(StateTypes.LECTERN);
+        weirdBoxes.add(PacketStateTypes.LECTERN);
 
         buggyBoxes.addAll(new ArrayList<>(BlockTags.DOORS.getStates()));
         buggyBoxes.addAll(new ArrayList<>(BlockTags.STAIRS.getStates()));
-        buggyBoxes.add(StateTypes.CHEST);
-        buggyBoxes.add(StateTypes.TRAPPED_CHEST);
-        buggyBoxes.add(StateTypes.CHORUS_PLANT);
+        buggyBoxes.add(PacketStateTypes.CHEST);
+        buggyBoxes.add(PacketStateTypes.TRAPPED_CHEST);
+        buggyBoxes.add(PacketStateTypes.CHORUS_PLANT);
 
         // The client changes these block states around when placing blocks, temporary desync
-        buggyBoxes.add(StateTypes.KELP);
-        buggyBoxes.add(StateTypes.KELP_PLANT);
-        buggyBoxes.add(StateTypes.TWISTING_VINES);
-        buggyBoxes.add(StateTypes.TWISTING_VINES_PLANT);
-        buggyBoxes.add(StateTypes.WEEPING_VINES);
-        buggyBoxes.add(StateTypes.WEEPING_VINES_PLANT);
-        buggyBoxes.add(StateTypes.REDSTONE_WIRE);
+        buggyBoxes.add(PacketStateTypes.KELP);
+        buggyBoxes.add(PacketStateTypes.KELP_PLANT);
+        buggyBoxes.add(PacketStateTypes.TWISTING_VINES);
+        buggyBoxes.add(PacketStateTypes.TWISTING_VINES_PLANT);
+        buggyBoxes.add(PacketStateTypes.WEEPING_VINES);
+        buggyBoxes.add(PacketStateTypes.WEEPING_VINES_PLANT);
+        buggyBoxes.add(PacketStateTypes.REDSTONE_WIRE);
     }
 
     private final SimpleCollisionBox[] boxes = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];

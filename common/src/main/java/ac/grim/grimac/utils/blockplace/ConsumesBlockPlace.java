@@ -1,35 +1,35 @@
 package ac.grim.grimac.utils.blockplace;
 
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
+import ac.grim.grimac.api.packet.world.enums.Attachment;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.AxisUtil;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.ItemTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Attachment;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 // HOW DIFFICULT CAN IT BE TO TELL THE SERVER THAT YOU RANG A BELL, AND NOT CREATE A GHOST BLOCK???
 public class ConsumesBlockPlace {
-    public static boolean consumesPlace(GrimPlayer player, WrappedBlockState state, BlockPlace place) {
+    public static boolean consumesPlace(GrimPlayer player, PacketBlockState state, BlockPlace place) {
         // Hey look, it's another DESYNC MOJANG
-        if (state.getType() == StateTypes.BELL) {
+        if (state.getType() == PacketStateTypes.BELL) {
             return goodBellHit(state, place);
         }
         if (BlockTags.CANDLE_CAKES.contains(state.getType())) {
-            WrappedBlockState cake = StateTypes.CAKE.createBlockState(CompensatedWorld.blockVersion);
+            PacketBlockState cake = PacketStateTypes.CAKE.createBlockState(CompensatedWorld.blockVersion);
             cake.setBites(1);
             player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), cake);
             return true;
         }
-        if (state.getType() == StateTypes.CAKE) {
+        if (state.getType() == PacketStateTypes.CAKE) {
             if (state.getBites() == 0 && BlockTags.CANDLES.contains(place.getMaterial())) {
-                player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), StateTypes.CANDLE_CAKE.createBlockState(CompensatedWorld.blockVersion));
+                player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), PacketStateTypes.CANDLE_CAKE.createBlockState(CompensatedWorld.blockVersion));
                 return true;
             }
 
@@ -38,14 +38,14 @@ public class ConsumesBlockPlace {
                     state.setBites(state.getBites() + 1);
                     player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), state);
                 } else {
-                    player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), StateTypes.AIR.createBlockState(CompensatedWorld.blockVersion));
+                    player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), PacketStateTypes.AIR.createBlockState(CompensatedWorld.blockVersion));
                 }
                 return true;
             }
 
             return false;
         }
-        if (state.getType() == StateTypes.CAVE_VINES || state.getType() == StateTypes.CAVE_VINES_PLANT) {
+        if (state.getType() == PacketStateTypes.CAVE_VINES || state.getType() == PacketStateTypes.CAVE_VINES_PLANT) {
             if (state.isBerries()) {
                 state.setBerries(false);
                 player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), state);
@@ -53,7 +53,7 @@ public class ConsumesBlockPlace {
             }
             return false;
         }
-        if (state.getType() == StateTypes.SWEET_BERRY_BUSH) {
+        if (state.getType() == PacketStateTypes.SWEET_BERRY_BUSH) {
             if (state.getAge() != 3 && place.getItemStack().getType() == PacketItemTypes.BONE_MEAL) {
                 return false;
             } else if (state.getAge() > 1) {
@@ -64,31 +64,31 @@ public class ConsumesBlockPlace {
                 return false;
             }
         }
-        if (state.getType() == StateTypes.TNT) {
+        if (state.getType() == PacketStateTypes.TNT) {
             if (place.getItemStack().getType() == PacketItemTypes.FIRE_CHARGE || place.getItemStack().getType() == PacketItemTypes.FLINT_AND_STEEL) {
-                player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), StateTypes.AIR.createBlockState(CompensatedWorld.blockVersion));
+                player.compensatedWorld.updateBlock(place.getPlacedAgainstBlockLocation(), PacketStateTypes.AIR.createBlockState(CompensatedWorld.blockVersion));
                 return true;
             }
         }
-        if (state.getType() == StateTypes.RESPAWN_ANCHOR) {
+        if (state.getType() == PacketStateTypes.RESPAWN_ANCHOR) {
             if (place.getItemStack().getType() == PacketItemTypes.GLOWSTONE) return true;
             return !place.isBlock() && player.getInventory().getOffHand().getType() == PacketItemTypes.GLOWSTONE;
         }
-        if (state.getType() == StateTypes.COMMAND_BLOCK || state.getType() == StateTypes.CHAIN_COMMAND_BLOCK ||
-                state.getType() == StateTypes.REPEATING_COMMAND_BLOCK || state.getType() == StateTypes.JIGSAW
-                || state.getType() == StateTypes.STRUCTURE_BLOCK) {
+        if (state.getType() == PacketStateTypes.COMMAND_BLOCK || state.getType() == PacketStateTypes.CHAIN_COMMAND_BLOCK ||
+                state.getType() == PacketStateTypes.REPEATING_COMMAND_BLOCK || state.getType() == PacketStateTypes.JIGSAW
+                || state.getType() == PacketStateTypes.STRUCTURE_BLOCK) {
             return player.canUseGameMasterBlocks();
         }
-        if (state.getType() == StateTypes.COMPOSTER) {
+        if (state.getType() == PacketStateTypes.COMPOSTER) {
             if (Materials.isCompostable(place.getItemStack().getType()) && state.getLevel() < 8) {
                 return true;
             }
             return state.getLevel() == 8;
         }
-        if (state.getType() == StateTypes.JUKEBOX) {
+        if (state.getType() == PacketStateTypes.JUKEBOX) {
             return state.isHasRecord();
         }
-        if (state.getType() == StateTypes.LECTERN) {
+        if (state.getType() == PacketStateTypes.LECTERN) {
             if (state.isHasBook()) return true;
             return ItemTags.LECTERN_BOOKS.contains(place.getItemStack().getType());
         }
@@ -96,12 +96,12 @@ public class ConsumesBlockPlace {
         return false;
     }
 
-    private static boolean goodBellHit(WrappedBlockState bell, BlockPlace place) {
+    private static boolean goodBellHit(PacketBlockState bell, BlockPlace place) {
         BlockFace direction = place.getDirection();
         return place.getHitData() != null && isProperHit(bell, direction, place.getHitData().getRelativeBlockHitLocation().getY());
     }
 
-    private static boolean isProperHit(WrappedBlockState bell, BlockFace direction, double p_49742_) {
+    private static boolean isProperHit(PacketBlockState bell, BlockFace direction, double p_49742_) {
         if (direction != BlockFace.UP && direction != BlockFace.DOWN && !(p_49742_ > (double) 0.8124F)) {
             BlockFace dir = bell.getFacing();
             Attachment attachment = bell.getAttachment();

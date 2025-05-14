@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.api.data.IBlockFace;
 import ac.grim.grimac.api.data.world.ICompensatedWorld;
 import ac.grim.grimac.api.handler.ResyncHandler;
 import ac.grim.grimac.api.math.Location;
@@ -16,8 +15,8 @@ import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.player.PacketUser;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.protocol.PacketConnectionState;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
@@ -360,7 +359,7 @@ public class GrimPlayer implements GrimUser {
         // Knockback takes precedence over piston pushing in my testing
         // It's very difficult to test precedence so if there's issues with this bouncy implementation let me know
         for (VectorData data : new HashSet<>(possibleMovements)) {
-            for (IBlockFace direction : uncertaintyHandler.slimePistonBounces) {
+            for (BlockFace direction : uncertaintyHandler.slimePistonBounces) {
                 if (direction.getModX() != 0) {
                     possibleMovements.add(data.returnNewModified(data.vector.clone().setX(direction.getModX()), VectorData.VectorType.SlimePistonBounce));
                 } else if (direction.getModY() != 0) {

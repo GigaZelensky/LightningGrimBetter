@@ -1,8 +1,6 @@
 package ac.grim.grimac.utils.nmsutil;
 
 
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -10,7 +8,7 @@ import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 
 public class ReachUtils {
     // Copied from 1.8... I couldn't figure out 1.14+. "Enterprise" java code is unreadable!

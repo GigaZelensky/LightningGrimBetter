@@ -1,9 +1,9 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 import java.util.HashSet;
 
@@ -15,12 +15,12 @@ public class OffsetCollisionBox extends SimpleCollisionBox {
     static {
         // Can we add a hasOffSet to StateType() ?
         // Or a new BlockTag for XZ and XYZ Offset ?
-        XZ_OFFSET_BLOCKSTATES.add(StateTypes.MANGROVE_PROPAGULE);
+        XZ_OFFSET_BLOCKSTATES.add(PacketStateTypes.MANGROVE_PROPAGULE);
 
         XZ_OFFSET_BLOCKSTATES.addAll(BlockTags.SMALL_FLOWERS.getStates());
-        XZ_OFFSET_BLOCKSTATES.add(StateTypes.BAMBOO_SAPLING);
-        XZ_OFFSET_BLOCKSTATES.add(StateTypes.BAMBOO);
-        XZ_OFFSET_BLOCKSTATES.add(StateTypes.POINTED_DRIPSTONE);
+        XZ_OFFSET_BLOCKSTATES.add(PacketStateTypes.BAMBOO_SAPLING);
+        XZ_OFFSET_BLOCKSTATES.add(PacketStateTypes.BAMBOO);
+        XZ_OFFSET_BLOCKSTATES.add(PacketStateTypes.POINTED_DRIPSTONE);
         // Only offsets rendering HitBox on XZ // we should document this somewhere for future reference
 //        XZ_OFFSET_BLOCKSTATES.addAll(BlockTags.TALL_FLOWERS.getStates());
 //        XZ_OFFSET_BLOCKSTATES.add(StateTypes.TALL_SEAGRASS);
@@ -46,7 +46,7 @@ public class OffsetCollisionBox extends SimpleCollisionBox {
 
     public OffsetCollisionBox(PacketStateType block, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         super(minX, minY, minZ, maxX, maxY, maxZ);
-        if (block.equals(StateTypes.POINTED_DRIPSTONE)) {
+        if (block.equals(PacketStateTypes.POINTED_DRIPSTONE)) {
             maxHorizontalModelOffset = 0.125F;
         }
 //        else if (block.equals(StateTypes.SMALL_DRIPLEAF)) {

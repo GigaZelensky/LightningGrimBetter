@@ -1,9 +1,10 @@
 package ac.grim.grimac.utils.collisions.blocks.connecting;
 
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
@@ -13,10 +14,8 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 public class DynamicConnecting {
 
@@ -53,8 +52,8 @@ public class DynamicConnecting {
     }
 
     public boolean connectsTo(GrimPlayer player, PacketClientVersion v, int currX, int currY, int currZ, BlockFace direction) {
-        WrappedBlockState targetBlock = player.compensatedWorld.getBlock(currX + direction.getModX(), currY + direction.getModY(), currZ + direction.getModZ());
-        WrappedBlockState currBlock = player.compensatedWorld.getBlock(currX, currY, currZ);
+        PacketBlockState targetBlock = player.compensatedWorld.getBlock(currX + direction.getModX(), currY + direction.getModY(), currZ + direction.getModZ());
+        PacketBlockState currBlock = player.compensatedWorld.getBlock(currX, currY, currZ);
         PacketStateType target = targetBlock.getType();
         PacketStateType fence = currBlock.getType();
 
@@ -62,12 +61,12 @@ public class DynamicConnecting {
             return false;
 
         // 1.12+ clients can connect to TnT while previous versions can't
-        if (target == StateTypes.TNT)
+        if (target == PacketStateTypes.TNT)
             return v.isNewerThanOrEquals(PacketClientVersions.V_1_12);
 
         // 1.9-1.11 clients don't have BARRIER exemption
         // https://bugs.mojang.com/browse/MC-9565
-        if (target == StateTypes.BARRIER)
+        if (target == PacketStateTypes.BARRIER)
             return player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_7_10) ||
                     player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) &&
                             player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_11_1);
@@ -102,9 +101,9 @@ public class DynamicConnecting {
         if (BlockTags.SHULKER_BOXES.contains(m)) return true;
         if (BlockTags.TRAPDOORS.contains(m)) return true;
 
-        return m == StateTypes.ENCHANTING_TABLE || m == StateTypes.FARMLAND || m == StateTypes.CARVED_PUMPKIN || m == StateTypes.JACK_O_LANTERN || m == StateTypes.PUMPKIN || m == StateTypes.MELON ||
-                m == StateTypes.BEACON || BlockTags.CAULDRONS.contains(m) || m == StateTypes.GLOWSTONE || m == StateTypes.SEA_LANTERN || m == StateTypes.ICE
-                || m == StateTypes.PISTON || m == StateTypes.STICKY_PISTON || m == StateTypes.PISTON_HEAD || (!canConnectToGlassBlock()
+        return m == PacketStateTypes.ENCHANTING_TABLE || m == PacketStateTypes.FARMLAND || m == PacketStateTypes.CARVED_PUMPKIN || m == PacketStateTypes.JACK_O_LANTERN || m == PacketStateTypes.PUMPKIN || m == PacketStateTypes.MELON ||
+                m == PacketStateTypes.BEACON || BlockTags.CAULDRONS.contains(m) || m == PacketStateTypes.GLOWSTONE || m == PacketStateTypes.SEA_LANTERN || m == PacketStateTypes.ICE
+                || m == PacketStateTypes.PISTON || m == PacketStateTypes.STICKY_PISTON || m == PacketStateTypes.PISTON_HEAD || (!canConnectToGlassBlock()
                 && BlockTags.GLASS_BLOCKS.contains(m));
     }
 
@@ -130,7 +129,7 @@ public class DynamicConnecting {
         return i;
     }
 
-    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, PacketStateType one, PacketStateType two, BlockFace direction) {
+    public boolean checkCanConnect(GrimPlayer player, PacketBlockState state, PacketStateType one, PacketStateType two, BlockFace direction) {
         return false;
     }
 

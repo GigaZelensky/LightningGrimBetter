@@ -1,8 +1,7 @@
 package ac.grim.grimac.checks.impl.breaking;
 
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.item.PacketStateType;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -16,8 +15,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
@@ -57,8 +55,8 @@ public class FastBreak extends Check implements BlockBreakCheck {
         if (blockBreak.action == DiggingAction.START_DIGGING) {
             if (!ViaVersionUtil.isAvailable()) {
                 // Exempt all blocks that do not exist in the player version
-                final WrappedBlockState defaultState = WrappedBlockState.getDefaultState(player.getClientVersion(), blockBreak.block.getType());
-                if (defaultState.getType() == StateTypes.AIR || EXEMPT_STATES.contains(defaultState.getType())) {
+                final PacketBlockState defaultState = PacketBlockState.getDefaultState(player.getClientVersion(), blockBreak.block.getType());
+                if (defaultState.getType() == PacketStateTypes.AIR || EXEMPT_STATES.contains(defaultState.getType())) {
                     return;
                 }
             }
@@ -67,7 +65,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
             // TODO this lazy loads PacketEvents mappings for older versions for clients on versions older than the servers, increasing memory usage
             //  * its the only thing we use non-native mappings for behind ViaVersion
             //  * can we translate back "up" to server version and run check against server version to avoid loading older registries?
-            WrappedBlockState block = clientOlderThanServer ? WrappedBlockState.getByGlobalId(player.getClientVersion(), player.getViaTranslatedClientBlockID(blockBreak.block.getGlobalId())) : blockBreak.block;
+            PacketBlockState block = clientOlderThanServer ? PacketBlockState.getByGlobalId(player.getClientVersion(), player.getViaTranslatedClientBlockID(blockBreak.block.getGlobalId())) : blockBreak.block;
 
             startBreak = System.currentTimeMillis() - (targetBlockPosition == null ? 50 : 0); // ???
             targetBlockPosition = blockBreak.position;

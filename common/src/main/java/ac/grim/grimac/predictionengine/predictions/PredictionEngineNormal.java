@@ -2,9 +2,8 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
@@ -13,7 +12,6 @@ import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 import java.util.HashSet;
 import java.util.OptionalInt;
@@ -77,7 +75,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         boolean walkingOnPowderSnow = false;
 
         if (!player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_17) &&
-                player.compensatedWorld.getBlockType(player.x, player.y, player.z) == StateTypes.POWDER_SNOW) {
+                player.compensatedWorld.getBlockType(player.x, player.y, player.z) == PacketStateTypes.POWDER_SNOW) {
             PacketItemStack boots = player.getInventory().getBoots();
             walkingOnPowderSnow = boots != null && boots.getType() == PacketItemTypes.LEATHER_BOOTS;
         }
@@ -109,7 +107,7 @@ public class PredictionEngineNormal extends PredictionEngine {
             vector.setY(Math.max(vector.getY(), -0.15F));
 
             // Yes, this uses shifting not crouching
-            if (vector.getY() < 0.0 && !(player.compensatedWorld.getBlockType(player.lastX, player.lastY, player.lastZ) == StateTypes.SCAFFOLDING) && player.isSneaking && !player.isFlying) {
+            if (vector.getY() < 0.0 && !(player.compensatedWorld.getBlockType(player.lastX, player.lastY, player.lastZ) == PacketStateTypes.SCAFFOLDING) && player.isSneaking && !player.isFlying) {
                 vector.setY(0.0);
             }
         }

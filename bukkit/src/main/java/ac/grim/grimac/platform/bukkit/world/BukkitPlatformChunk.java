@@ -1,9 +1,9 @@
 package ac.grim.grimac.platform.bukkit.world;
 
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.platform.world.PlatformChunk;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -25,7 +25,7 @@ public class BukkitPlatformChunk implements PlatformChunk {
         Block block = chunk.getBlock(x, y, z);
 
         return isFlat // Cache blockDataToID because Strings are expensive
-                ? blockDataToId.computeIfAbsent(block.getBlockData(), data -> WrappedBlockState.getByString(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(), data.getAsString(false)).getGlobalId())
+                ? blockDataToId.computeIfAbsent(block.getBlockData(), data -> PacketBlockState.getByString(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(), data.getAsString(false)).getGlobalId())
                 : (block.getType().getId() << 4) | block.getData();
     }
 }

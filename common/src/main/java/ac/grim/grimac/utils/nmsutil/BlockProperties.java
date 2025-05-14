@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.MainSupportingBlockData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
@@ -11,11 +12,8 @@ import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.api.packet.item.PacketEnchantmentTypes;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 
@@ -94,9 +92,9 @@ public class BlockProperties {
             return getBlockSpeedFactorLegacy(player, playerPos);
         }
 
-        WrappedBlockState inBlock = player.compensatedWorld.getBlock(playerPos.getX(), playerPos.getY(), playerPos.getZ());
+        PacketBlockState inBlock = player.compensatedWorld.getBlock(playerPos.getX(), playerPos.getY(), playerPos.getZ());
         float inBlockSpeedFactor = getBlockSpeedFactor(player, inBlock.getType());
-        if (inBlockSpeedFactor != 1.0f || inBlock.getType() == StateTypes.WATER || inBlock.getType() == StateTypes.BUBBLE_COLUMN) {
+        if (inBlockSpeedFactor != 1.0f || inBlock.getType() == PacketStateTypes.WATER || inBlock.getType() == PacketStateTypes.BUBBLE_COLUMN) {
             return getModernVelocityMultiplier(player, inBlockSpeedFactor);
         }
 
@@ -108,7 +106,7 @@ public class BlockProperties {
         if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_15)) return false;
 
         PacketStateType inBlock = player.compensatedWorld.getBlockType(playerPos.getX(), playerPos.getY(), playerPos.getZ());
-        return inBlock == StateTypes.HONEY_BLOCK || getOnPos(player, mainSupportingBlockData, playerPos) == StateTypes.HONEY_BLOCK;
+        return inBlock == PacketStateTypes.HONEY_BLOCK || getOnPos(player, mainSupportingBlockData, playerPos) == PacketStateTypes.HONEY_BLOCK;
     }
 
     /**
@@ -142,15 +140,15 @@ public class BlockProperties {
     public static float getMaterialFriction(GrimPlayer player, PacketStateType material) {
         float friction = 0.6f;
 
-        if (material == StateTypes.ICE) friction = 0.98f;
-        if (material == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8))
+        if (material == PacketStateTypes.ICE) friction = 0.98f;
+        if (material == PacketStateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8))
             friction = 0.8f;
         // ViaVersion honey block replacement
-        if (material == StateTypes.HONEY_BLOCK && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_15))
+        if (material == PacketStateTypes.HONEY_BLOCK && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_15))
             friction = 0.8f;
-        if (material == StateTypes.PACKED_ICE) friction = 0.98f;
-        if (material == StateTypes.FROSTED_ICE) friction = 0.98f;
-        if (material == StateTypes.BLUE_ICE) {
+        if (material == PacketStateTypes.PACKED_ICE) friction = 0.98f;
+        if (material == PacketStateTypes.FROSTED_ICE) friction = 0.98f;
+        if (material == PacketStateTypes.BLUE_ICE) {
             friction = 0.98f;
             if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_13))
                 friction = 0.989f;
@@ -179,12 +177,12 @@ public class BlockProperties {
         // This is the 1.16.0 and 1.16.1 method for detecting if the player is on soul speed
         if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_16) && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_16_1)) {
             PacketStateType onBlock = BlockProperties.getOnBlock(player, pos.getX(), pos.getY(), pos.getZ());
-            if (onBlock == StateTypes.SOUL_SAND && player.getInventory().getBoots().getEnchantmentLevel(PacketEnchantmentTypes.SOUL_SPEED, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion().getProtocolVersion()) > 0)
+            if (onBlock == PacketStateTypes.SOUL_SAND && player.getInventory().getBoots().getEnchantmentLevel(PacketEnchantmentTypes.SOUL_SPEED, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion().getProtocolVersion()) > 0)
                 return 1.0f;
         }
 
         float speed = getBlockSpeedFactor(player, block);
-        if (speed != 1.0f || block == StateTypes.SOUL_SAND || block == StateTypes.WATER || block == StateTypes.BUBBLE_COLUMN)
+        if (speed != 1.0f || block == PacketStateTypes.SOUL_SAND || block == PacketStateTypes.WATER || block == PacketStateTypes.BUBBLE_COLUMN)
             return speed;
 
         PacketStateType block2 = player.compensatedWorld.getBlockType(pos.getX(), pos.getY() - 0.5000001, pos.getZ());
@@ -192,8 +190,8 @@ public class BlockProperties {
     }
 
     private static float getBlockSpeedFactor(GrimPlayer player, PacketStateType type) {
-        if (type == StateTypes.HONEY_BLOCK) return 0.4f;
-        if (type == StateTypes.SOUL_SAND) {
+        if (type == PacketStateTypes.HONEY_BLOCK) return 0.4f;
+        if (type == PacketStateTypes.SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
             // This new method for detecting soul speed was added in 1.16.2
             // On 1.21, let attributes handle this

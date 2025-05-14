@@ -1,10 +1,14 @@
 package ac.grim.grimac.utils.anticheat.update;
 
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
+import ac.grim.grimac.api.packet.world.enums.North;
+import ac.grim.grimac.api.packet.world.enums.South;
+import ac.grim.grimac.api.packet.world.enums.West;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.api.util.LogUtil;
 import ac.grim.grimac.utils.collisions.AxisSelect;
@@ -27,17 +31,11 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.East;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
-import com.github.retrooper.packetevents.protocol.world.states.enums.North;
-import com.github.retrooper.packetevents.protocol.world.states.enums.South;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Type;
-import com.github.retrooper.packetevents.protocol.world.states.enums.West;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import ac.grim.grimac.api.packet.world.enums.East;
+import ac.grim.grimac.api.packet.world.enums.Half;
+import ac.grim.grimac.api.packet.world.enums.Type;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
@@ -92,7 +90,7 @@ public class BlockPlace {
         this.face = face;
         this.itemStack = itemStack;
         if (itemStack.getType().getPlacedType() == null) {
-            this.material = StateTypes.FIRE;
+            this.material = PacketStateTypes.FIRE;
             this.block = false;
         } else {
             this.material = itemStack.getType().getPlacedType();
@@ -100,7 +98,7 @@ public class BlockPlace {
         }
         this.hitData = hitData;
 
-        WrappedBlockState state = player.compensatedWorld.getBlock(getPlacedAgainstBlockLocation());
+        PacketBlockState state = player.compensatedWorld.getBlock(getPlacedAgainstBlockLocation());
         this.replaceClicked = canBeReplaced(this.material, state, face);
         this.sequence = sequence;
     }
@@ -109,15 +107,15 @@ public class BlockPlace {
         return BY_2D;
     }
 
-    public static WrappedBlockState createBlockState(PacketStateType material, PacketClientVersion blockVersion) {
-        return ((StateType) material).createBlockState(blockVersion);
+    public static PacketBlockState createBlockState(PacketStateType material, PacketClientVersion blockVersion) {
+        return ((ac.grim.grimac.api.packet.item.PacketStateType) material).createBlockState(blockVersion);
     }
 
     public Vector3i getPlacedAgainstBlockLocation() {
         return blockPosition;
     }
 
-    public WrappedBlockState getExistingBlockData() {
+    public PacketBlockState getExistingBlockData() {
         return player.compensatedWorld.getBlock(getPlacedBlockPos());
     }
 
@@ -125,45 +123,45 @@ public class BlockPlace {
         return player.compensatedWorld.getBlock(getPlacedAgainstBlockLocation()).getType();
     }
 
-    public WrappedBlockState getBelowState() {
+    public PacketBlockState getBelowState() {
         Vector3i pos = getPlacedBlockPos();
         pos = pos.withY(pos.getY() - 1);
         return player.compensatedWorld.getBlock(pos);
     }
 
-    public WrappedBlockState getAboveState() {
+    public PacketBlockState getAboveState() {
         Vector3i pos = getPlacedBlockPos();
         pos = pos.withY(pos.getY() + 1);
         return player.compensatedWorld.getBlock(pos);
     }
 
-    public WrappedBlockState getDirectionalState(BlockFace facing) {
+    public PacketBlockState getDirectionalState(BlockFace facing) {
         Vector3i pos = getPlacedBlockPos();
         pos = pos.add(facing.getModX(), facing.getModY(), facing.getModZ());
         return player.compensatedWorld.getBlock(pos);
     }
 
     public boolean isSolidBlocking(BlockFace relative) {
-        WrappedBlockState state = getDirectionalState(relative);
+        PacketBlockState state = getDirectionalState(relative);
         return state.getType().isBlocking();
     }
 
-    private boolean canBeReplaced(PacketStateType heldItem, WrappedBlockState state, BlockFace face) {
+    private boolean canBeReplaced(PacketStateType heldItem, PacketBlockState state, BlockFace face) {
         // Cave vines and weeping vines have a special case... that always returns false (just like the base case for it!)
         boolean baseReplaceable = state.getType() != heldItem && state.getType().isReplaceable();
 
         if (BlockTags.CANDLES.contains(state.getType())) {
             return heldItem == state.getType() && state.getCandles() < 4 && !isSecondaryUse();
         }
-        if (state.getType() == StateTypes.SEA_PICKLE) {
+        if (state.getType() == PacketStateTypes.SEA_PICKLE) {
             return heldItem == state.getType() && state.getPickles() < 4 && !isSecondaryUse();
         }
-        if (state.getType() == StateTypes.TURTLE_EGG) {
+        if (state.getType() == PacketStateTypes.TURTLE_EGG) {
             return heldItem == state.getType() && state.getEggs() < 4 && !isSecondaryUse();
         }
         // Glow lichen can be replaced if it has an open face, or the player is placing something
-        if (state.getType() == StateTypes.GLOW_LICHEN) {
-            if (heldItem != StateTypes.GLOW_LICHEN) {
+        if (state.getType() == PacketStateTypes.GLOW_LICHEN) {
+            if (heldItem != PacketStateTypes.GLOW_LICHEN) {
                 return true;
             }
             if (!state.isUp()) return true;
@@ -173,8 +171,8 @@ public class BlockPlace {
             if (state.getEast() == East.FALSE) return true;
             return state.getWest() == West.FALSE;
         }
-        if (state.getType() == StateTypes.SCAFFOLDING) {
-            return heldItem == StateTypes.SCAFFOLDING;
+        if (state.getType() == PacketStateTypes.SCAFFOLDING) {
+            return heldItem == PacketStateTypes.SCAFFOLDING;
         }
         if (BlockTags.SLABS.contains(state.getType())) {
             if (state.getTypeData() == Type.DOUBLE || state.getType() != heldItem) return false;
@@ -191,7 +189,7 @@ public class BlockPlace {
                 return clickedFace == BlockFace.DOWN || !flag && isFaceHorizontal();
             }
         }
-        if (state.getType() == StateTypes.SNOW) {
+        if (state.getType() == PacketStateTypes.SNOW) {
             int layers = state.getLayers();
             if (heldItem == state.getType() && layers < 8) { // We index at 1 (less than 8 layers)
                 return face == BlockFace.UP;
@@ -199,7 +197,7 @@ public class BlockPlace {
                 return layers == 1; // index at 1, (1 layer)
             }
         }
-        if (state.getType() == StateTypes.VINE) {
+        if (state.getType() == PacketStateTypes.VINE) {
             if (baseReplaceable) return true;
             if (heldItem != state.getType()) return false;
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && !state.isUp())
@@ -209,7 +207,7 @@ public class BlockPlace {
             if (state.getEast() == East.FALSE) return true;
             return state.getWest() == West.FALSE;
         }
-        if (state.getType() == StateTypes.LADDER && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_13)) {
+        if (state.getType() == PacketStateTypes.LADDER && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_13)) {
             return true;
         }
 
@@ -217,7 +215,7 @@ public class BlockPlace {
     }
 
     public boolean isFaceFullCenter(BlockFace facing) {
-        WrappedBlockState data = getDirectionalState(facing);
+        PacketBlockState data = getDirectionalState(facing);
         CollisionBox box = CollisionData.getData(data.getType()).getMovementCollisionBox(player, player.getClientVersion(), data);
 
         if (box.isNull()) return false;
@@ -243,7 +241,7 @@ public class BlockPlace {
     }
 
     public boolean isFaceRigid(BlockFace facing) {
-        WrappedBlockState data = getDirectionalState(facing);
+        PacketBlockState data = getDirectionalState(facing);
         CollisionBox box = CollisionData.getData(data.getType()).getMovementCollisionBox(player, player.getClientVersion(), data);
 
         if (box.isNull()) return false;
@@ -268,7 +266,7 @@ public class BlockPlace {
     }
 
     public boolean isFullFace(BlockFace relative) {
-        WrappedBlockState state = getDirectionalState(relative);
+        PacketBlockState state = getDirectionalState(relative);
         BlockFace face = relative.getOppositeFace();
         BlockFace bukkitFace = BlockFace.valueOf(face.name());
 
@@ -281,7 +279,7 @@ public class BlockPlace {
         if (BlockTags.LEAVES.contains(blockMaterial)) {
             // Leaves can't support blocks
             return false;
-        } else if (blockMaterial == StateTypes.SNOW) {
+        } else if (blockMaterial == PacketStateTypes.SNOW) {
             return state.getLayers() == 8 || face == BlockFace.DOWN;
         } else if (BlockTags.STAIRS.contains(blockMaterial)) {
             if (face == BlockFace.UP) {
@@ -292,11 +290,11 @@ public class BlockPlace {
             }
 
             return state.getFacing() == bukkitFace;
-        } else if (blockMaterial == StateTypes.COMPOSTER) { // Composters have solid faces except for on the top
+        } else if (blockMaterial == PacketStateTypes.COMPOSTER) { // Composters have solid faces except for on the top
             return face != BlockFace.UP;
-        } else if (blockMaterial == StateTypes.SOUL_SAND) { // Soul sand is considered to be a full block when placing things
+        } else if (blockMaterial == PacketStateTypes.SOUL_SAND) { // Soul sand is considered to be a full block when placing things
             return true;
-        } else if (blockMaterial == StateTypes.LADDER) { // Yes, although it breaks immediately, you can place blocks on ladders
+        } else if (blockMaterial == PacketStateTypes.LADDER) { // Yes, although it breaks immediately, you can place blocks on ladders
             return state.getFacing().getOppositeFace() == bukkitFace;
         } else if (BlockTags.TRAPDOORS.contains(blockMaterial)) { // You can place blocks that need solid faces on trapdoors
             return (state.getFacing().getOppositeFace() == bukkitFace && state.isOpen()) ||
@@ -335,7 +333,7 @@ public class BlockPlace {
     }
 
     public boolean isFaceEmpty(BlockFace facing) {
-        WrappedBlockState data = getDirectionalState(facing);
+        PacketBlockState data = getDirectionalState(facing);
         CollisionBox box = CollisionData.getData(data.getType()).getMovementCollisionBox(player, player.getClientVersion(), data);
 
         if (box.isNull()) return false;
@@ -378,7 +376,7 @@ public class BlockPlace {
     public boolean isLava(BlockFace facing) {
         Vector3i pos = getPlacedBlockPos();
         pos = pos.add(facing.getModX(), facing.getModY(), facing.getModZ());
-        return player.compensatedWorld.getBlock(pos).getType() == StateTypes.LAVA;
+        return player.compensatedWorld.getBlock(pos).getType() == PacketStateTypes.LAVA;
     }
 
     // I believe this is correct, although I'm using a method here just in case it's a tick off... I don't trust Mojang
@@ -393,8 +391,8 @@ public class BlockPlace {
 
     public boolean isInLiquid() {
         Vector3i pos = getPlacedBlockPos();
-        WrappedBlockState data = player.compensatedWorld.getBlock(pos);
-        return Materials.isWater(player.getClientVersion(), data) || data.getType() == StateTypes.LAVA;
+        PacketBlockState data = player.compensatedWorld.getBlock(pos);
+        return Materials.isWater(player.getClientVersion(), data) || data.getType() == PacketStateTypes.LAVA;
     }
 
     public PacketStateType getBelowMaterial() {
@@ -407,7 +405,7 @@ public class BlockPlace {
     }
 
     public boolean isOnDirt() {
-        return isOn(StateTypes.DIRT, StateTypes.GRASS_BLOCK, StateTypes.PODZOL, StateTypes.COARSE_DIRT, StateTypes.MYCELIUM, StateTypes.ROOTED_DIRT, StateTypes.MOSS_BLOCK);
+        return isOn(PacketStateTypes.DIRT, PacketStateTypes.GRASS_BLOCK, PacketStateTypes.PODZOL, PacketStateTypes.COARSE_DIRT, PacketStateTypes.MYCELIUM, PacketStateTypes.ROOTED_DIRT, PacketStateTypes.MOSS_BLOCK);
     }
 
     // I have to be the first anticheat to actually account for this... wish me luck
@@ -425,7 +423,7 @@ public class BlockPlace {
             }
 
             // Check if a block can even provide power... bukkit doesn't have a method for this?
-            WrappedBlockState state = player.compensatedWorld.getBlock(modified);
+            PacketBlockState state = player.compensatedWorld.getBlock(modified);
 
             boolean isByDefaultConductive = !Materials.isSolidBlockingBlacklist(state.getType(), player.getClientVersion()) &&
                     CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state).isFullBlock();
@@ -433,10 +431,10 @@ public class BlockPlace {
             // Soul sand is exempt from this check.
             // Glass, moving pistons, beacons, redstone blocks (for some reason) and observers are not conductive
             // Otherwise, if something is solid blocking and a full block, then it is conductive
-            if (state.getType() != StateTypes.SOUL_SAND &&
-                    BlockTags.GLASS_BLOCKS.contains(state.getType()) || state.getType() == StateTypes.MOVING_PISTON
-                    || state.getType() == StateTypes.BEACON || state.getType() ==
-                    StateTypes.REDSTONE_BLOCK || state.getType() == StateTypes.OBSERVER || !isByDefaultConductive) {
+            if (state.getType() != PacketStateTypes.SOUL_SAND &&
+                    BlockTags.GLASS_BLOCKS.contains(state.getType()) || state.getType() == PacketStateTypes.MOVING_PISTON
+                    || state.getType() == PacketStateTypes.BEACON || state.getType() ==
+                    PacketStateTypes.REDSTONE_BLOCK || state.getType() == PacketStateTypes.OBSERVER || !isByDefaultConductive) {
                 continue;
             }
 
@@ -567,19 +565,19 @@ public class BlockPlace {
         set(createBlockState(material, CompensatedWorld.blockVersion));
     }
 
-    public void set(BlockFace face, WrappedBlockState state) {
+    public void set(BlockFace face, PacketBlockState state) {
         Vector3i blockPos = getPlacedBlockPos().add(face.getModX(), face.getModY(), face.getModZ());
         set(blockPos, state);
     }
 
-    public void set(Vector3i position, WrappedBlockState state) {
+    public void set(Vector3i position, PacketBlockState state) {
         // Hack for scaffolding to be the correct bounding box
         CollisionBox box = CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, position.getX(), position.getY(), position.getZ());
 
 
         // Note scaffolding is a special case because it can never intersect with the player's bounding box,
         // and we fetch it with lastY instead of y which is wrong, so it is easier to just ignore scaffolding here
-        if (state.getType() != StateTypes.SCAFFOLDING) {
+        if (state.getType() != PacketStateTypes.SCAFFOLDING) {
             // A player cannot place a block in themselves.
             // 0.03 can desync quite easily
             // 0.002 desync must be done with teleports, it is very difficult to do with slightly moving.
@@ -618,7 +616,7 @@ public class BlockPlace {
         }
 
         // If a block already exists here, then we can't override it.
-        WrappedBlockState existingState = player.compensatedWorld.getBlock(position);
+        PacketBlockState existingState = player.compensatedWorld.getBlock(position);
         if (!replaceClicked && !canBeReplaced(material, existingState, face)) {
             return;
         }
@@ -631,7 +629,7 @@ public class BlockPlace {
         // Check for waterlogged
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
             if (state.getInternalData().containsKey(StateValue.WATERLOGGED)) { // waterloggable
-                state.setWaterlogged(existingState.getType() == StateTypes.WATER && existingState.getLevel() == 0);
+                state.setWaterlogged(existingState.getType() == PacketStateTypes.WATER && existingState.getLevel() == 0);
             }
         }
 
@@ -655,7 +653,7 @@ public class BlockPlace {
 
     }
 
-    public void set(WrappedBlockState state) {
+    public void set(PacketBlockState state) {
         set(getPlacedBlockPos(), state);
     }
 
@@ -713,7 +711,7 @@ public class BlockPlace {
         set(placed, createBlockState(material, CompensatedWorld.blockVersion));
     }
 
-    public void setAbove(WrappedBlockState toReplaceWith) {
+    public void setAbove(PacketBlockState toReplaceWith) {
         Vector3i placed = getPlacedBlockPos();
         placed = placed.add(0, 1, 0);
         set(placed, toReplaceWith);

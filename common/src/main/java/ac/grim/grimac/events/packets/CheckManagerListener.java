@@ -5,9 +5,8 @@ import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketItemType;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -30,15 +29,15 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.Location;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
@@ -60,14 +59,14 @@ import java.util.function.Function;
 public class CheckManagerListener extends PacketListenerAbstract {
 
     // Manual filter on FINISH_DIGGING to prevent clients setting non-breakable blocks to air
-    private static final Function<PacketStateType, Boolean> BREAKABLE = type -> !type.isAir() && type.getHardness() != -1.0f && type != StateTypes.WATER && type != StateTypes.LAVA;
+    private static final Function<PacketStateType, Boolean> BREAKABLE = type -> !type.isAir() && type.getHardness() != -1.0f && type != PacketStateTypes.WATER && type != PacketStateTypes.LAVA;
 
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
     }
 
     private static void placeWaterLavaSnowBucket(GrimPlayer player, PacketItemStack held, PacketStateType toPlace, InteractionHand hand, int sequence) {
-        HitData data = WorldRayTrace.getNearestBlockHitResult(player, StateTypes.AIR, false, true, true);
+        HitData data = WorldRayTrace.getNearestBlockHitResult(player, PacketStateTypes.AIR, false, true, true);
         if (data != null) {
             BlockPlace blockPlace = new BlockPlace(player, hand, data.getPosition(), data.getClosestDirection().getFaceValue(), data.getClosestDirection(), held, data, sequence);
 
@@ -78,7 +77,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Otherwise, use the face to determine where to place the bucket
             if (Materials.isPlaceableWaterBucket(blockPlace.getItemStack().getType()) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 blockPlace.setReplaceClicked(true); // See what's in the existing place
-                WrappedBlockState existing = blockPlace.getExistingBlockData();
+                PacketBlockState existing = blockPlace.getExistingBlockData();
                 if (!(boolean) existing.getInternalData().getOrDefault(StateValue.WATERLOGGED, true)) {
                     // Strangely, the client does not predict waterlogged placements
                     didPlace = true;
@@ -239,8 +238,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 // Right-clicking a trapdoor/door/etc.
                 PacketStateType placedAgainst = blockPlace.getPlacedAgainstMaterial();
-                if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_11) && (placedAgainst == StateTypes.IRON_TRAPDOOR
-                        || placedAgainst == StateTypes.IRON_DOOR || BlockTags.FENCES.contains(placedAgainst))
+                if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_11) && (placedAgainst == PacketStateTypes.IRON_TRAPDOOR
+                        || placedAgainst == PacketStateTypes.IRON_DOOR || BlockTags.FENCES.contains(placedAgainst))
                         || player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8) && BlockTags.CAULDRONS.contains(placedAgainst)
                         || Materials.isClientSideInteractable(placedAgainst)) {
                     player.checkManager.onPostFlyingBlockPlace(blockPlace);
@@ -292,14 +291,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
             boolean placed = false;
             PacketItemType type = null;
 
-            if (data.getState().getType() == StateTypes.POWDER_SNOW) {
-                blockPlace.set(StateTypes.AIR);
+            if (data.getState().getType() == PacketStateTypes.POWDER_SNOW) {
+                blockPlace.set(PacketStateTypes.AIR);
                 type = PacketItemTypes.POWDER_SNOW_BUCKET;
                 placed = true;
             }
 
-            if (data.getState().getType() == StateTypes.LAVA) {
-                blockPlace.set(StateTypes.AIR);
+            if (data.getState().getType() == PacketStateTypes.LAVA) {
+                blockPlace.set(PacketStateTypes.AIR);
                 type = PacketItemTypes.LAVA_BUCKET;
                 placed = true;
             }
@@ -309,7 +308,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 return;
 
             // We can't replace plants with a water bucket
-            if (data.getState().getType() == StateTypes.KELP || data.getState().getType() == StateTypes.SEAGRASS || data.getState().getType() == StateTypes.TALL_SEAGRASS) {
+            if (data.getState().getType() == PacketStateTypes.KELP || data.getState().getType() == PacketStateTypes.SEAGRASS || data.getState().getType() == PacketStateTypes.TALL_SEAGRASS) {
                 return;
             }
 
@@ -318,7 +317,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
-                WrappedBlockState existing = blockPlace.getExistingBlockData();
+                PacketBlockState existing = blockPlace.getExistingBlockData();
                 if (existing.getInternalData().containsKey(StateValue.WATERLOGGED)) { // waterloggable
                     existing.setWaterlogged(false);
                     blockPlace.set(existing);
@@ -328,7 +327,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             // Therefore, not waterlogged and is a fluid, and is therefore a source block
             if (!placed) {
-                blockPlace.set(StateTypes.AIR);
+                blockPlace.set(PacketStateTypes.AIR);
             }
 
             if (player.gamemode != GameMode.CREATIVE) {
@@ -374,11 +373,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             // We checked for a full fluid block below here.
             if (player.compensatedWorld.getWaterFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) > 0
-                    || data.getState().getType() == StateTypes.ICE || data.getState().getType() == StateTypes.FROSTED_ICE) {
+                    || data.getState().getType() == PacketStateTypes.ICE || data.getState().getType() == PacketStateTypes.FROSTED_ICE) {
                 Vector3i pos = data.getPosition();
                 pos = pos.add(0, 1, 0);
 
-                blockPlace.set(pos, StateTypes.LILY_PAD.createBlockState(CompensatedWorld.blockVersion));
+                blockPlace.set(pos, PacketStateTypes.LILY_PAD.createBlockState(CompensatedWorld.blockVersion));
 
                 if (player.gamemode != GameMode.CREATIVE) {
                     player.getInventory().markSlotAsResyncing(blockPlace);
@@ -593,7 +592,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                             player.blockHistory.add(
                                     new BlockModification(
                                             player.compensatedWorld.getBlock(blockBreak.position),
-                                            WrappedBlockState.getByGlobalId(0),
+                                            PacketBlockState.getByGlobalId(0),
                                             blockBreak.position,
                                             GrimAPI.INSTANCE.getTickManager().currentTick,
                                             BlockModification.Cause.START_DIGGING
@@ -602,7 +601,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                             if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_13) && Materials.isWaterSource(player.getClientVersion(), blockBreak.block)) {
                                 // Vanilla uses a method to grab water flowing, but as you can't break flowing water
                                 // We can simply treat all waterlogged blocks or source blocks as source blocks
-                                player.compensatedWorld.updateBlock(blockBreak.position, StateTypes.WATER.createBlockState(CompensatedWorld.blockVersion));
+                                player.compensatedWorld.updateBlock(blockBreak.position, PacketStateTypes.WATER.createBlockState(CompensatedWorld.blockVersion));
                             } else {
                                 player.compensatedWorld.updateBlock(blockBreak.position.x, blockBreak.position.y, blockBreak.position.z, 0);
                             }
@@ -668,10 +667,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     if (player.platformPlayer != null) {
                         if (packet.getHand() == InteractionHand.MAIN_HAND) {
                             PacketItemStack mainHand = player.platformPlayer.getInventory().getItemInHand();
-                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, (ac.grim.grimac.api.platform.item.PacketItemStack) mainHand)); // TODO (Packet Rewrite) replace PE Wrappers with Packet API don't cast ItemStack
+                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, (ItemStack) mainHand)); // TODO (Packet Rewrite) replace PE Wrappers with Packet API don't cast ItemStack
                         } else {
                             PacketItemStack offHand = player.platformPlayer.getInventory().getItemInOffHand();
-                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, (ac.grim.grimac.api.platform.item.PacketItemStack) offHand)); // TODO (Packet Rewrite) replace PE Wrappers with Packet API don't cast ItemStack
+                            player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, (ItemStack) offHand)); // TODO (Packet Rewrite) replace PE Wrappers with Packet API don't cast ItemStack
                         }
                     }
 

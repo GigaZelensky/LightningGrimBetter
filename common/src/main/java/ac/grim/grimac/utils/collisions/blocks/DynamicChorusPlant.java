@@ -3,6 +3,9 @@ package ac.grim.grimac.utils.collisions.blocks;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
+import ac.grim.grimac.api.packet.world.enums.South;
+import ac.grim.grimac.api.packet.world.enums.West;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
@@ -10,13 +13,10 @@ import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
-import com.github.retrooper.packetevents.protocol.world.states.enums.East;
-import com.github.retrooper.packetevents.protocol.world.states.enums.North;
-import com.github.retrooper.packetevents.protocol.world.states.enums.South;
-import com.github.retrooper.packetevents.protocol.world.states.enums.West;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
+import ac.grim.grimac.api.packet.world.enums.East;
+import ac.grim.grimac.api.packet.world.enums.North;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -57,7 +57,7 @@ public class DynamicChorusPlant implements CollisionFactory {
     }
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, PacketBlockState block, int x, int y, int z) {
         // ViaVersion replacement block (Purple wool)
         if (version.isOlderThanOrEquals(PacketClientVersions.V_1_8))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
@@ -105,7 +105,7 @@ public class DynamicChorusPlant implements CollisionFactory {
         Set<BlockFace> faces = new HashSet<>();
 
         // 1.13 clients on 1.12 servers don't see chorus flowers attached to chorus because of a ViaVersion bug
-        PacketStateType versionFlower = version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2) ? StateTypes.CHORUS_FLOWER : null;
+        PacketStateType versionFlower = version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2) ? PacketStateTypes.CHORUS_FLOWER : null;
 
         PacketStateType downBlock = player.compensatedWorld.getBlockType(x, y - 1, z);
         PacketStateType upBlock = player.compensatedWorld.getBlockType(x, y + 1, z);
@@ -114,23 +114,23 @@ public class DynamicChorusPlant implements CollisionFactory {
         PacketStateType southBlock = player.compensatedWorld.getBlockType(x, y, z + 1);
         PacketStateType westBlock = player.compensatedWorld.getBlockType(x - 1, y, z);
 
-        if (downBlock == StateTypes.CHORUS_PLANT || downBlock == versionFlower || downBlock == StateTypes.END_STONE) {
+        if (downBlock == PacketStateTypes.CHORUS_PLANT || downBlock == versionFlower || downBlock == PacketStateTypes.END_STONE) {
             faces.add(BlockFace.DOWN);
         }
 
-        if (upBlock == StateTypes.CHORUS_PLANT || upBlock == versionFlower) {
+        if (upBlock == PacketStateTypes.CHORUS_PLANT || upBlock == versionFlower) {
             faces.add(BlockFace.UP);
         }
-        if (northBlock == StateTypes.CHORUS_PLANT || northBlock == versionFlower) {
+        if (northBlock == PacketStateTypes.CHORUS_PLANT || northBlock == versionFlower) {
             faces.add(BlockFace.EAST);
         }
-        if (eastBlock == StateTypes.CHORUS_PLANT || eastBlock == versionFlower) {
+        if (eastBlock == PacketStateTypes.CHORUS_PLANT || eastBlock == versionFlower) {
             faces.add(BlockFace.EAST);
         }
-        if (southBlock == StateTypes.CHORUS_PLANT || southBlock == versionFlower) {
+        if (southBlock == PacketStateTypes.CHORUS_PLANT || southBlock == versionFlower) {
             faces.add(BlockFace.NORTH);
         }
-        if (westBlock == StateTypes.CHORUS_PLANT || westBlock == versionFlower) {
+        if (westBlock == PacketStateTypes.CHORUS_PLANT || westBlock == versionFlower) {
             faces.add(BlockFace.NORTH);
         }
 

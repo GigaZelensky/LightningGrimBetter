@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.blockstate.helper;
 
 import ac.grim.grimac.api.math.Vector3dm;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 
 public class BlockFaceHelper {
     public static boolean isFaceVertical(BlockFace face) {

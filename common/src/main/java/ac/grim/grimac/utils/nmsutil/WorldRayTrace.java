@@ -1,7 +1,8 @@
 package ac.grim.grimac.utils.nmsutil;
 
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.HitboxData;
@@ -12,8 +13,6 @@ import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -84,7 +83,7 @@ public class WorldRayTrace {
     //
     // I do have to admit that I'm starting to like bifunctions/new java 8 things more than I originally did.
     // although I still don't understand Mojang's obsession with streams in some of the hottest methods... that kills performance
-    public static HitData traverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, BiFunction<WrappedBlockState, Vector3i, HitData> predicate) {
+    public static HitData traverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, BiFunction<PacketBlockState, Vector3i, HitData> predicate) {
         // I guess go back by the collision epsilon?
         double endX = GrimMath.lerp(-1.0E-7D, end.x, start.x);
         double endY = GrimMath.lerp(-1.0E-7D, end.y, start.y);
@@ -99,7 +98,7 @@ public class WorldRayTrace {
 
         if (start.equals(end)) return null;
 
-        WrappedBlockState state = player.compensatedWorld.getBlock(floorStartX, floorStartY, floorStartZ);
+        PacketBlockState state = player.compensatedWorld.getBlock(floorStartX, floorStartY, floorStartZ);
         HitData apply = predicate.apply(state, new Vector3i(floorStartX, floorStartY, floorStartZ));
 
         if (apply != null) {

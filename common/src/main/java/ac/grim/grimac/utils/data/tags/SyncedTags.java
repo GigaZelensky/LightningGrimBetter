@@ -3,12 +3,11 @@ package ac.grim.grimac.utils.data.tags;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTags;
 
@@ -40,7 +39,7 @@ public final class SyncedTags {
         this.player = player;
         this.synced = new HashMap<>();
         PacketClientVersion version = player.getClientVersion();
-        trackTags(BLOCK, id -> StateTypes.getById(VERSION.toClientVersion(), id),
+        trackTags(BLOCK, id -> PacketStateTypes.getById(VERSION.toClientVersion(), id),
                 // // TODO (Packet Rewrite) fix hacky cast
                 SyncedTag.<PacketStateType>builder(CLIMBABLE).defaults((Set<PacketStateType>) (Set<?>)BlockTags.CLIMBABLE.getStates()).supported(version.isNewerThanOrEquals(PacketClientVersions.V_1_16)),
                 SyncedTag.<PacketStateType>builder(MINEABLE_AXE).defaults((Set<PacketStateType>) (Set<?>)BlockTags.MINEABLE_AXE.getStates()).supported(version.isNewerThanOrEquals(PacketClientVersions.V_1_17)),

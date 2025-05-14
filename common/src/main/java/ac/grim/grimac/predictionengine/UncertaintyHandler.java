@@ -1,6 +1,6 @@
 package ac.grim.grimac.predictionengine;
 
-import ac.grim.grimac.api.data.IBlockFace;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.LastInstance;
@@ -32,7 +32,7 @@ public class UncertaintyHandler {
     // Meaning no matter what, just trust the player's onGround status
     public boolean isStepMovement;
     // What directions could slime block pistons be pushing the player from
-    public HashSet<IBlockFace> slimePistonBounces;
+    public HashSet<BlockFace> slimePistonBounces;
     // Handles general uncertainty such as entity pushing and the 1.14+ X Z collision bug where X momentum is maintained
     public double xNegativeUncertainty = 0;
     public double xPositiveUncertainty = 0;

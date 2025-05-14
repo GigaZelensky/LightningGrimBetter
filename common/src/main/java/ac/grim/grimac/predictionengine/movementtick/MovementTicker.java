@@ -3,7 +3,7 @@ package ac.grim.grimac.predictionengine.movementtick;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.PlayerBaseTick;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
@@ -30,7 +30,6 @@ import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.viaversion.viaversion.api.Via;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -186,7 +185,7 @@ public class MovementTicker {
             // And the block is a slime block
             // Or the block is honey and was replaced by viaversion
             if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8)
-                    && (onBlock == StateTypes.SLIME_BLOCK || (onBlock == StateTypes.HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_14_4)))) {
+                    && (onBlock == PacketStateTypes.SLIME_BLOCK || (onBlock == PacketStateTypes.HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_14_4)))) {
                 if (player.isSneaking) { // Slime blocks use shifting instead of sneaking
                     player.clientVelocity.setY(0);
                 } else {

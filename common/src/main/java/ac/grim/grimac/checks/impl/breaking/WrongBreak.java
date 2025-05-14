@@ -1,6 +1,5 @@
 package ac.grim.grimac.checks.impl.breaking;
 
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -11,7 +10,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
 
 import static ac.grim.grimac.utils.nmsutil.BlockBreakSpeed.getBlockDamage;
@@ -27,7 +26,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
     }
 
     // The client sometimes sends a wierd cancel packet
-    private boolean shouldExempt(final WrappedBlockState block, int yPos) {
+    private boolean shouldExempt(final PacketBlockState block, int yPos) {
         // lastLastBlock is always null when this happens, and lastBlock isn't
         if (lastLastBlock != null || lastBlock == null)
             return false;

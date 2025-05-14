@@ -2,7 +2,6 @@ package ac.grim.grimac.utils.collisions.blocks;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
@@ -10,7 +9,7 @@ import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 
 public class PistonHeadCollision implements CollisionFactory {
     // 1.12- servers are not capable of sending persistent (non-block event) piston move
@@ -18,7 +17,7 @@ public class PistonHeadCollision implements CollisionFactory {
     // 1.7 and 1.8 clients always have short pistons
     // 1.9 - 1.12 clients always have long pistons
     @Override
-    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, PacketBlockState block, int x, int y, int z) {
         // 1.13+ clients differentiate short and long, and the short vs long data is stored
         // This works correctly in 1.12-, as in the piston returns as always long
         //

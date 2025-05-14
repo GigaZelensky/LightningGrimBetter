@@ -3,7 +3,7 @@ package ac.grim.grimac.platform.bukkit.utils.convert;
 import ac.grim.grimac.api.platform.permissions.PermissionDefaultValue;
 import ac.grim.grimac.platform.bukkit.world.BukkitPlatformWorld;
 import ac.grim.grimac.api.math.Location;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 
 public class BukkitConversionUtils {
     public static org.bukkit.Location toBukkitLocation(Location location) {

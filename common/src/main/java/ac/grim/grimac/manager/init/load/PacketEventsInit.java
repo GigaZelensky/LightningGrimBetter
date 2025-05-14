@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.item.PacketEnchantmentTypes;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.api.platform.init.LoadableInitable;
 import ac.grim.grimac.api.util.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -12,7 +13,6 @@ import com.github.retrooper.packetevents.protocol.chat.ChatTypes;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 import java.util.concurrent.Executors;
 
@@ -38,7 +38,7 @@ public class PacketEventsInit implements LoadableInitable {
         PacketEvents.getAPI().load();
         // This may seem useless, but it causes java to start loading stuff async before we need it
         Executors.defaultThreadFactory().newThread(() -> {
-            StateTypes.AIR.getName();
+            PacketStateTypes.AIR.getName();
             PacketItemTypes.AIR.getName();
             PacketEntityTypes.PLAYER.getName();
             EntityDataTypes.BOOLEAN.getName();

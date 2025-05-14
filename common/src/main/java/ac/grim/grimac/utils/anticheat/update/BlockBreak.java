@@ -1,12 +1,12 @@
 package ac.grim.grimac.utils.anticheat.update;
 
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.HitboxData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 
@@ -19,12 +19,12 @@ public final class BlockBreak {
     public final int faceId;
     public final DiggingAction action;
     public final int sequence;
-    public final WrappedBlockState block;
+    public final PacketBlockState block;
     private final GrimPlayer player;
     @Getter
     private boolean cancelled;
 
-    public BlockBreak(GrimPlayer player, Vector3i position, BlockFace face, int faceId, DiggingAction action, int sequence, WrappedBlockState block) {
+    public BlockBreak(GrimPlayer player, Vector3i position, BlockFace face, int faceId, DiggingAction action, int sequence, PacketBlockState block) {
         this.player = player;
         this.position = position;
         this.face = face;

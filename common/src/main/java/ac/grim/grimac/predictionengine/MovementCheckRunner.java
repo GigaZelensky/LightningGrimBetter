@@ -4,9 +4,8 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.prediction.Phase;
 import ac.grim.grimac.checks.impl.vehicle.VehicleC;
@@ -44,9 +43,8 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.api.packet.item.PacketItemType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 public class MovementCheckRunner extends Check implements PositionCheck {
     // Averaged over 500 predictions (Defaults set slightly above my 3600x results)
@@ -356,12 +354,12 @@ public class MovementCheckRunner extends Check implements PositionCheck {
 
         SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(player.getMovementThreshold()).offset(0, -1, 0);
         Collisions.hasMaterial(player, steppingOnBB, (pair) -> {
-            WrappedBlockState data = pair.first();
-            if (data.getType() == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8)) {
+            PacketBlockState data = pair.first();
+            if (data.getType() == PacketStateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8)) {
                 player.uncertaintyHandler.isSteppingOnSlime = true;
                 player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
             }
-            if (data.getType() == StateTypes.HONEY_BLOCK) {
+            if (data.getType() == PacketStateTypes.HONEY_BLOCK) {
                 if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_14)
                         && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_8)) {
                     player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
@@ -374,10 +372,10 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             if (BlockTags.ICE.contains(data.getType())) {
                 player.uncertaintyHandler.isSteppingOnIce = true;
             }
-            if (data.getType() == StateTypes.BUBBLE_COLUMN) {
+            if (data.getType() == PacketStateTypes.BUBBLE_COLUMN) {
                 player.uncertaintyHandler.isSteppingNearBubbleColumn = true;
             }
-            if (data.getType() == StateTypes.SCAFFOLDING) {
+            if (data.getType() == PacketStateTypes.SCAFFOLDING) {
                 player.uncertaintyHandler.isSteppingNearScaffolding = true;
             }
             return false;
@@ -403,7 +401,7 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)
                 && Collisions.hasMaterial(player, expandedBB.copy().expand(0.2),
                 checkData -> BlockTags.ANVIL.contains(checkData.first().getType())
-                        || checkData.first().getType() == StateTypes.CHEST || checkData.first().getType() == StateTypes.TRAPPED_CHEST);
+                        || checkData.first().getType() == PacketStateTypes.CHEST || checkData.first().getType() == PacketStateTypes.TRAPPED_CHEST);
 
         player.uncertaintyHandler.isOrWasNearGlitchyBlock = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
         player.uncertaintyHandler.checkForHardCollision();

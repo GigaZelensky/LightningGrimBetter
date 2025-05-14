@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -13,10 +14,9 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -81,20 +81,21 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
                     player.compensatedWorld.updateBlock(record.x, record.y, record.z, 0);
                 } else {
                     // We need to flip redstone blocks, or do special things with other blocks
-                    final WrappedBlockState state = player.compensatedWorld.getBlock(record);
+                    final PacketBlockState state = player.compensatedWorld.getBlock(record);
                     // TODO (Packet Rewrite) replace PE Wrappers with Packet API
-                    final StateType type = state.getType();
+                    final PacketStateType type = state.getType();
                     if (BlockTags.CANDLES.contains(type) || BlockTags.CANDLE_CAKES.contains(type)) {
                         state.setLit(false);
                         continue;
-                    } else if (type == StateTypes.BELL) {
+                    } else if (type == PacketStateTypes.BELL) {
                         // Does this affect anything? I don't know, I don't see anything that relies on whether a bell is ringing.
                         continue;
                     }
 
                     // Otherwise try and flip/open it.
+                    // TODO (Packet Rewrite) replace getInternalData()
                     final Object poweredValue = state.getInternalData().get(StateValue.POWERED);
-                    final boolean canFlip = (poweredValue != null && !(Boolean) poweredValue) || type == StateTypes.LEVER;
+                    final boolean canFlip = (poweredValue != null && !(Boolean) poweredValue) || type == PacketStateTypes.LEVER;
                     if (canFlip) {
                         player.compensatedWorld.tickOpenable(record.x, record.y, record.z);
                     }

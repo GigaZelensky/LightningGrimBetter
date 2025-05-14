@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -12,7 +13,6 @@ import ac.grim.grimac.utils.lists.EvictingQueue;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
@@ -158,7 +158,7 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
                 maxPosLength = (int) Math.max(maxPosLength, Math.ceil(Math.log10(Math.abs(z))));
                 for (int x = GrimMath.floor(player.boundingBox.minX) - 2; x <= GrimMath.ceil(player.boundingBox.maxX) + 2; x++) {
                     maxPosLength = (int) Math.max(maxPosLength, Math.ceil(Math.log10(Math.abs(x))));
-                    WrappedBlockState block = player.compensatedWorld.getBlock(x, y, z);
+                    PacketBlockState block = player.compensatedWorld.getBlock(x, y, z);
                     maxLength = Math.max(block.toString().replace("minecraft:", "").length(), maxLength);
                 }
             }
@@ -181,7 +181,7 @@ public final class SuperDebug extends Check implements PostPredictionCheck {
             for (int z = GrimMath.floor(player.boundingBox.minZ) - 2; z <= GrimMath.ceil(player.boundingBox.maxZ) + 2; z++) {
                 sb.append(String.format("%-" + maxPosLength + "s", "z: " + z + " "));
                 for (int x = GrimMath.floor(player.boundingBox.minX) - 2; x <= GrimMath.ceil(player.boundingBox.maxX) + 2; x++) {
-                    WrappedBlockState block = player.compensatedWorld.getBlock(x, y, z);
+                    PacketBlockState block = player.compensatedWorld.getBlock(x, y, z);
                     sb.append(String.format("%-" + maxLength + "s", block.toString().replace("minecraft:", "")));
                 }
                 sb.append("\n");

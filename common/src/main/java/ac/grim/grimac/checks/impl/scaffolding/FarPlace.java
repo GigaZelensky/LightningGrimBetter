@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -9,7 +10,6 @@ import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 
 @CheckData(name = "FarPlace", description = "Placing blocks from too far away")
@@ -24,7 +24,7 @@ public class FarPlace extends BlockPlaceCheck {
 
         Vector3i blockPos = place.getPlacedAgainstBlockLocation();
 
-        if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
+        if (place.getMaterial() == PacketStateTypes.SCAFFOLDING) return;
 
         double min = Double.MAX_VALUE;
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();

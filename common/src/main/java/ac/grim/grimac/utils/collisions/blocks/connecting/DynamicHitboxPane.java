@@ -2,6 +2,10 @@ package ac.grim.grimac.utils.collisions.blocks.connecting;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.enums.East;
+import ac.grim.grimac.api.packet.world.enums.North;
+import ac.grim.grimac.api.packet.world.enums.South;
+import ac.grim.grimac.api.packet.world.enums.West;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -9,22 +13,18 @@ import ac.grim.grimac.utils.collisions.datatypes.HitBoxFactory;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.East;
-import com.github.retrooper.packetevents.protocol.world.states.enums.North;
-import com.github.retrooper.packetevents.protocol.world.states.enums.South;
-import com.github.retrooper.packetevents.protocol.world.states.enums.West;
 import ac.grim.grimac.api.packet.item.PacketStateType;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 
 public class DynamicHitboxPane extends DynamicConnecting implements HitBoxFactory {
 
     private static final CollisionBox[] COLLISION_BOXES = makeShapes(1.0F, 1.0F, 16.0F, 0.0F, 16.0F, true, 1);
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, PacketStateType item, PacketClientVersion version, WrappedBlockState block, boolean isTargetBlock, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketStateType item, PacketClientVersion version, PacketBlockState block, boolean isTargetBlock, int x, int y, int z) {
         boolean east, north, south, west;
 
         // 1.13+ servers on 1.13+ clients send the full fence data
@@ -103,8 +103,8 @@ public class DynamicHitboxPane extends DynamicConnecting implements HitBoxFactor
     }
 
     @Override
-    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, PacketStateType one, PacketStateType two, BlockFace direction) {
-        if (BlockTags.GLASS_PANES.contains(one) || one == StateTypes.IRON_BARS) {
+    public boolean checkCanConnect(GrimPlayer player, PacketBlockState state, PacketStateType one, PacketStateType two, BlockFace direction) {
+        if (BlockTags.GLASS_PANES.contains(one) || one == PacketStateTypes.IRON_BARS) {
             return true;
         } else {
             return CollisionData.getData(one)

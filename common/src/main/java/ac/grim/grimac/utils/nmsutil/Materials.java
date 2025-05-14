@@ -1,18 +1,17 @@
 package ac.grim.grimac.utils.nmsutil;
 
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.item.PacketItemAttribute;
 import ac.grim.grimac.api.packet.item.PacketItemType;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 
 import java.util.HashSet;
@@ -35,77 +34,77 @@ public class Materials {
 
     static {
         // Base water, flowing on 1.12- but not on 1.13+ servers
-        WATER_LIQUIDS.add(StateTypes.WATER);
-        WATER_LIQUIDS_LEGACY.add(StateTypes.WATER);
+        WATER_LIQUIDS.add(PacketStateTypes.WATER);
+        WATER_LIQUIDS_LEGACY.add(PacketStateTypes.WATER);
 
         // Becomes grass for legacy versions
-        WATER_LIQUIDS.add(StateTypes.KELP);
-        WATER_SOURCES.add(StateTypes.KELP);
-        WATER_LIQUIDS.add(StateTypes.KELP_PLANT);
-        WATER_SOURCES.add(StateTypes.KELP_PLANT);
+        WATER_LIQUIDS.add(PacketStateTypes.KELP);
+        WATER_SOURCES.add(PacketStateTypes.KELP);
+        WATER_LIQUIDS.add(PacketStateTypes.KELP_PLANT);
+        WATER_SOURCES.add(PacketStateTypes.KELP_PLANT);
 
         // Is translated to air for legacy versions
-        WATER_SOURCES.add(StateTypes.BUBBLE_COLUMN);
-        WATER_LIQUIDS_LEGACY.add(StateTypes.BUBBLE_COLUMN);
-        WATER_LIQUIDS.add(StateTypes.BUBBLE_COLUMN);
-        WATER_SOURCES_LEGACY.add(StateTypes.BUBBLE_COLUMN);
+        WATER_SOURCES.add(PacketStateTypes.BUBBLE_COLUMN);
+        WATER_LIQUIDS_LEGACY.add(PacketStateTypes.BUBBLE_COLUMN);
+        WATER_LIQUIDS.add(PacketStateTypes.BUBBLE_COLUMN);
+        WATER_SOURCES_LEGACY.add(PacketStateTypes.BUBBLE_COLUMN);
 
         // This is not water on 1.12- players
-        WATER_SOURCES.add(StateTypes.SEAGRASS);
-        WATER_LIQUIDS.add(StateTypes.SEAGRASS);
+        WATER_SOURCES.add(PacketStateTypes.SEAGRASS);
+        WATER_LIQUIDS.add(PacketStateTypes.SEAGRASS);
 
         // This is not water on 1.12- players`
-        WATER_SOURCES.add(StateTypes.TALL_SEAGRASS);
-        WATER_LIQUIDS.add(StateTypes.TALL_SEAGRASS);
+        WATER_SOURCES.add(PacketStateTypes.TALL_SEAGRASS);
+        WATER_LIQUIDS.add(PacketStateTypes.TALL_SEAGRASS);
 
-        NO_PLACE_LIQUIDS.add(StateTypes.WATER);
-        NO_PLACE_LIQUIDS.add(StateTypes.LAVA);
+        NO_PLACE_LIQUIDS.add(PacketStateTypes.WATER);
+        NO_PLACE_LIQUIDS.add(PacketStateTypes.LAVA);
 
-        COPPER_DOORS.add(StateTypes.COPPER_DOOR);
-        COPPER_DOORS.add(StateTypes.EXPOSED_COPPER_DOOR);
-        COPPER_DOORS.add(StateTypes.WEATHERED_COPPER_DOOR);
-        COPPER_DOORS.add(StateTypes.OXIDIZED_COPPER_DOOR);
-        COPPER_DOORS.add(StateTypes.WAXED_COPPER_DOOR);
-        COPPER_DOORS.add(StateTypes.WAXED_EXPOSED_COPPER_DOOR);
-        COPPER_DOORS.add(StateTypes.WAXED_WEATHERED_COPPER_DOOR);
-        COPPER_DOORS.add(StateTypes.WAXED_OXIDIZED_COPPER_DOOR);
+        COPPER_DOORS.add(PacketStateTypes.COPPER_DOOR);
+        COPPER_DOORS.add(PacketStateTypes.EXPOSED_COPPER_DOOR);
+        COPPER_DOORS.add(PacketStateTypes.WEATHERED_COPPER_DOOR);
+        COPPER_DOORS.add(PacketStateTypes.OXIDIZED_COPPER_DOOR);
+        COPPER_DOORS.add(PacketStateTypes.WAXED_COPPER_DOOR);
+        COPPER_DOORS.add(PacketStateTypes.WAXED_EXPOSED_COPPER_DOOR);
+        COPPER_DOORS.add(PacketStateTypes.WAXED_WEATHERED_COPPER_DOOR);
+        COPPER_DOORS.add(PacketStateTypes.WAXED_OXIDIZED_COPPER_DOOR);
 
-        COPPER_TRAPDOORS.add(StateTypes.COPPER_TRAPDOOR);
-        COPPER_TRAPDOORS.add(StateTypes.EXPOSED_COPPER_TRAPDOOR);
-        COPPER_TRAPDOORS.add(StateTypes.WEATHERED_COPPER_TRAPDOOR);
-        COPPER_TRAPDOORS.add(StateTypes.OXIDIZED_COPPER_TRAPDOOR);
-        COPPER_TRAPDOORS.add(StateTypes.WAXED_COPPER_TRAPDOOR);
-        COPPER_TRAPDOORS.add(StateTypes.WAXED_EXPOSED_COPPER_TRAPDOOR);
-        COPPER_TRAPDOORS.add(StateTypes.WAXED_WEATHERED_COPPER_TRAPDOOR);
-        COPPER_TRAPDOORS.add(StateTypes.WAXED_OXIDIZED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(PacketStateTypes.COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(PacketStateTypes.EXPOSED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(PacketStateTypes.WEATHERED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(PacketStateTypes.OXIDIZED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(PacketStateTypes.WAXED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(PacketStateTypes.WAXED_EXPOSED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(PacketStateTypes.WAXED_WEATHERED_COPPER_TRAPDOOR);
+        COPPER_TRAPDOORS.add(PacketStateTypes.WAXED_OXIDIZED_COPPER_TRAPDOOR);
 
         // Important blocks where we need to ignore right-clicking on for placing blocks
         // We can ignore stuff like right-clicking a pumpkin with shears...
-        CLIENT_SIDE.add(StateTypes.BARREL);
-        CLIENT_SIDE.add(StateTypes.BEACON);
-        CLIENT_SIDE.add(StateTypes.BREWING_STAND);
-        CLIENT_SIDE.add(StateTypes.CARTOGRAPHY_TABLE);
-        CLIENT_SIDE.add(StateTypes.CHEST);
-        CLIENT_SIDE.add(StateTypes.TRAPPED_CHEST);
-        CLIENT_SIDE.add(StateTypes.COMPARATOR);
-        CLIENT_SIDE.add(StateTypes.CRAFTING_TABLE);
-        CLIENT_SIDE.add(StateTypes.DAYLIGHT_DETECTOR);
-        CLIENT_SIDE.add(StateTypes.DISPENSER);
-        CLIENT_SIDE.add(StateTypes.DRAGON_EGG);
-        CLIENT_SIDE.add(StateTypes.ENCHANTING_TABLE);
-        CLIENT_SIDE.add(StateTypes.ENDER_CHEST);
-        CLIENT_SIDE.add(StateTypes.GRINDSTONE);
-        CLIENT_SIDE.add(StateTypes.HOPPER);
-        CLIENT_SIDE.add(StateTypes.LEVER);
-        CLIENT_SIDE.add(StateTypes.LIGHT);
-        CLIENT_SIDE.add(StateTypes.LOOM);
-        CLIENT_SIDE.add(StateTypes.NOTE_BLOCK);
-        CLIENT_SIDE.add(StateTypes.REPEATER);
-        CLIENT_SIDE.add(StateTypes.SMITHING_TABLE);
-        CLIENT_SIDE.add(StateTypes.STONECUTTER);
-        CLIENT_SIDE.add(StateTypes.LECTERN);
-        CLIENT_SIDE.add(StateTypes.FURNACE);
-        CLIENT_SIDE.add(StateTypes.BLAST_FURNACE);
+        CLIENT_SIDE.add(PacketStateTypes.BARREL);
+        CLIENT_SIDE.add(PacketStateTypes.BEACON);
+        CLIENT_SIDE.add(PacketStateTypes.BREWING_STAND);
+        CLIENT_SIDE.add(PacketStateTypes.CARTOGRAPHY_TABLE);
+        CLIENT_SIDE.add(PacketStateTypes.CHEST);
+        CLIENT_SIDE.add(PacketStateTypes.TRAPPED_CHEST);
+        CLIENT_SIDE.add(PacketStateTypes.COMPARATOR);
+        CLIENT_SIDE.add(PacketStateTypes.CRAFTING_TABLE);
+        CLIENT_SIDE.add(PacketStateTypes.DAYLIGHT_DETECTOR);
+        CLIENT_SIDE.add(PacketStateTypes.DISPENSER);
+        CLIENT_SIDE.add(PacketStateTypes.DRAGON_EGG);
+        CLIENT_SIDE.add(PacketStateTypes.ENCHANTING_TABLE);
+        CLIENT_SIDE.add(PacketStateTypes.ENDER_CHEST);
+        CLIENT_SIDE.add(PacketStateTypes.GRINDSTONE);
+        CLIENT_SIDE.add(PacketStateTypes.HOPPER);
+        CLIENT_SIDE.add(PacketStateTypes.LEVER);
+        CLIENT_SIDE.add(PacketStateTypes.LIGHT);
+        CLIENT_SIDE.add(PacketStateTypes.LOOM);
+        CLIENT_SIDE.add(PacketStateTypes.NOTE_BLOCK);
+        CLIENT_SIDE.add(PacketStateTypes.REPEATER);
+        CLIENT_SIDE.add(PacketStateTypes.SMITHING_TABLE);
+        CLIENT_SIDE.add(PacketStateTypes.STONECUTTER);
+        CLIENT_SIDE.add(PacketStateTypes.LECTERN);
+        CLIENT_SIDE.add(PacketStateTypes.FURNACE);
+        CLIENT_SIDE.add(PacketStateTypes.BLAST_FURNACE);
 
         CLIENT_SIDE.addAll(BlockTags.FENCE_GATES.getStates());
         CLIENT_SIDE.addAll(BlockTags.ANVIL.getStates());
@@ -114,11 +113,11 @@ public class Materials {
         CLIENT_SIDE.addAll(BlockTags.SHULKER_BOXES.getStates());
         CLIENT_SIDE.addAll(BlockTags.SIGNS.getStates());
         CLIENT_SIDE.addAll(BlockTags.FLOWER_POTS.getStates());
-        CLIENT_SIDE.addAll(BlockTags.TRAPDOORS.getStates().stream().filter(type -> type != StateTypes.IRON_TRAPDOOR).collect(Collectors.toSet()));
+        CLIENT_SIDE.addAll(BlockTags.TRAPDOORS.getStates().stream().filter(type -> type != PacketStateTypes.IRON_TRAPDOOR).collect(Collectors.toSet()));
         CLIENT_SIDE.addAll(BlockTags.MOB_INTERACTABLE_DOORS.getStates());
 
         PANES.addAll(BlockTags.GLASS_PANES.getStates());
-        PANES.add(StateTypes.IRON_BARS);
+        PANES.add(PacketStateTypes.IRON_BARS);
     }
 
     public static boolean isStairs(PacketStateType type) {
@@ -199,7 +198,7 @@ public class Materials {
                 || material == PacketItemTypes.TRIDENT || material == PacketItemTypes.SHIELD);
     }
 
-    public static boolean isWater(PacketClientVersion clientVersion, WrappedBlockState state) {
+    public static boolean isWater(PacketClientVersion clientVersion, PacketBlockState state) {
         boolean modern = clientVersion.isNewerThanOrEquals(PacketClientVersions.V_1_13);
 
         if (modern && isWaterModern(state.getType())) {
@@ -213,18 +212,18 @@ public class Materials {
         return isWaterlogged(clientVersion, state);
     }
 
-    public static boolean isWaterSource(PacketClientVersion clientVersion, WrappedBlockState state) {
+    public static boolean isWaterSource(PacketClientVersion clientVersion, PacketBlockState state) {
         if (isWaterlogged(clientVersion, state)) {
             return true;
         }
-        if (state.getType() == StateTypes.WATER && state.getLevel() == 0) {
+        if (state.getType() == PacketStateTypes.WATER && state.getLevel() == 0) {
             return true;
         }
         boolean modern = clientVersion.isNewerThanOrEquals(PacketClientVersions.V_1_13);
         return modern ? WATER_SOURCES.contains(state.getType()) : WATER_SOURCES_LEGACY.contains(state.getType());
     }
 
-    public static boolean isWaterlogged(PacketClientVersion clientVersion, WrappedBlockState state) {
+    public static boolean isWaterlogged(PacketClientVersion clientVersion, PacketBlockState state) {
         if (clientVersion.isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) return false;
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_13))
             return false;
@@ -232,10 +231,10 @@ public class Materials {
         PacketStateType type = state.getType();
 
         // Waterlogged lanterns were added in 1.16.2
-        if (clientVersion.isOlderThan(PacketClientVersions.V_1_16_2) && (type == StateTypes.LANTERN || type == StateTypes.SOUL_LANTERN))
+        if (clientVersion.isOlderThan(PacketClientVersions.V_1_16_2) && (type == PacketStateTypes.LANTERN || type == PacketStateTypes.SOUL_LANTERN))
             return false;
         // ViaVersion small dripleaf -> fern (not waterlogged)
-        if (clientVersion.isOlderThan(PacketClientVersions.V_1_17) && type == StateTypes.SMALL_DRIPLEAF)
+        if (clientVersion.isOlderThan(PacketClientVersions.V_1_17) && type == PacketStateTypes.SMALL_DRIPLEAF)
             return false;
         // Waterlogged rails were added in 1.17
         if (clientVersion.isOlderThan(PacketClientVersions.V_1_17) && BlockTags.RAILS.contains(type))
@@ -251,8 +250,8 @@ public class Materials {
     }
 
     public static PacketStateType transformBucketMaterial(PacketItemType mat) {
-        if (mat == PacketItemTypes.LAVA_BUCKET) return StateTypes.LAVA;
-        if (isPlaceableWaterBucket(mat)) return StateTypes.WATER;
+        if (mat == PacketItemTypes.LAVA_BUCKET) return PacketStateTypes.LAVA;
+        if (isPlaceableWaterBucket(mat)) return PacketStateTypes.WATER;
         return null;
     }
 
@@ -282,14 +281,14 @@ public class Materials {
     }
 
     public static boolean isWoodenChest(PacketStateType mat) {
-        return mat == StateTypes.CHEST || mat == StateTypes.TRAPPED_CHEST;
+        return mat == PacketStateTypes.CHEST || mat == PacketStateTypes.TRAPPED_CHEST;
     }
 
     public static boolean isNoPlaceLiquid(PacketStateType material) {
         return NO_PLACE_LIQUIDS.contains(material);
     }
 
-    public static boolean isWaterIgnoringWaterlogged(PacketClientVersion clientVersion, WrappedBlockState state) {
+    public static boolean isWaterIgnoringWaterlogged(PacketClientVersion clientVersion, PacketBlockState state) {
         if (clientVersion.isNewerThanOrEquals(PacketClientVersions.V_1_13))
             return isWaterModern(state.getType());
         return isWaterLegacy(state.getType());

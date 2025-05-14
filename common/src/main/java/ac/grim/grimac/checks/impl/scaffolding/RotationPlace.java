@@ -1,6 +1,8 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -11,11 +13,7 @@ import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 
@@ -35,7 +33,7 @@ public class RotationPlace extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
+        if (place.getMaterial() == PacketStateTypes.SCAFFOLDING) return;
         if (player.gamemode == GameMode.SPECTATOR)
             return; // you don't send flying packets when spectating entities
         if (player.inVehicle()) return;
@@ -51,7 +49,7 @@ public class RotationPlace extends BlockPlaceCheck {
     // Use post flying because it has the correct rotation, and can't false easily.
     @Override
     public void onPostFlyingBlockPlace(BlockPlace place) {
-        if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
+        if (place.getMaterial() == PacketStateTypes.SCAFFOLDING) return;
         if (player.gamemode == GameMode.SPECTATOR)
             return; // you don't send flying packets when spectating entities
         if (player.inVehicle()) return;

@@ -1,5 +1,6 @@
 package ac.grim.grimac.predictionengine.predictions.rideable;
 
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
@@ -12,8 +13,7 @@ import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -122,10 +122,10 @@ public class BoatPredictionEngine extends PredictionEngine {
                 if (j2 != 2) {
                     for (int k2 = k; k2 < l; ++k2) {
                         if (j2 <= 0 || k2 != k && k2 != l - 1) {
-                            WrappedBlockState blockData = player.compensatedWorld.getBlock(l1, k2, i2);
+                            PacketBlockState blockData = player.compensatedWorld.getBlock(l1, k2, i2);
                             PacketStateType blockMaterial = blockData.getType();
 
-                            if (blockMaterial != StateTypes.LILY_PAD && CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockData, l1, k2, i2).isIntersected(axisalignedbb1)) {
+                            if (blockMaterial != PacketStateTypes.LILY_PAD && CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockData, l1, k2, i2).isIntersected(axisalignedbb1)) {
                                 f += BlockProperties.getMaterialFriction(player, blockMaterial);
                                 ++k1;
                             }

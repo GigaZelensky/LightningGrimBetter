@@ -5,7 +5,7 @@ import ac.grim.grimac.api.GrimUser;
 import ac.grim.grimac.api.data.PistonData;
 import ac.grim.grimac.api.data.boxes.BaseSCB;
 import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;

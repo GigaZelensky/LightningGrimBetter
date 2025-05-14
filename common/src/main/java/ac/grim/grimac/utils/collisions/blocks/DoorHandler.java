@@ -1,8 +1,9 @@
 package ac.grim.grimac.utils.collisions.blocks;
 
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.enums.Half;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
@@ -10,10 +11,8 @@ import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Hinge;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
+import ac.grim.grimac.api.packet.world.enums.Hinge;
 
 public class DoorHandler implements CollisionFactory {
     protected static final CollisionBox SOUTH_AABB = new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 3.0D);
@@ -22,7 +21,7 @@ public class DoorHandler implements CollisionFactory {
     protected static final CollisionBox EAST_AABB = new HexCollisionBox(0.0D, 0.0D, 0.0D, 3.0D, 16.0D, 16.0D);
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, PacketBlockState block, int x, int y, int z) {
         return switch (fetchDirection(player, version, block, x, y, z)) {
             case NORTH -> NORTH_AABB.copy();
             case SOUTH -> SOUTH_AABB.copy();
@@ -33,7 +32,7 @@ public class DoorHandler implements CollisionFactory {
 
     }
 
-    public BlockFace fetchDirection(GrimPlayer player, PacketClientVersion version, WrappedBlockState door, int x, int y, int z) {
+    public BlockFace fetchDirection(GrimPlayer player, PacketClientVersion version, PacketBlockState door, int x, int y, int z) {
         BlockFace facingDirection;
         boolean isClosed;
         boolean isRightHinge;
@@ -46,7 +45,7 @@ public class DoorHandler implements CollisionFactory {
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)
                 || version.isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) {
             if (door.getHalf() == Half.LOWER) {
-                WrappedBlockState above = player.compensatedWorld.getBlock(x, y + 1, z);
+                PacketBlockState above = player.compensatedWorld.getBlock(x, y + 1, z);
 
                 facingDirection = door.getFacing();
                 isClosed = !door.isOpen();
@@ -60,7 +59,7 @@ public class DoorHandler implements CollisionFactory {
                     isRightHinge = false;
                 }
             } else {
-                WrappedBlockState below = player.compensatedWorld.getBlock(x, y - 1, z);
+                PacketBlockState below = player.compensatedWorld.getBlock(x, y - 1, z);
 
                 if (below.getType() == door.getType() && below.getHalf() == Half.LOWER) {
                     isClosed = !below.isOpen();

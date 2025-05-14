@@ -1,18 +1,17 @@
 package ac.grim.grimac.utils.collisions.blocks;
 
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 
 public class PistonBaseCollision implements CollisionFactory {
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, PacketClientVersion version, PacketBlockState block, int x, int y, int z) {
         if (!block.isExtended()) return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return switch (block.getFacing()) {

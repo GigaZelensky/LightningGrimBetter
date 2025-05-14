@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.events.packets.PacketWorldBorder;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
@@ -18,14 +19,11 @@ import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.Direction;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.google.common.collect.ImmutableList;
@@ -321,7 +319,7 @@ public class Collisions {
                             int x = currX | chunkXGlobalPos;
                             int z = currZ | chunkZGlobalPos;
 
-                            WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
+                            PacketBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
 
                             // Works on both legacy and modern!  Faster than checking for material types, most common case
                             if (data.getGlobalId() == 0) continue;
@@ -333,7 +331,7 @@ public class Collisions {
 
                             final PacketStateType type = data.getType();
                             if (edgeCount != 3 && (edgeCount != 1 || Materials.isShapeExceedsCube(type))
-                                    && (edgeCount != 2 || type == StateTypes.PISTON_HEAD)) {
+                                    && (edgeCount != 2 || type == PacketStateTypes.PISTON_HEAD)) {
                                 final CollisionBox collisionBox = CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
                                 // Don't add to a list if we only care if the player intersects with the block
                                 if (!onlyCheckCollide) {
@@ -461,7 +459,7 @@ public class Collisions {
         for (int blockX = blockPos.getBlockX(); blockX <= blockPos2.getBlockX(); ++blockX) {
             for (int blockY = blockPos.getBlockY(); blockY <= blockPos2.getBlockY(); ++blockY) {
                 for (int blockZ = blockPos.getBlockZ(); blockZ <= blockPos2.getBlockZ(); ++blockZ) {
-                    WrappedBlockState block = player.compensatedWorld.getBlock(blockX, blockY, blockZ);
+                    PacketBlockState block = player.compensatedWorld.getBlock(blockX, blockY, blockZ);
                     PacketStateType blockType = block.getType();
 
                     if (blockType.isAir()) {
@@ -474,8 +472,8 @@ public class Collisions {
         }
     }
 
-    public static void onInsideBlock(GrimPlayer player, PacketStateType blockType, WrappedBlockState block, int blockX, int blockY, int blockZ) {
-        if (blockType == StateTypes.COBWEB) {
+    public static void onInsideBlock(GrimPlayer player, PacketStateType blockType, PacketBlockState block, int blockX, int blockY, int blockZ) {
+        if (blockType == PacketStateTypes.COBWEB) {
             if (player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
                 player.stuckSpeedMultiplier = new Vector3dm(0.5, 0.25, 0.5);
             } else {
@@ -483,27 +481,27 @@ public class Collisions {
             }
         }
 
-        if (blockType == StateTypes.SWEET_BERRY_BUSH
+        if (blockType == PacketStateTypes.SWEET_BERRY_BUSH
                 && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14)) {
             player.stuckSpeedMultiplier = new Vector3dm(0.800000011920929, 0.75, 0.800000011920929);
         }
 
-        if (blockType == StateTypes.POWDER_SNOW && blockX == Math.floor(player.x) && blockY == Math.floor(player.y) && blockZ == Math.floor(player.z)
+        if (blockType == PacketStateTypes.POWDER_SNOW && blockX == Math.floor(player.x) && blockY == Math.floor(player.y) && blockZ == Math.floor(player.z)
                 && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_17)) {
             player.stuckSpeedMultiplier = new Vector3dm(0.8999999761581421, 1.5, 0.8999999761581421);
         }
 
-        if (blockType == StateTypes.SOUL_SAND && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_15)) {
+        if (blockType == PacketStateTypes.SOUL_SAND && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_15)) {
             player.clientVelocity.setX(player.clientVelocity.getX() * 0.4D);
             player.clientVelocity.setZ(player.clientVelocity.getZ() * 0.4D);
         }
 
-        if (blockType == StateTypes.LAVA && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_16) && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14)) {
+        if (blockType == PacketStateTypes.LAVA && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_16) && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14)) {
             player.wasTouchingLava = true;
         }
 
-        if (blockType == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
-            WrappedBlockState blockAbove = player.compensatedWorld.getBlock(blockX, blockY + 1, blockZ);
+        if (blockType == PacketStateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_13)) {
+            PacketBlockState blockAbove = player.compensatedWorld.getBlock(blockX, blockY + 1, blockZ);
 
             if (player.inVehicle() && player.compensatedEntities.self.getRiding().isBoat()) {
                 if (!blockAbove.getType().isAir()) {
@@ -537,7 +535,7 @@ public class Collisions {
             player.fallDistance = 0;
         }
 
-        if (blockType == StateTypes.HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_15)) {
+        if (blockType == PacketStateTypes.HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_15)) {
             if (isSlidingDown(player.clientVelocity, player, blockX, blockY, blockZ)) {
                 if (getOldDeltaY(player, player.clientVelocity.getY()) < -0.13D) {
                     double d0 = -0.05 / getOldDeltaY(player, player.clientVelocity.getY());
@@ -564,7 +562,7 @@ public class Collisions {
                     player.boundingBox.copy() : GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)).expand(-1.0E-5F);
 
             for (Vector3i blockPos : boxTraverseBlocks(player, from, to, boundingBox)) {
-                WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
+                PacketBlockState blockState = player.compensatedWorld.getBlock(blockPos);
                 PacketStateType blockType = blockState.getType();
 
                 if (blockType.isAir()) {
@@ -793,18 +791,18 @@ public class Collisions {
         for (int i = blockPos.getBlockX(); i <= blockPos2.getBlockX(); ++i) {
             for (int j = blockPos.getBlockY(); j <= blockPos2.getBlockY(); ++j) {
                 for (int k = blockPos.getBlockZ(); k <= blockPos2.getBlockZ(); ++k) {
-                    WrappedBlockState block = player.compensatedWorld.getBlock(i, j, k);
+                    PacketBlockState block = player.compensatedWorld.getBlock(i, j, k);
                     PacketStateType blockType = block.getType();
 
-                    if (blockType == StateTypes.COBWEB) {
+                    if (blockType == PacketStateTypes.COBWEB) {
                         return true;
                     }
 
-                    if (blockType == StateTypes.SWEET_BERRY_BUSH && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14)) {
+                    if (blockType == PacketStateTypes.SWEET_BERRY_BUSH && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14)) {
                         return true;
                     }
 
-                    if (blockType == StateTypes.POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z) && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_17)) {
+                    if (blockType == PacketStateTypes.POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z) && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_17)) {
                         return true;
                     }
                 }
@@ -823,7 +821,7 @@ public class Collisions {
                         // Mojang re-added soul sand pushing by checking if the player is actually in the block
                         // (This is why from 1.14-1.15 soul sand didn't push)
                         if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_16)) {
-                            WrappedBlockState data = player.compensatedWorld.getBlock(x, y, z);
+                            PacketBlockState data = player.compensatedWorld.getBlock(x, y, z);
                             CollisionBox box = CollisionData.getData(data.getType()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
 
                             if (!box.isIntersected(playerBB)) continue;
@@ -839,37 +837,37 @@ public class Collisions {
     }
 
     public static boolean doesBlockSuffocate(GrimPlayer player, int x, int y, int z) {
-        WrappedBlockState data = player.compensatedWorld.getBlock(x, y, z);
+        PacketBlockState data = player.compensatedWorld.getBlock(x, y, z);
         PacketStateType mat = data.getType();
 
         // Optimization - all blocks that can suffocate must have a hitbox
         if (!mat.isSolid()) return false;
 
         // 1.13- players can not be pushed by blocks that can emit power, for some reason, while 1.14+ players can
-        if (mat == StateTypes.OBSERVER || mat == StateTypes.REDSTONE_BLOCK)
+        if (mat == PacketStateTypes.OBSERVER || mat == PacketStateTypes.REDSTONE_BLOCK)
             return player.getClientVersion().isNewerThan(PacketClientVersions.V_1_13_2);
         // Tnt only pushes on 1.14+ clients
-        if (mat == StateTypes.TNT)
+        if (mat == PacketStateTypes.TNT)
             return player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14);
         // Farmland only pushes on 1.16+ clients
-        if (mat == StateTypes.FARMLAND)
+        if (mat == PacketStateTypes.FARMLAND)
             return player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_16);
         // 1.14-1.15 doesn't push with soul sand, the rest of the versions do
-        if (mat == StateTypes.SOUL_SAND)
+        if (mat == PacketStateTypes.SOUL_SAND)
             return player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_16) || player.getClientVersion().isOlderThan(PacketClientVersions.V_1_14);
         // 1.13 and below exempt piston bases, while 1.14+ look to see if they are a full block or not
-        if ((mat == StateTypes.PISTON || mat == StateTypes.STICKY_PISTON) && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_14))
+        if ((mat == PacketStateTypes.PISTON || mat == PacketStateTypes.STICKY_PISTON) && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_14))
             return false;
         // 1.13 and below exempt ICE and FROSTED_ICE, 1.14 have them push
-        if (mat == StateTypes.ICE || mat == StateTypes.FROSTED_ICE)
+        if (mat == PacketStateTypes.ICE || mat == PacketStateTypes.FROSTED_ICE)
             return player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14);
         // I believe leaves and glass are consistently exempted across all versions
         if (BlockTags.LEAVES.contains(mat) || BlockTags.GLASS_BLOCKS.contains(mat)) return false;
         // 1.16 players are pushed by dirt paths, 1.8 players don't have this block, so it gets converted to a full block
-        if (mat == StateTypes.DIRT_PATH)
+        if (mat == PacketStateTypes.DIRT_PATH)
             return player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_16) || player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9);
         // Only 1.14+ players are pushed by beacons
-        if (mat == StateTypes.BEACON)
+        if (mat == PacketStateTypes.BEACON)
             return player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14);
 
         // Thank god I already have the solid blocking blacklist written, but all these are exempt
@@ -880,7 +878,7 @@ public class Collisions {
     }
 
     // Thanks Tuinity
-    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Pair<WrappedBlockState, Vector3d>> searchingFor) {
+    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Pair<PacketBlockState, Vector3d>> searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX);
         int maxBlockX = (int) Math.floor(checkBox.maxX);
         int minBlockY = (int) Math.floor(checkBox.minY);
@@ -932,7 +930,7 @@ public class Collisions {
                             int x = currX | chunkXGlobalPos;
                             int z = currZ | chunkZGlobalPos;
 
-                            WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
+                            PacketBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
 
                             if (searchingFor.test(new Pair<>(data, new Vector3d(x, y, z))))
                                 return true;
@@ -997,7 +995,7 @@ public class Collisions {
                             int x = currX | chunkXGlobalPos;
                             int z = currZ | chunkZGlobalPos;
 
-                            WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
+                            PacketBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
 
                             // Works on both legacy and modern!  Faster than checking for material types, most common case
                             if (data.getGlobalId() == 0) continue;
@@ -1009,7 +1007,7 @@ public class Collisions {
 
                             final PacketStateType type = data.getType();
                             if (edgeCount != 3 && (edgeCount != 1 || Materials.isShapeExceedsCube(type))
-                                    && (edgeCount != 2 || type == StateTypes.PISTON_HEAD)) {
+                                    && (edgeCount != 2 || type == PacketStateTypes.PISTON_HEAD)) {
                                 final CollisionBox collisionBox = CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
 
                                 if (collisionBox.isIntersected(checkBox)) {
@@ -1024,11 +1022,11 @@ public class Collisions {
     }
 
     public static boolean onClimbable(GrimPlayer player, double x, double y, double z) {
-        WrappedBlockState blockState = player.compensatedWorld.getBlock(x, y, z);
+        PacketBlockState blockState = player.compensatedWorld.getBlock(x, y, z);
         PacketStateType blockMaterial = blockState.getType();
 
         // ViaVersion replacement block -> glow berry vines (cave vines) -> fern
-        if (blockMaterial == StateTypes.CAVE_VINES || blockMaterial == StateTypes.CAVE_VINES_PLANT) {
+        if (blockMaterial == PacketStateTypes.CAVE_VINES || blockMaterial == PacketStateTypes.CAVE_VINES_PLANT) {
             return player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_17);
         }
 
@@ -1037,22 +1035,22 @@ public class Collisions {
         }
 
         // ViaVersion replacement block -> sweet berry bush to vines
-        if (blockMaterial == StateTypes.SWEET_BERRY_BUSH && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_14)) {
+        if (blockMaterial == PacketStateTypes.SWEET_BERRY_BUSH && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_14)) {
             return true;
         }
 
         return trapdoorUsableAsLadder(player, x, y, z, blockState);
     }
 
-    public static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, WrappedBlockState blockData) {
+    public static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, PacketBlockState blockData) {
         if (!BlockTags.TRAPDOORS.contains(blockData.getType())) return false;
         // Feature implemented in 1.9
         if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8)) return false;
 
         if (blockData.isOpen()) {
-            WrappedBlockState blockBelow = player.compensatedWorld.getBlock(x, y - 1, z);
+            PacketBlockState blockBelow = player.compensatedWorld.getBlock(x, y - 1, z);
 
-            if (blockBelow.getType() == StateTypes.LADDER) {
+            if (blockBelow.getType() == PacketStateTypes.LADDER) {
                 return blockData.getFacing() == blockBelow.getFacing();
             }
         }

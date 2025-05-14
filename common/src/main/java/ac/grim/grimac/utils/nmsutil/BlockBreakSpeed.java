@@ -1,9 +1,9 @@
 package ac.grim.grimac.utils.nmsutil;
 
+import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.item.*;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.enums.FluidTag;
@@ -13,14 +13,12 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
-import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 import java.util.OptionalInt;
 
 public class BlockBreakSpeed {
-    public static double getBlockDamage(GrimPlayer player, WrappedBlockState block) {
+    public static double getBlockDamage(GrimPlayer player, PacketBlockState block) {
         // GET destroy speed
         // Starts with itemstack get destroy speed
         PacketItemStack tool = player.getInventory().getHeldItem();
@@ -29,7 +27,7 @@ public class BlockBreakSpeed {
         float blockHardness = block.getType().getHardness();
 
         // 1.15.2 and below need this hack
-        if ((block.getType() == StateTypes.PISTON || block.getType() == StateTypes.PISTON_HEAD || block.getType() == StateTypes.STICKY_PISTON) && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_15_2)) {
+        if ((block.getType() == PacketStateTypes.PISTON || block.getType() == PacketStateTypes.PISTON_HEAD || block.getType() == PacketStateTypes.STICKY_PISTON) && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_15_2)) {
             blockHardness = 0.5f;
         }
 
@@ -93,29 +91,29 @@ public class BlockBreakSpeed {
         if (toolType == PacketItemTypes.SHEARS) {
             isCorrectToolForDrop = true;
 
-            if (block.getType() == StateTypes.COBWEB || Materials.isLeaves(block.getType())) {
+            if (block.getType() == PacketStateTypes.COBWEB || Materials.isLeaves(block.getType())) {
                 speedMultiplier = 15.0f;
             } else if (BlockTags.WOOL.contains(block.getType())) {
                 speedMultiplier = 5.0f;
-            } else if (block.getType() == StateTypes.VINE ||
-                    block.getType() == StateTypes.GLOW_LICHEN) {
+            } else if (block.getType() == PacketStateTypes.VINE ||
+                    block.getType() == PacketStateTypes.GLOW_LICHEN) {
                 speedMultiplier = 2.0f;
             } else {
-                isCorrectToolForDrop = block.getType() == StateTypes.COBWEB ||
-                        block.getType() == StateTypes.REDSTONE_WIRE ||
-                        block.getType() == StateTypes.TRIPWIRE;
+                isCorrectToolForDrop = block.getType() == PacketStateTypes.COBWEB ||
+                        block.getType() == PacketStateTypes.REDSTONE_WIRE ||
+                        block.getType() == PacketStateTypes.TRIPWIRE;
             }
         }
 
         // Swords can also mine some blocks faster
         if (toolType.hasAttribute(PacketItemAttribute.SWORD)) {
-            if (block.getType() == StateTypes.COBWEB) {
+            if (block.getType() == PacketStateTypes.COBWEB) {
                 speedMultiplier = 15.0f;
             } else if (player.tagManager.block(SyncedTags.SWORD_EFFICIENT).contains(block.getType())) {
                 speedMultiplier = 1.5f;
             }
 
-            isCorrectToolForDrop = block.getType() == StateTypes.COBWEB;
+            isCorrectToolForDrop = block.getType() == PacketStateTypes.COBWEB;
         }
 
         if (speedMultiplier > 1.0f) {
@@ -175,7 +173,7 @@ public class BlockBreakSpeed {
 
         boolean canHarvest = !block.getType().isRequiresCorrectTool() || isCorrectToolForDrop
                 // temporary hardcode to workaround PE bug https://github.com/retrooper/packetevents/issues/1217; see https://github.com/GrimAnticheat/Grim/issues/2091
-                || block.getType() == StateTypes.BREWING_STAND && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21_4);
+                || block.getType() == PacketStateTypes.BREWING_STAND && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21_4);
         if (canHarvest) {
             damage /= 30F;
         } else {
