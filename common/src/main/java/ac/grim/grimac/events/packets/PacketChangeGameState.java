@@ -1,11 +1,11 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChangeGameState;
 
@@ -16,7 +16,7 @@ public class PacketChangeGameState extends Check implements PacketCheck {
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.CHANGE_GAME_STATE) {
+        if (event.getPacketType() == PacketTypes.Play.Server.CHANGE_GAME_STATE) {
             WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(event);
 
             if (packet.getReason() == WrapperPlayServerChangeGameState.Reason.CHANGE_GAME_MODE) {

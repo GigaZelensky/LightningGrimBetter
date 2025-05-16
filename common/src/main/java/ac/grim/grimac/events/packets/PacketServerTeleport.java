@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.RotationData;
@@ -12,8 +13,6 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
@@ -28,7 +27,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.PLAYER_POSITION_AND_LOOK) {
+        if (event.getPacketType() == PacketTypes.Play.Server.PLAYER_POSITION_AND_LOOK) {
             WrapperPlayServerPlayerPositionAndLook teleport = new WrapperPlayServerPlayerPositionAndLook(event);
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
@@ -99,7 +98,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             player.getSetbackTeleportUtil().addSentTeleport(target, teleport.getDeltaMovement(), lastTransactionSent, teleport.getRelativeFlags(), true, teleport.getTeleportId());
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.PLAYER_ROTATION) {
+        if (event.getPacketType() == PacketTypes.Play.Server.PLAYER_ROTATION) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
@@ -120,7 +119,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             event.getTasksAfterSend().add(player::sendTransaction);
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {
+        if (event.getPacketType() == PacketTypes.Play.Server.VEHICLE_MOVE) {
             WrapperPlayServerVehicleMove vehicleMove = new WrapperPlayServerVehicleMove(event);
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());

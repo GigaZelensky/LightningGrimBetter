@@ -10,9 +10,9 @@ import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.events.packets.registry.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
 
 @CheckData(name = "BadPacketsU", description = "Sent impossible use item packet")
@@ -22,9 +22,8 @@ public class BadPacketsU extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
-            final ClientPlayerBlockPlacementPacket packet = MCPacket.getAPI().packetFactory().newClientPlayerBlockPlacementPacket(event);
+    public void onPacketReceive(final PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerWrapperHandler((packet, event) -> {
             // BlockFace.OTHER is USE_ITEM for pre 1.9
             if (packet.blockFace() == BlockFace.OTHER) {
 
@@ -58,7 +57,7 @@ public class BadPacketsU extends Check implements PacketCheck {
                     }
                 }
             }
-        }
+        }, ClientPlayerBlockPlacementPacket.class);
     }
 
     private boolean isEmpty(PacketItemStack itemStack) {

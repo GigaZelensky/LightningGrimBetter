@@ -1,10 +1,10 @@
 package ac.grim.grimac.checks.impl.movement;
 
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
@@ -17,7 +17,7 @@ public class SetbackBlocker extends Check implements PacketCheck {
         if (player.disableGrim)
             return; // Let's avoid letting people disable grim with grim.nomodifypackets
 
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+        if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY) {
             if (player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay > 0) {
                 event.setCancelled(true); // Player is in the vehicle
             }
@@ -33,7 +33,7 @@ public class SetbackBlocker extends Check implements PacketCheck {
             }
 
             // Look is the only valid packet to send while in a vehicle
-            if (player.inVehicle() && event.getPacketType() != PacketType.Play.Client.PLAYER_ROTATION && !player.packetStateData.lastPacketWasTeleport) {
+            if (player.inVehicle() && event.getPacketType() != PacketTypes.Play.Client.PLAYER_ROTATION && !player.packetStateData.lastPacketWasTeleport) {
                 event.setCancelled(true);
             }
 
@@ -48,7 +48,7 @@ public class SetbackBlocker extends Check implements PacketCheck {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
+        if (event.getPacketType() == PacketTypes.Play.Client.VEHICLE_MOVE) {
             if (player.getSetbackTeleportUtil().shouldBlockMovement()) {
                 event.setCancelled(true);
             }

@@ -6,6 +6,7 @@ import ac.grim.grimac.api.packet.item.PacketItemType;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -30,7 +31,6 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
@@ -459,12 +459,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
+        if (event.getPacketType() == PacketTypes.Play.Server.OPEN_WINDOW) {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.serverOpenedInventoryThisTick = true);
         }
 
         // Determine if teleport BEFORE we call the pre-prediction vehicle
-        if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
+        if (event.getPacketType() == PacketTypes.Play.Client.VEHICLE_MOVE) {
             WrapperPlayClientVehicleMove move = new WrapperPlayClientVehicleMove(event);
             Vector3d position = move.getPosition();
             player.packetStateData.lastPacketWasTeleport = player.getSetbackTeleportUtil().checkVehicleTeleportQueue(position.getX(), position.getY(), position.getZ());
@@ -507,7 +507,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isMojangStupid(player, event, flying);
         }
 
-        if (player.inVehicle() ? event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+        if (player.inVehicle() ? event.getPacketType() == PacketTypes.Play.Client.VEHICLE_MOVE : WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
             // Update knockback and explosions immediately, before anything can setback
             int kbEntityId = player.inVehicle() ? player.getRidingVehicleId() : player.entityID;
 
@@ -525,7 +525,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.checkManager.onPrePredictionReceivePacket(event);
 
         // The player flagged crasher or timer checks, therefore we must protect predictions against these attacks
-        if (event.isCancelled() && (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE)) {
+        if (event.isCancelled() && (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketTypes.Play.Client.VEHICLE_MOVE)) {
             player.packetStateData.cancelDuplicatePacket = false;
             return;
         }
@@ -537,7 +537,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), ignoreRotation ? player.xRot : pos.getYaw(), ignoreRotation ? player.yRot : pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged(), flying.isOnGround(), teleportData, event);
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE && player.inVehicle()) {
+        if (event.getPacketType() == PacketTypes.Play.Client.VEHICLE_MOVE && player.inVehicle()) {
             WrapperPlayClientVehicleMove move = new WrapperPlayClientVehicleMove(event);
             Vector3d position = move.getPosition();
 
@@ -559,7 +559,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.receivedSteerVehicle = false;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+        if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_DIGGING) {
             player.lastBlockBreak = System.currentTimeMillis();
 
             final WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
@@ -614,7 +614,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+        if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT) {
             WrapperPlayClientPlayerBlockPlacement packet = new WrapperPlayClientPlayerBlockPlacement(event);
             player.lastBlockPlaceUseItem = System.currentTimeMillis();
 
@@ -680,7 +680,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
+        if (event.getPacketType() == PacketTypes.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem packet = new WrapperPlayClientUseItem(event);
             player.placeUseItemPackets.add(new BlockPlaceSnapshot(packet, player.isSneaking));
             player.lastBlockPlaceUseItem = System.currentTimeMillis();
@@ -695,7 +695,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.cancelDuplicatePacket = false;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
+        if (event.getPacketType() == PacketTypes.Play.Client.CLIENT_TICK_END) {
             player.serverOpenedInventoryThisTick = false;
             if (!player.packetStateData.didSendMovementBeforeTickEnd) {
                 // The player didn't send a movement packet, so we can predict this like we had idle tick on 1.8

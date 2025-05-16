@@ -1,7 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -10,7 +9,7 @@ import ac.grim.grimac.utils.data.HeadRotation;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 
@@ -32,7 +31,7 @@ public class BadPacketsJ extends Check implements PostPredictionCheck {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21)
+        if (event.getPacketType() == PacketTypes.Play.Client.USE_ITEM && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21)
                 && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
             WrapperPlayClientUseItem packet = new WrapperPlayClientUseItem(event);
             rotations.add(new HeadRotation(packet.getYaw(), packet.getPitch()));
@@ -40,7 +39,7 @@ public class BadPacketsJ extends Check implements PostPredictionCheck {
 
         if (isTickPacket(event.getPacketType())) {
             // due to tick skipping, the rotations sent could be last tick's
-            boolean allowLast = player.canSkipTicks() && (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION);
+            boolean allowLast = player.canSkipTicks() && (event.getPacketType() == PacketTypes.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketTypes.Play.Client.PLAYER_ROTATION);
             for (HeadRotation rotation : rotations) {
                 if (rotation.getYaw() == player.xRot && rotation.getPitch() == player.yRot) {
                     allowLast = false;

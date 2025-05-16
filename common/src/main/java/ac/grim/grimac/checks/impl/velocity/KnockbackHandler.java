@@ -12,7 +12,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import lombok.Getter;
@@ -42,7 +42,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_VELOCITY) {
+        if (event.getPacketType() == PacketTypes.Play.Server.ENTITY_VELOCITY) {
             WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
             int entityId = velocity.getEntityId();
 

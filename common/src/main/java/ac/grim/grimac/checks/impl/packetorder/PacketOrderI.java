@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.packetorder;
 
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -9,8 +10,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.nmsutil.BlockBreakSpeed;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
@@ -31,7 +30,7 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+        if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY) {
             if (new WrapperPlayClientInteractEntity(event).getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 if (player.packetOrderProcessor.isRightClicking() || player.packetOrderProcessor.isPicking() || player.packetOrderProcessor.isReleasing() || player.packetOrderProcessor.isDigging()) {
                     String verbose = "type=attack, rightClicking=" + player.packetOrderProcessor.isRightClicking()
@@ -60,7 +59,7 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT || event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
+        if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT || event.getPacketType() == PacketTypes.Play.Client.USE_ITEM) {
             if (player.packetOrderProcessor.isReleasing() || digging) {
                 String verbose = "type=place/use, releasing=" + player.packetOrderProcessor.isReleasing() + ", digging=" + digging;
                 if (!player.canSkipTicks()) {
@@ -74,7 +73,7 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+        if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
 
             switch (packet.getAction()) {

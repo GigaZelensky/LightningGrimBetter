@@ -1,7 +1,7 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -10,7 +10,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 @CheckData(name = "BadPacketsT")
@@ -29,7 +28,7 @@ public class BadPacketsT extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType().equals(PacketType.Play.Client.INTERACT_ENTITY)) {
+        if (event.getPacketType().equals(PacketTypes.Play.Client.INTERACT_ENTITY)) {
             final WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
             // Only INTERACT_AT actually has an interaction vector
             wrapper.getTarget().ifPresent(targetVector -> {

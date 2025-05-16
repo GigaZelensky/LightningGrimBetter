@@ -1,11 +1,11 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 @CheckData(name = "BadPacketsR", decay = 0.25, experimental = true)
@@ -38,10 +38,10 @@ public class BadPacketsR extends Check implements PacketCheck {
             }
         }
         //
-        if ((event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION ||
-                event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) && !player.inVehicle()) {
+        if ((event.getPacketType() == PacketTypes.Play.Client.PLAYER_POSITION_AND_ROTATION ||
+                event.getPacketType() == PacketTypes.Play.Client.PLAYER_POSITION) && !player.inVehicle()) {
             positions++;
-        } else if ((event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE || event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE)
+        } else if ((event.getPacketType() == PacketTypes.Play.Client.STEER_VEHICLE || event.getPacketType() == PacketTypes.Play.Client.VEHICLE_MOVE)
                 && player.inVehicle()) {
             positions++;
         }

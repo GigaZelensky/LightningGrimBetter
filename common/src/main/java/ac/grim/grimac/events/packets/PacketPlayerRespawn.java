@@ -3,7 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsE;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsF;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsG;
@@ -19,7 +19,6 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerJoinGame;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerRespawn;
@@ -77,7 +76,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.UPDATE_HEALTH) {
+        if (event.getPacketType() == PacketTypes.Play.Server.UPDATE_HEALTH) {
             WrapperPlayServerUpdateHealth health = new WrapperPlayServerUpdateHealth(event);
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
@@ -110,7 +109,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             event.getTasksAfterSend().add(player::sendTransaction);
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.JOIN_GAME) {
+        if (event.getPacketType() == PacketTypes.Play.Server.JOIN_GAME) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
@@ -124,7 +123,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.compensatedWorld.setDimension(joinGame.getDimensionType(), event.getUser());
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.RESPAWN) {
+        if (event.getPacketType() == PacketTypes.Play.Server.RESPAWN) {
             WrapperPlayServerRespawn respawn = new WrapperPlayServerRespawn(event);
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());

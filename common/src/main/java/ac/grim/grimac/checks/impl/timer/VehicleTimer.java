@@ -2,7 +2,7 @@ package ac.grim.grimac.checks.impl.timer;
 
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 
 @CheckData(name = "Timer - Vehicle", configName = "TimerVehicle", setback = 10)
@@ -18,12 +18,12 @@ public class VehicleTimer extends Timer {
         // Ignore teleports
         if (player.packetStateData.lastPacketWasTeleport) return false;
 
-        if (packetType == PacketType.Play.Client.VEHICLE_MOVE) {
+        if (packetType == PacketTypes.Play.Client.VEHICLE_MOVE) {
             isDummy = false;
             return true; // Client controlling vehicle
         }
 
-        if (packetType == PacketType.Play.Client.STEER_VEHICLE) {
+        if (packetType == PacketTypes.Play.Client.STEER_VEHICLE) {
             if (isDummy) { // Server is controlling vehicle
                 return true;
             }

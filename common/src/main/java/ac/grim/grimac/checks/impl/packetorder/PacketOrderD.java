@@ -1,13 +1,12 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity.InteractAction;
@@ -24,7 +23,7 @@ public class PacketOrderD extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9)) {
+        if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9)) {
             final WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
             InteractAction action = packet.getAction();
             if (action != InteractAction.ATTACK) {

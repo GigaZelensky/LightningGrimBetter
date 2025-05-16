@@ -3,7 +3,7 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -19,7 +19,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
@@ -192,7 +191,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
     }
 
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
+        if (event.getPacketType() == PacketTypes.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem item = new WrapperPlayClientUseItem(event);
 
             PacketItemStack use = item.getHand() == InteractionHand.MAIN_HAND ? player.getInventory().getHeldItem() : player.getInventory().getOffHand();
@@ -234,7 +233,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+        if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
             // 1.8 clients don't predict dropping items
@@ -258,7 +257,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
+        if (event.getPacketType() == PacketTypes.Play.Client.HELD_ITEM_CHANGE) {
             final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
 
             // Stop people from spamming the server with an out-of-bounds exception
@@ -267,7 +266,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             inventory.selected = slot;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
+        if (event.getPacketType() == PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION) {
             WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
             if (player.gamemode != GameMode.CREATIVE) return;
 
@@ -281,7 +280,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && !event.isCancelled()) {
+        if (event.getPacketType() == PacketTypes.Play.Client.CLICK_WINDOW && !event.isCancelled()) {
             WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
 
             // How is this possible? Maybe transaction splitting.
@@ -312,7 +311,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
+        if (event.getPacketType() == PacketTypes.Play.Client.CLOSE_WINDOW) {
             menu = inventory;
             openWindowID = 0;
             menu.setCarried(PacketItemStack.EMPTY); // Reset carried item
@@ -339,7 +338,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         // Not 1:1 MCP, based on Wiki.VG to be simpler as we need less logic...
         // For example, we don't need permanent storage, only storing data until the client closes the window
         // We also don't need a lot of server-sided only logic
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
+        if (event.getPacketType() == PacketTypes.Play.Server.OPEN_WINDOW) {
             WrapperPlayServerOpenWindow open = new WrapperPlayServerOpenWindow(event);
 
             MenuType menuType = MenuType.getMenuType(open.getType());
@@ -364,7 +363,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         }
 
         // I'm not implementing this lol
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
+        if (event.getPacketType() == PacketTypes.Play.Server.OPEN_HORSE_WINDOW) {
             WrapperPlayServerOpenHorseWindow open = new WrapperPlayServerOpenHorseWindow(event);
 
             packetSendingInventorySize = UNSUPPORTED_INVENTORY_CASE;
@@ -376,7 +375,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         }
 
         // 1:1 MCP
-        if (event.getPacketType() == PacketType.Play.Server.CLOSE_WINDOW) {
+        if (event.getPacketType() == PacketTypes.Play.Server.CLOSE_WINDOW) {
             packetSendingInventorySize = PLAYER_INVENTORY_CASE;
 
             // Disregard provided window ID, client doesn't care...
@@ -389,7 +388,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         }
 
         // Should be 1:1 MCP
-        if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
+        if (event.getPacketType() == PacketTypes.Play.Server.WINDOW_ITEMS) {
             WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
             stateID = items.getStateId();
 
@@ -433,7 +432,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         }
 
         // Also 1:1 MCP
-        if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
+        if (event.getPacketType() == PacketTypes.Play.Server.SET_SLOT) {
             // Only edit hotbar (36 to 44) if window ID is 0
             // Set cursor by putting -1 as window ID and as slot
             // Window ID -2 means any slot can be used

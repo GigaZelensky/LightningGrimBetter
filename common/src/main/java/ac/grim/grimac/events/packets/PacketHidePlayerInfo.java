@@ -7,7 +7,7 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
@@ -25,7 +25,7 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO) {
+        if (event.getPacketType() == PacketTypes.Play.Server.PLAYER_INFO) {
             //iterate through players and fake their game mode if they are spectating via grim spectate
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2))
                 return;
@@ -57,7 +57,7 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
                     event.markForReEncode(true);
                 }
             }
-        } else if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO_UPDATE) {
+        } else if (event.getPacketType() == PacketTypes.Play.Server.PLAYER_INFO_UPDATE) {
             GrimPlayer receiver = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (receiver == null) return;
             //create wrappers

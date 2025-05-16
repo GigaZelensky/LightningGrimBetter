@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class MultiActionsF extends BlockPlaceCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+        if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY) {
             entity = true;
             if (block) {
                 if (!player.canSkipTicks()) {

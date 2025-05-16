@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -12,7 +11,7 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -31,7 +30,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
+        if (event.getPacketType() == PacketTypes.Play.Server.ENTITY_METADATA) {
             WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
@@ -221,7 +220,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.USE_BED) {
+        if (event.getPacketType() == PacketTypes.Play.Server.USE_BED) {
             WrapperPlayServerUseBed bed = new WrapperPlayServerUseBed(event);
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
@@ -234,7 +233,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) {
+        if (event.getPacketType() == PacketTypes.Play.Server.ENTITY_ANIMATION) {
             WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());

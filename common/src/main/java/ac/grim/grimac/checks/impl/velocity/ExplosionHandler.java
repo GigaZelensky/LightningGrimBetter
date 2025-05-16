@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.packet.block.PacketBlockState;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -13,7 +14,6 @@ import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
@@ -46,7 +46,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.EXPLOSION) {
+        if (event.getPacketType() == PacketTypes.Play.Server.EXPLOSION) {
             WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
 
             // Since 1.21.2, the server will instead send these changes via block change packets

@@ -5,6 +5,7 @@ import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.item.*;
 import ac.grim.grimac.api.packet.nbt.PacketNBTCompound;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.impl.movement.NoSlow;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -15,7 +16,6 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.component.builtin.item.FoodProperties;
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemConsumable;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
@@ -158,7 +158,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+        if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
             if (dig.getAction() == DiggingAction.RELEASE_USE_ITEM) {
@@ -179,7 +179,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             }
         }
 
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketTypes.Play.Client.CLIENT_TICK_END) {
             final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player != null && player.packetStateData.isSlowedByUsingItem()
                     && !player.packetStateData.lastPacketWasTeleport
@@ -193,7 +193,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
+        if (event.getPacketType() == PacketTypes.Play.Client.HELD_ITEM_CHANGE) {
             final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
 
             // Stop people from spamming the server with out of bounds exceptions
@@ -219,11 +219,11 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             player.packetStateData.lastSlotSelected = slot;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM || (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT && MCPacket.getAPI().packetFactory().newClientPlayerBlockPlacementPacket(event).blockFace() == BlockFace.OTHER)) {
+        if (event.getPacketType() == PacketTypes.Play.Client.USE_ITEM || (event.getPacketType() == PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT && MCPacket.getAPI().packetFactory().newClientPlayerBlockPlacementPacket(event).blockFace() == BlockFace.OTHER)) {
             final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
-            final InteractionHand hand = event.getPacketType() == PacketType.Play.Client.USE_ITEM
+            final InteractionHand hand = event.getPacketType() == PacketTypes.Play.Client.USE_ITEM
                     ? new WrapperPlayClientUseItem(event).getHand()
                     : InteractionHand.MAIN_HAND;
 

@@ -6,7 +6,7 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
@@ -47,7 +47,7 @@ public class BadPacketsX extends Check implements PostPredictionCheck {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
+        if (event.getPacketType() == PacketTypes.Play.Client.ENTITY_ACTION) {
             switch (new WrapperPlayClientEntityAction(event).getAction()) {
                 case START_SNEAKING, STOP_SNEAKING -> {
                     if (sneak) {

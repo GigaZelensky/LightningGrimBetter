@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.event.UserDisconnectEvent;
 import com.github.retrooper.packetevents.event.UserLoginEvent;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.google.common.base.Preconditions;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -21,7 +21,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Login.Server.LOGIN_SUCCESS) {
+        if (event.getPacketType() == PacketTypes.Login.Server.LOGIN_SUCCESS) {
             // Do this after send to avoid sending packets before the PLAY state
             event.getTasksAfterSend().add(() -> GrimAPI.INSTANCE.getPlayerDataManager().addUser(event.getUser()));
         }

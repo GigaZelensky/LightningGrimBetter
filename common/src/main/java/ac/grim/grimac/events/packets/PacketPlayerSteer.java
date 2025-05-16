@@ -12,8 +12,7 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerInput;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSteerVehicle;
 
@@ -25,7 +24,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE) {
+        if (event.getPacketType() == PacketTypes.Play.Client.STEER_VEHICLE) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
@@ -101,7 +100,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             }
 
             player.packetStateData.receivedSteerVehicle = true;
-        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_INPUT) {
+        } else if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_INPUT) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 

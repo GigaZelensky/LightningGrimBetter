@@ -1,12 +1,12 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClientStatus;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
@@ -23,10 +23,10 @@ public class PacketOrderG extends Check implements PostPredictionCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING || (event.getPacketType() == PacketType.Play.Client.CLIENT_STATUS
+        if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_DIGGING || (event.getPacketType() == PacketTypes.Play.Client.CLIENT_STATUS
                 && new WrapperPlayClientClientStatus(event).getAction() == WrapperPlayClientClientStatus.Action.OPEN_INVENTORY_ACHIEVEMENT)) {
             DiggingAction action = null;
-            if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+            if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_DIGGING) {
                 action = new WrapperPlayClientPlayerDigging(event).getAction();
                 if (action == DiggingAction.RELEASE_USE_ITEM
                         || action == DiggingAction.START_DIGGING

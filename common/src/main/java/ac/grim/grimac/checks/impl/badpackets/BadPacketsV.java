@@ -6,8 +6,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
@@ -22,7 +21,7 @@ public class BadPacketsV extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (!player.canSkipTicks() && isTickPacket(event.getPacketType())) {
-            if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
+            if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_POSITION || event.getPacketType() == PacketTypes.Play.Client.PLAYER_POSITION_AND_ROTATION) {
                 int positionAtLeastEveryNTicks = player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8) ? 20 : 19;
 
                 if (noReminderTicks < positionAtLeastEveryNTicks && !player.uncertaintyHandler.lastTeleportTicks.hasOccurredSince(1)) {

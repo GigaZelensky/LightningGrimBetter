@@ -1,13 +1,13 @@
 package ac.grim.grimac.events.packets.worldreader;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.TeleportData;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import ac.grim.grimac.api.packet.world.chunk.PacketChunk;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
@@ -27,7 +27,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.UNLOAD_CHUNK) {
+        if (event.getPacketType() == PacketTypes.Play.Server.UNLOAD_CHUNK) {
             WrapperPlayServerUnloadChunk unloadChunk = new WrapperPlayServerUnloadChunk(event);
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
@@ -36,35 +36,35 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         }
 
         // 1.7 and 1.8 only
-        if (event.getPacketType() == PacketType.Play.Server.MAP_CHUNK_BULK) {
+        if (event.getPacketType() == PacketTypes.Play.Server.MAP_CHUNK_BULK) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             handleMapChunkBulk(player, event);
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.CHUNK_DATA) {
+        if (event.getPacketType() == PacketTypes.Play.Server.CHUNK_DATA) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             handleMapChunk(player, event);
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.BLOCK_CHANGE) {
+        if (event.getPacketType() == PacketTypes.Play.Server.BLOCK_CHANGE) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             handleBlockChange(player, event);
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
+        if (event.getPacketType() == PacketTypes.Play.Server.MULTI_BLOCK_CHANGE) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             handleMultiBlockChange(player, event);
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.ACKNOWLEDGE_BLOCK_CHANGES) {
+        if (event.getPacketType() == PacketTypes.Play.Server.ACKNOWLEDGE_BLOCK_CHANGES) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
@@ -72,7 +72,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
             player.compensatedWorld.handlePredictionConfirmation(changes.getSequence());
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.ACKNOWLEDGE_PLAYER_DIGGING) {
+        if (event.getPacketType() == PacketTypes.Play.Server.ACKNOWLEDGE_PLAYER_DIGGING) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
@@ -80,7 +80,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
             player.compensatedWorld.handleBlockBreakAck(ack.getBlockPosition(), ack.getBlockId(), ack.getAction(), ack.isSuccessful());
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.CHANGE_GAME_STATE) {
+        if (event.getPacketType() == PacketTypes.Play.Server.CHANGE_GAME_STATE) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 

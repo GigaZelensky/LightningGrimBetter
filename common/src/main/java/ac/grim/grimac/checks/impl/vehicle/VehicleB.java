@@ -5,7 +5,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 
 @CheckData(name = "VehicleB", description = "Claimed to be in a vehicle while not in a vehicle")
 public class VehicleB extends Check implements PacketCheck {
@@ -15,7 +15,7 @@ public class VehicleB extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE) {
+        if (event.getPacketType() == PacketTypes.Play.Client.STEER_VEHICLE) {
             if (!player.inVehicle()) {
                 if (flagAndAlert() && shouldModifyPackets()) {
                     event.setCancelled(true);

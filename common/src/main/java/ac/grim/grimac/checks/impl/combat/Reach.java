@@ -18,7 +18,6 @@ package ac.grim.grimac.checks.impl.combat;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -31,7 +30,7 @@ import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.api.packet.entity.PacketEntityType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
@@ -66,7 +65,7 @@ public class Reach extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (!player.disableGrim && event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+        if (!player.disableGrim && event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
 
             // Don't let the player teleport to bypass reach

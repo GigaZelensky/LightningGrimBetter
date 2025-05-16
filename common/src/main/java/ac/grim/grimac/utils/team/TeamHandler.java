@@ -1,11 +1,11 @@
 package ac.grim.grimac.utils.team;
 
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
@@ -43,7 +43,7 @@ public class TeamHandler extends Check implements PacketCheck {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.TEAMS) {
+        if (event.getPacketType() == PacketTypes.Play.Server.TEAMS) {
             WrapperPlayServerTeams teams = new WrapperPlayServerTeams(event);
             final String teamName = teams.getTeamName();
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {

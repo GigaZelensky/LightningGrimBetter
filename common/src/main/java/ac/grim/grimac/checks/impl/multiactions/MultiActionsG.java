@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.multiactions;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
@@ -8,7 +9,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
 @CheckData(name = "MultiActionsG", description = "Attacking or using items while rowing a boat", experimental = true)
 public class MultiActionsG extends BlockPlaceCheck {
@@ -18,13 +18,13 @@ public class MultiActionsG extends BlockPlaceCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY && isCheckActive()
+        if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY && isCheckActive()
                 && flagAndAlert("interact") && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM && isCheckActive()
+        if (event.getPacketType() == PacketTypes.Play.Client.USE_ITEM && isCheckActive()
                 && flagAndAlert("use") && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();

@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPong;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientWindowConfirmation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
@@ -24,7 +24,7 @@ public class PacketPingListener extends PacketListenerAbstract {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
+        if (event.getPacketType() == PacketTypes.Play.Client.WINDOW_CONFIRMATION) {
             WrapperPlayClientWindowConfirmation transaction = new WrapperPlayClientWindowConfirmation(event);
             short id = transaction.getActionId();
 
@@ -48,7 +48,7 @@ public class PacketPingListener extends PacketListenerAbstract {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PONG) {
+        if (event.getPacketType() == PacketTypes.Play.Client.PONG) {
             WrapperPlayClientPong pong = new WrapperPlayClientPong(event);
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
@@ -70,7 +70,7 @@ public class PacketPingListener extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.WINDOW_CONFIRMATION) {
+        if (event.getPacketType() == PacketTypes.Play.Server.WINDOW_CONFIRMATION) {
             WrapperPlayServerWindowConfirmation confirmation = new WrapperPlayServerWindowConfirmation(event);
             short id = confirmation.getActionId();
             //
@@ -87,7 +87,7 @@ public class PacketPingListener extends PacketListenerAbstract {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Server.PING) {
+        if (event.getPacketType() == PacketTypes.Play.Server.PING) {
             WrapperPlayServerPing pong = new WrapperPlayServerPing(event);
             int id = pong.getId();
             //

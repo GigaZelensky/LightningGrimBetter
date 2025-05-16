@@ -6,7 +6,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 
 @CheckData(name = "Timer", configName = "TimerA", setback = 10)
@@ -100,8 +100,8 @@ public class Timer extends Check implements PacketCheck {
     }
 
     public boolean checkForTransaction(PacketTypeCommon packetType) {
-        return packetType == PacketType.Play.Client.PONG ||
-                packetType == PacketType.Play.Client.WINDOW_CONFIRMATION;
+        return packetType == PacketTypes.Play.Client.PONG ||
+                packetType == PacketTypes.Play.Client.WINDOW_CONFIRMATION;
     }
 
     public boolean shouldCountPacketForTimer(PacketTypeCommon packetType) {

@@ -1,7 +1,6 @@
 package ac.grim.grimac.checks.impl.post;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -13,7 +12,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
@@ -22,15 +21,15 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Locale;
 
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.ANIMATION;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.CLICK_WINDOW;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.ENTITY_ACTION;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.HELD_ITEM_CHANGE;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.INTERACT_ENTITY;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.PLAYER_ABILITIES;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.PLAYER_DIGGING;
-import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.USE_ITEM;
+import static ac.grim.grimac.api.packet.types.PacketTypes.Play.Client.ANIMATION;
+import static ac.grim.grimac.api.packet.types.PacketTypes.Play.Client.CLICK_WINDOW;
+import static ac.grim.grimac.api.packet.types.PacketTypes.Play.Client.ENTITY_ACTION;
+import static ac.grim.grimac.api.packet.types.PacketTypes.Play.Client.HELD_ITEM_CHANGE;
+import static ac.grim.grimac.api.packet.types.PacketTypes.Play.Client.INTERACT_ENTITY;
+import static ac.grim.grimac.api.packet.types.PacketTypes.Play.Client.PLAYER_ABILITIES;
+import static ac.grim.grimac.api.packet.types.PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT;
+import static ac.grim.grimac.api.packet.types.PacketTypes.Play.Client.PLAYER_DIGGING;
+import static ac.grim.grimac.api.packet.types.PacketTypes.Play.Client.USE_ITEM;
 
 @CheckData(name = "Post")
 public class Post extends Check implements PacketCheck, PostPredictionCheck {
@@ -63,7 +62,7 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) {
+        if (event.getPacketType() == PacketTypes.Play.Server.ENTITY_ANIMATION) {
             WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
             if (animation.getEntityId() == player.entityID) {
                 if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM ||

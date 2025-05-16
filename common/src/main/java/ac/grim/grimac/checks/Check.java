@@ -5,8 +5,9 @@ import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.event.events.FlagEvent;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import lombok.Getter;
@@ -172,8 +173,8 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public boolean isTransaction(PacketTypeCommon packetType) {
-        return packetType == PacketType.Play.Client.PONG ||
-                packetType == PacketType.Play.Client.WINDOW_CONFIRMATION;
+        return packetType == PacketTypes.Play.Client.PONG ||
+                packetType == PacketTypes.Play.Client.WINDOW_CONFIRMATION;
     }
 
     public boolean isFlying(PacketTypeCommon packetType) {
@@ -182,7 +183,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
 
     public boolean isUpdate(PacketTypeCommon packetType) {
         return isFlying(packetType)
-                || packetType == PacketType.Play.Client.CLIENT_TICK_END
+                || packetType == PacketTypes.Play.Client.CLIENT_TICK_END
                 || isTransaction(packetType);
     }
 
@@ -201,7 +202,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
         // TickTimer checks to see if player did not send a tick end packet before new flying packet is sent
         if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21_2)
                 && !player.packetStateData.didSendMovementBeforeTickEnd) {
-            if (packetType == PacketType.Play.Client.CLIENT_TICK_END) {
+            if (packetType == PacketTypes.Play.Client.CLIENT_TICK_END) {
                 return true;
             }
         }
@@ -209,4 +210,6 @@ public class Check extends GrimProcessor implements AbstractCheck {
         return isFlying(packetType);
     }
 
+
+    public static final PacketType[] POSSIBLE_TICK_PACKET_TYPES = new PacketType[]{PacketTypes.Play.Client.CLIENT_TICK_END, PacketTypes.Play.Client.PLAYER_FLYING, PacketTypes.Play.Client.PLAYER_POSITION, PacketTypes.Play.Client.PLAYER_ROTATION, PacketTypes.Play.Client.PLAYER_POSITION_AND_ROTATION};
 }

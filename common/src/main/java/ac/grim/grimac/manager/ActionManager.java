@@ -1,11 +1,12 @@
 package ac.grim.grimac.manager;
 
+import ac.grim.grimac.api.packet.types.client.play.ClientInteractEntityPacket;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.events.packets.registry.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import lombok.Getter;
 
 @Getter
@@ -18,21 +19,22 @@ public class ActionManager extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
-            if (action.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+    public void onPacketReceive(final PacketHandlerRegistry<PacketReceiveEvent> registry) {
+        registry.registerWrapperHandler((action, event) -> {
+            if (action.action() == ClientInteractEntityPacket.InteractAction.ATTACK) {
                 player.totalFlyingPacketsSent = 0;
                 attacking = true;
                 lastAttack = System.currentTimeMillis();
             }
-        } else if (isTickPacketIncludingNonMovement(event.getPacketType())) {
-            player.totalFlyingPacketsSent++;
-            attacking = false;
-        }
-    }
+        }, ClientInteractEntityPacket.class);
 
-    public boolean hasAttackedSince(long time) {
-        return System.currentTimeMillis() - lastAttack < time;
+        // TODO (Packet Rewrite) (Registry) (Optimize) optimize more later
+        registry.registerHandler(event -> {
+            if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY) return;
+            if (isTickPacketIncludingNonMovement(event.getPacketType())) {
+                player.totalFlyingPacketsSent++;
+                attacking = false;
+            }
+        });
     }
 }

@@ -5,7 +5,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSelectBundleItem;
 
 @CheckData(name = "CrashI")
@@ -16,7 +16,7 @@ public class CrashI extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.SELECT_BUNDLE_ITEM) {
+        if (event.getPacketType() == PacketTypes.Play.Client.SELECT_BUNDLE_ITEM) {
             int selectedItemIndex;
             try {
                 selectedItemIndex = new WrapperPlayClientSelectBundleItem(event).getSelectedItemIndex();

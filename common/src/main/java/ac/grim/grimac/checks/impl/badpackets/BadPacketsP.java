@@ -6,7 +6,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
@@ -23,7 +23,7 @@ public class BadPacketsP extends Check implements PacketCheck {
 
     @Override
     public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
+        if (event.getPacketType() == PacketTypes.Play.Server.OPEN_WINDOW) {
             WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
             this.containerType = window.getType();
             this.containerId = window.getContainerId();
@@ -32,7 +32,7 @@ public class BadPacketsP extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
+        if (event.getPacketType() == PacketTypes.Play.Client.CLICK_WINDOW) {
             WrapperPlayClientClickWindow wrapper = new WrapperPlayClientClickWindow(event);
             WindowClickType clickType = wrapper.getWindowClickType();
             int button = wrapper.getButton();

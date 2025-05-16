@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import ac.grim.grimac.api.util.ChatUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.wrapper.configuration.client.WrapperConfigClientPluginMessage;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPluginMessage;
 import lombok.Getter;
@@ -28,10 +28,10 @@ public class ClientBrand extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.PLUGIN_MESSAGE) {
+        if (event.getPacketType() == PacketTypes.Play.Client.PLUGIN_MESSAGE) {
             WrapperPlayClientPluginMessage packet = new WrapperPlayClientPluginMessage(event);
             handle(packet.getChannelName(), packet.getData());
-        } else if (event.getPacketType() == PacketType.Configuration.Client.PLUGIN_MESSAGE) {
+        } else if (event.getPacketType() == PacketTypes.Configuration.Client.PLUGIN_MESSAGE) {
             WrapperConfigClientPluginMessage packet = new WrapperConfigClientPluginMessage(event);
             handle(packet.getChannelName(), packet.getData());
         }

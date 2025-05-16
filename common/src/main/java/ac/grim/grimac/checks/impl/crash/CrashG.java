@@ -9,8 +9,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 
 @CheckData(name = "CrashG", description = "Sent negative sequence id")
@@ -22,7 +21,7 @@ public class CrashG extends BlockPlaceCheck {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM && isSupportedVersion()) {
+        if (event.getPacketType() == PacketTypes.Play.Client.USE_ITEM && isSupportedVersion()) {
             WrapperPlayClientUseItem use = new WrapperPlayClientUseItem(event);
             if (use.getSequence() < 0) {
                 flagAndAlert();

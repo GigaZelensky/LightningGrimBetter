@@ -1,7 +1,6 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -10,7 +9,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 
 @CheckData(name = "BadPacketsH", description = "Sent unexpected sequence id", experimental = true)
@@ -24,7 +23,7 @@ public class BadPacketsH extends BlockPlaceCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM
+        if (event.getPacketType() == PacketTypes.Play.Client.USE_ITEM
                 && shouldCancel(new WrapperPlayClientUseItem(event).getSequence())) {
             event.setCancelled(true);
             player.onPacketCancel();

@@ -1,12 +1,12 @@
 package ac.grim.grimac.checks.impl.multiactions;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.PacketTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
@@ -21,7 +21,7 @@ public class MultiActionsE extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!dropping && player.packetStateData.isSlowedByUsingItem() && (player.packetStateData.lastSlotSelected == player.packetStateData.getSlowedByUsingItemSlot() || player.packetStateData.eatingHand == InteractionHand.OFF_HAND) && event.getPacketType() == PacketType.Play.Client.ANIMATION) {
+        if (!dropping && player.packetStateData.isSlowedByUsingItem() && (player.packetStateData.lastSlotSelected == player.packetStateData.getSlowedByUsingItemSlot() || player.packetStateData.eatingHand == InteractionHand.OFF_HAND) && event.getPacketType() == PacketTypes.Play.Client.ANIMATION) {
             // this is possible to false on 1.7
             if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_7_10)) {
                 return;
@@ -35,7 +35,7 @@ public class MultiActionsE extends Check implements PacketCheck {
 
         dropping = false;
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_15)) {
+        if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_DIGGING && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_15)) {
             DiggingAction action = new WrapperPlayClientPlayerDigging(event).getAction();
             dropping = action == DiggingAction.DROP_ITEM || action == DiggingAction.DROP_ITEM_STACK;
         }
