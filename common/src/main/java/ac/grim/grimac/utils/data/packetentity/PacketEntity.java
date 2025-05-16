@@ -47,6 +47,7 @@ public class PacketEntity extends TypedPacketEntity {
     // TODO in what cases is UUID null in 1.9+?
     @Getter
     private final UUID uuid; // NULL ON VERSIONS BELOW 1.9 (or for some entities, apparently??)
+    @Getter
     public PacketEntity riding;
     public List<PacketEntity> passengers = new ArrayList<>(0);
     public boolean isDead = false;

@@ -515,7 +515,7 @@ public class CompensatedEntities {
                 isElderlyBitMask = 0x04;
             }
 
-            EntityData guardianByte = WatchableIndexUtil.getIndex(watchableObjects, index);
+            EntityData<?> guardianByte = WatchableIndexUtil.getIndex(watchableObjects, index);
             if (guardianByte != null) {
                 int info = (Integer) guardianByte.getValue(); // wiki says this is a byte but testing on 1.8 shows its an integer
                 ((PacketEntityGuardian) entity).isElder = (info & isElderlyBitMask) != 0;

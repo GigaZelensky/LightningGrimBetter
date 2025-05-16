@@ -459,6 +459,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
             return;
         }
 
+        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.serverOpenedInventoryThisTick = true);
+        }
+
         // Determine if teleport BEFORE we call the pre-prediction vehicle
         if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
             WrapperPlayClientVehicleMove move = new WrapperPlayClientVehicleMove(event);
@@ -469,6 +473,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         TeleportAcceptData teleportData = null;
 
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            player.serverOpenedInventoryThisTick = false;
+
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
 
             Vector3d position = VectorUtils.clampVector(flying.getLocation().getPosition());
@@ -692,6 +698,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
+            player.serverOpenedInventoryThisTick = false;
             if (!player.packetStateData.didSendMovementBeforeTickEnd) {
                 // The player didn't send a movement packet, so we can predict this like we had idle tick on 1.8
                 player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;

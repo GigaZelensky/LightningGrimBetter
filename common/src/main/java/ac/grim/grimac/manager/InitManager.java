@@ -8,6 +8,7 @@ import ac.grim.grimac.manager.init.start.*;
 import ac.grim.grimac.manager.init.stop.StoppableInitable;
 import ac.grim.grimac.manager.init.stop.TerminatePacketEvents;
 import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
@@ -73,7 +74,7 @@ public class InitManager {
             try {
                 initable.load();
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtil.error("Failed to load " + initable.getClass().getSimpleName(), e);
             }
         loaded = true;
     }
@@ -83,7 +84,7 @@ public class InitManager {
             try {
                 initable.start();
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtil.error("Failed to start " + initable.getClass().getSimpleName(), e);
             }
         started = true;
     }
@@ -93,7 +94,7 @@ public class InitManager {
             try {
                 initable.stop();
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtil.error("Failed to stop " + initable.getClass().getSimpleName(), e);
             }
         stopped = true;
     }

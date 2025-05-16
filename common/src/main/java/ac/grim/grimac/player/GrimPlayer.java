@@ -247,6 +247,7 @@ public class GrimPlayer implements GrimUser {
     public final ArrayDeque<RotationData> pendingRotations = new ArrayDeque<>();
     @Getter @Setter private ResyncHandler resyncHandler = new DefaultResyncHandler(this);
     @Getter private final FeatureManagerImpl featureManager = new FeatureManagerImpl(this);
+    public boolean serverOpenedInventoryThisTick;
     // start config
     private boolean debugPacketCancel = false;
     private int spamThreshold = 100;
@@ -312,7 +313,11 @@ public class GrimPlayer implements GrimUser {
             cancelledPackets.set(0);
 
             if (debugPacketCancel) {
-                LogUtil.error("Stacktrace for onPacketCancel (debug-packet-cancel=true)", new Exception());
+                try {
+                    throw new Exception();
+                } catch (Exception e) {
+                    LogUtil.error("Stacktrace for onPacketCancel (debug-packet-cancel=true)", e);
+                }
             }
         }
     }
@@ -511,9 +516,8 @@ public class GrimPlayer implements GrimUser {
         }
         user.closeConnection();
         if (platformPlayer != null) {
-            GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(), () -> {
-                platformPlayer.kickPlayer(textReason);
-            }, null, 1);
+            GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(),
+                    () -> platformPlayer.kickPlayer(textReason), null, 1);
         }
     }
 

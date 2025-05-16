@@ -19,6 +19,7 @@ import ac.grim.grimac.utils.lazy.LazyHolder;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.Person;
 import net.minecraft.server.MinecraftServer;
@@ -57,6 +58,7 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     protected final ParserDescriptorFactory parserFactory;
     protected final FabricPlatformPlayerFactory playerFactory;
     protected final AbstractFabricPlatformServer platformServer;
+    @Getter
     protected final IFabricConversionUtil fabricConversionUtil;
     protected final IFabricMessageUtil fabricMessageUtil;
 
@@ -148,10 +150,6 @@ public abstract class GrimACFabricLoaderPlugin implements PlatformLoader {
     @Override
     public AbstractFabricPlatformServer getPlatformServer() {
         return platformServer;
-    }
-
-    public IFabricConversionUtil getFabricConversionUtil() {
-        return fabricConversionUtil;
     }
 
     public IFabricMessageUtil getFabricMessageUtils() {
