@@ -91,6 +91,28 @@ public class PunishmentManager implements ConfigReloadable {
 
                 groups.add(new PunishGroup(checksList, parsed, removeViolationsAfter * 1000, resetExecuteCounter));
             }
+
+            // Sync execute counts with current violation levels so reloading
+            // does not cause all commands to re-run when the player flags
+            for (PunishGroup group : groups) {
+                for (ParsedCommand command : group.commands) {
+                    int highestVl = 0;
+                    for (AbstractCheck abstractCheck : group.checks) {
+                        if (abstractCheck instanceof Check c) {
+                            highestVl = Math.max(highestVl, (int) Math.ceil(c.violations));
+                        }
+                    }
+
+                    if (highestVl < command.threshold) {
+                        command.executeCount = 0;
+                    } else if (command.interval == 0) {
+                        command.executeCount = 1;
+                    } else {
+                        command.executeCount = 1 + (highestVl - command.threshold) / command.interval;
+                    }
+
+                }
+            }
         } catch (Exception e) {
             LogUtil.error("Error while loading punishments.yml! This is likely your fault!", e);
         }
