@@ -358,16 +358,19 @@ public class MovementCheckRunner extends Check implements PositionCheck {
             if (data.getType() == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
                 player.uncertaintyHandler.isSteppingOnSlime = true;
                 player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
+                player.uncertaintyHandler.bouncyBlockTicks = 5;
             }
             if (data.getType() == StateTypes.HONEY_BLOCK) {
                 if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)
                         && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
                     player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
+                    player.uncertaintyHandler.bouncyBlockTicks = 5;
                 }
                 player.uncertaintyHandler.isSteppingOnHoney = true;
             }
             if (BlockTags.BEDS.contains(data.getType()) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
                 player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
+                player.uncertaintyHandler.bouncyBlockTicks = 5;
             }
             if (BlockTags.ICE.contains(data.getType())) {
                 player.uncertaintyHandler.isSteppingOnIce = true;

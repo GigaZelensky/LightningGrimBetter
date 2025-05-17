@@ -53,6 +53,8 @@ public class UncertaintyHandler {
     public boolean isSteppingOnHoney = false;
     public boolean wasSteppingOnBouncyBlock = false;
     public boolean isSteppingOnBouncyBlock = false;
+    // Track how many ticks ago the player last touched a bouncy block
+    public int bouncyBlockTicks = 0;
     public boolean isSteppingNearBubbleColumn = false;
     public boolean isSteppingNearScaffolding = false;
     public boolean isSteppingNearShulker = false;
@@ -124,6 +126,7 @@ public class UncertaintyHandler {
         wasSteppingOnBouncyBlock = isSteppingOnBouncyBlock;
         isSteppingOnSlime = false;
         isSteppingOnBouncyBlock = false;
+        if (bouncyBlockTicks > 0) bouncyBlockTicks--;
         isSteppingOnIce = false;
         isSteppingOnHoney = false;
         isSteppingNearBubbleColumn = false;
@@ -251,7 +254,7 @@ public class UncertaintyHandler {
     }
 
     public boolean influencedByBouncyBlock() {
-        return isSteppingOnBouncyBlock || wasSteppingOnBouncyBlock;
+        return isSteppingOnBouncyBlock || wasSteppingOnBouncyBlock || bouncyBlockTicks > 0;
     }
 
     public double getVerticalOffset(VectorData data) {
@@ -260,7 +263,7 @@ public class UncertaintyHandler {
             return 0.06;
 
         // We don't know if the player was pressing jump or not
-        if (player.uncertaintyHandler.wasSteppingOnBouncyBlock && (player.wasTouchingWater || player.wasTouchingLava))
+        if (bouncyBlockTicks > 0 && (player.wasTouchingWater || player.wasTouchingLava))
             return 0.06;
 
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
