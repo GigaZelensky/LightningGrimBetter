@@ -10,8 +10,6 @@ Punishments:
   Simulation:
     # Nach wie vielen Sekunden soll ein Verstoß entfernt werden?
     remove-violations-after: 300
-    # Should we reset the command execute counter when the violation level falls below a command's threshold?
-    reset-execute-counter: true
     # In diesem Abschnitt werden alle Prüfungen mit dem Namen gefunden,
     # Um eine Prüfung auszuschließen, die sonst übereinstimmen würde, setzen Sie ein Ausrufezeichen vor den Namen
     # Zum Beispiel, !BadPacketsN

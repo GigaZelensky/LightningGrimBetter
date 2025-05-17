@@ -10,8 +10,6 @@ Punishments:
   Simulation:
     # 多少秒后重置VL
     remove-violations-after: 300
-    # Should we reset the command execute counter when the violation level falls below a command's threshold?
-    reset-execute-counter: true
     # 这个部分将会匹配检查的名字
     # 要关闭掉一个检查就在检查前面加感叹号
     # 例如, !BadPacketsN

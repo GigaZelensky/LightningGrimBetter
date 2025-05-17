@@ -10,8 +10,6 @@ Punishments:
   Simulation:
     # Kaç saniye sonra ihlaller kaldırılsın?
     remove-violations-after: 300
-    # Should we reset the command execute counter when the violation level falls below a command's threshold?
-    reset-execute-counter: true
     # Bu bölüm, aşağıdaki adlara sahip tüm kontrollerle eşleşecektir,
     # Aksi takdirde eşleşecek bir denetimi hariç tutmak için, isminin önüne ünlem işareti koyun
     # Örnek olarak, !BadPacketsN

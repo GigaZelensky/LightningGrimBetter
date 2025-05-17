@@ -10,8 +10,6 @@ Punishments:
   Simulation:
     # Na hoeveel seconden moet een overtreding worden verwijderd?
     remove-violations-after: 300
-    # Should we reset the command execute counter when the violation level falls below a command's threshold?
-    reset-execute-counter: true
     # Deze sectie zal overeenkomen met alle controles met de naam,
     # Om een controle uit te sluiten die anders wel overeen zou komen, zet je een uitroepteken voor de naam.
     # Bijvoorbeeld, !BadPacketsN

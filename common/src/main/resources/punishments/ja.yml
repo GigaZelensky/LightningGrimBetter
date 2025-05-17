@@ -10,8 +10,6 @@ Punishments:
   Simulation:
     # 何秒後に違反をリセットしますか？
     remove-violations-after: 300
-    # Should we reset the command execute counter when the violation level falls below a command's threshold?
-    reset-execute-counter: true
     # このセクションでは、指定した名前と一致するすべてのチェックに対して処罰を設定します
     # 一部のチェックを除外するには、名前の前に「!」を付けます
     # 例: !BadPacketsN

@@ -10,8 +10,6 @@ Punishments:
   Simulation:
     # After how many seconds should a violation be removed?
     remove-violations-after: 300
-    # Should we reset the command execute counter when the violation level falls below a command's threshold?
-    reset-execute-counter: true
     # This section will match all checks with the name,
     # To exclude a check that would otherwise be matched, put an exclamation mark in front of the name
     # For example, !BadPacketsN

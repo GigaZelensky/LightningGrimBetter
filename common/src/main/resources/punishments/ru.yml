@@ -10,8 +10,6 @@ Punishments:
   Simulation:
     # Через сколько секунд нарушение должно быть удалено?
     remove-violations-after: 300
-    # Should we reset the command execute counter when the violation level falls below a command's threshold?
-    reset-execute-counter: true
     # Этот раздел будет соответствовать всем проверкам с указанным именем,
     # Чтобы исключить проверку, которая в противном случае была бы найдена, поставьте восклицательный знак перед именем.
     # Например, !BadPacketsN
