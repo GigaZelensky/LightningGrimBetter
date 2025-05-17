@@ -1,14 +1,14 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import ac.grim.grimac.api.packet.types.client.play.*;
-import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
-import ac.grim.grimac.events.packets.registry.PacketHandlerRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.wrapper.play.client.*;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 
@@ -39,32 +39,34 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
     private boolean jumpingWithMount;
 
     @Override
-    public void onPacketReceive(PacketHandlerRegistry<PacketReceiveEvent> registry) {
-        registry.registerWrapperHandler((packet) -> {
-            if (packet.getAction() == ClientStatusPacket.Action.OPEN_INVENTORY_ACHIEVEMENT) {
+    public void onPacketReceive(PacketReceiveEvent event) {
+        final PacketTypeCommon packetType = event.getPacketType();
+
+        if (packetType == PacketTypes.Play.Client.CLIENT_STATUS) {
+            if (new WrapperPlayClientClientStatus(event).getAction() == WrapperPlayClientClientStatus.Action.OPEN_INVENTORY_ACHIEVEMENT) {
                 openingInventory = true;
             }
-        }, ClientStatusPacket.class);
+        }
 
-        registry.registerWrapperHandler((packet) -> {
-            if (packet.action() == ClientInteractEntityPacket.InteractAction.ATTACK) {
+        if (packetType == PacketTypes.Play.Client.INTERACT_ENTITY) {
+            if (new WrapperPlayClientInteractEntity(event).getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 attacking = true;
             } else {
                 interacting = true;
             }
-        }, ClientInteractEntityPacket.class);
+        }
 
-        registry.registerWrapperHandler((packet) -> {
-            switch (packet.action()) {
+        if (packetType == PacketTypes.Play.Client.PLAYER_DIGGING) {
+            switch (new WrapperPlayClientPlayerDigging(event).getAction()) {
                 case SWAP_ITEM_WITH_OFFHAND -> swapping = true;
                 case DROP_ITEM, DROP_ITEM_STACK -> dropping = true;
                 case RELEASE_USE_ITEM -> releasing = true;
                 case FINISHED_DIGGING, CANCELLED_DIGGING, START_DIGGING -> digging = true;
             }
-        }, ClientPlayerDiggingPacket.class);
+        }
 
-        registry.registerWrapperHandler((packet) -> {
-            switch (packet.action()) {
+        if (packetType == PacketTypes.Play.Client.ENTITY_ACTION) {
+            switch (new WrapperPlayClientEntityAction(event).getAction()) {
                 case START_SPRINTING, STOP_SPRINTING -> {
                     if (!player.inVehicle()) {
                         sprinting = true;
@@ -76,53 +78,58 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
                 case OPEN_HORSE_INVENTORY -> openingInventory = true;
                 case START_JUMPING_WITH_HORSE, STOP_JUMPING_WITH_HORSE -> jumpingWithMount = true;
             }
-        }, ClientEntityActionPacket.class);
+        }
 
-        registry.registerHandler(() -> using = true, PacketTypes.Play.Client.USE_ITEM);
+        if (packetType == PacketTypes.Play.Client.USE_ITEM) {
+            using = true;
+        }
 
-        registry.registerWrapperHandler((packet) -> {
-            if (packet.blockFace() == BlockFace.OTHER) {
+        if (packetType == PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+            if (new WrapperPlayClientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER) {
                 using = true;
             } else {
                 placing = true;
             }
-        }, ClientPlayerBlockPlacementPacket.class);
+        }
 
-        registry.registerHandler(() -> picking = true, PacketTypes.Play.Client.PICK_ITEM);
+        if (packetType == PacketTypes.Play.Client.PICK_ITEM) {
+            picking = true;
+        }
 
-        registry.registerWrapperHandler((packet) -> {
-            switch (packet.windowClickType()) {
+        if (packetType == PacketTypes.Play.Client.CLICK_WINDOW) {
+            clickingInInventory = true;
+
+            switch (new WrapperPlayClientClickWindow(event).getWindowClickType()) {
                 case QUICK_MOVE -> quickMoveClicking = true;
                 case PICKUP, PICKUP_ALL -> pickUpClicking = true;
             }
-        }, ClientClickWindow.class);
+        }
 
-        registry.registerHandler(() -> closingInventory = true, PacketTypes.Play.Client.CLOSE_WINDOW);
+        if (packetType == PacketTypes.Play.Client.CLOSE_WINDOW) {
+            closingInventory = true;
+        }
 
-        // TODO (Packet Rewrite) (Registry) (Optimization) confirm this is correct
-        registry.registerHandler(() -> {
-            if (player.gamemode == GameMode.SPECTATOR || isTickPacket(packetType)) {
-                openingInventory = false;
-                swapping = false;
-                dropping = false;
-                attacking = false;
-                interacting = false;
-                releasing = false;
-                digging = false;
-                placing = false;
-                using = false;
-                picking = false;
-                sprinting = false;
-                sneaking = false;
-                clickingInInventory = false;
-                closingInventory = false;
-                quickMoveClicking = false;
-                pickUpClicking = false;
-                leavingBed = false;
-                startingToGlide = false;
-                jumpingWithMount = false;
-            }
-        }, POSSIBLE_TICK_PACKET_TYPES);
+        if (player.gamemode == GameMode.SPECTATOR || isTickPacket(packetType)) {
+            openingInventory = false;
+            swapping = false;
+            dropping = false;
+            attacking = false;
+            interacting = false;
+            releasing = false;
+            digging = false;
+            placing = false;
+            using = false;
+            picking = false;
+            sprinting = false;
+            sneaking = false;
+            clickingInInventory = false;
+            closingInventory = false;
+            quickMoveClicking = false;
+            pickUpClicking = false;
+            leavingBed = false;
+            startingToGlide = false;
+            jumpingWithMount = false;
+        }
     }
 
     @Contract(pure = true)
