@@ -114,6 +114,9 @@ public class PunishmentManager implements ConfigReloadable {
             if (group.checks.contains(check)) {
                 final int vl = getViolations(group, check);
                 for (ParsedCommand command : group.commands) {
+                    if (vl < command.threshold) {
+                        command.executeCount = 0;
+                    }
                     String cmd = replaceAlertPlaceholders(command.command, vl, check, verbose);
 
                     @Nullable Set<@Nullable PlatformPlayer> verboseListeners = null;
