@@ -113,7 +113,6 @@ public class PunishmentManager implements ConfigReloadable {
         for (PunishGroup group : groups) {
             if (group.checks.contains(check)) {
                 final int vl = getViolations(group, check);
-                final int violationCount = group.violations.size();
                 for (ParsedCommand command : group.commands) {
                     String cmd = replaceAlertPlaceholders(command.command, vl, check, verbose);
 
@@ -126,11 +125,11 @@ public class PunishmentManager implements ConfigReloadable {
                         verboseListeners = GrimAPI.INSTANCE.getAlertManager().sendVerbose(component, null);
                     }
 
-                    if (violationCount >= command.threshold) {
-                        // 0 means execute once
-                        // Any other number means execute every X interval
-                        boolean inInterval = command.interval == 0 ? (command.executeCount == 0) : (violationCount % command.interval == 0);
-                        if (inInterval) {
+                    // 0 means execute once
+                    // Any other number means execute every X interval
+                    for (; vl >= (command.threshold + (command.interval * command.executeCount)); command.executeCount++) {
+                        if (command.interval == 0 && command.executeCount > 0) break;
+
                             CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, verbose, cmd);
                             GrimAPI.INSTANCE.getEventBus().post(executeEvent);
                             if (executeEvent.isCancelled()) continue;
@@ -138,9 +137,8 @@ public class PunishmentManager implements ConfigReloadable {
                             switch (command.command) {
                                 case "[webhook]" -> GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
                                 case "[log]" -> {
-                                    int vls = (int) group.violations.values().stream().filter((e) -> e == check).count();
                                     String verboseWithoutGl = verbose.replaceAll(" /gl .*", "");
-                                    GrimAPI.INSTANCE.getViolationDatabaseManager().logAlert(player, verboseWithoutGl, check.getDisplayName(), vls);
+                                    GrimAPI.INSTANCE.getViolationDatabaseManager().logAlert(player, verboseWithoutGl, check.getDisplayName(), vl);
                                 }
                                 case "[proxy]" -> ProxyAlertMessenger.sendPluginMessage(cmd);
                                 case "[alert]" -> {
@@ -161,8 +159,6 @@ public class PunishmentManager implements ConfigReloadable {
                                         )
                                 );
                             }
-                        }
-
                         command.executeCount++;
                     }
                 }
@@ -189,7 +185,7 @@ public class PunishmentManager implements ConfigReloadable {
         for (Check value : group.violations.values()) {
             if (value == check) vl++;
         }
-        return vl;
+        return Math.max(vl, (int) Math.ceil(check.violations));
     }
 }
 

@@ -7,6 +7,8 @@
 # [webhook] - speciaal commando om discord webhook te waarschuwen
 # [proxy] - speciaal commando om te waarschuwen voor andere servers die verbonden zijn met je proxy (BungeeCord/Velocity)
 Punishments:
+  # Moet de uitvoerteller worden gereset wanneer het niveau onder de drempel zakt?
+  reset-execute-counter: true
   Simulation:
     # Na hoeveel seconden moet een overtreding worden verwijderd?
     remove-violations-after: 300

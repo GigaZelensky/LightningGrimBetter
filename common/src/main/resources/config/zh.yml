@@ -71,6 +71,13 @@ Simulation:
     # 这是为了防止玩家收集过多的违规行为，并且永远无法清除所有的违规行为
     # 这是默认配置的样子（x 轴 = seconds ，y 轴 = 1/1000 方块）: https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # 应当根据玩家的优势将旗帜获得的VL增长缩放多少？
+    # ≤1 表示不缩放（与旧版一致）
+    vl-scale: 1
+    # 限制每次标记可以获得的VL数量
+    # 防止高延迟玩家在卡顿时获得大量VL
+    # -1 表示关闭
+    max-vls-per-flag: -1
     # 设置回退的违规等级阈值
     # 1 为旧行为
     setback-violation-threshold: 1

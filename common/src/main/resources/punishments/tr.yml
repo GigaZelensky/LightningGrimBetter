@@ -7,6 +7,8 @@
 # [webhook] - Discord webhook için bunu kullanın
 # [proxy] - Proxy'nize bağlı diğer sunuculara uyarı göndermek için bunu kullanın (BungeeCord/Velocity)
 Punishments:
+  # Seviye eşikten düştüğünde yürütme sayacı sıfırlansın mı?
+  reset-execute-counter: true
   Simulation:
     # Kaç saniye sonra ihlaller kaldırılsın?
     remove-violations-after: 300

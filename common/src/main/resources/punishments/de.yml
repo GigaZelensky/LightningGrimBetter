@@ -7,6 +7,8 @@
 # [webhook] - spezieller Befehl für die Alarmierung an den Discord-Webhook
 # [proxy] - spezieller Befehl zur Alarmierung anderer Server, die mit Ihrem Proxy verbunden sind (BungeeCord/Velocity)
 Punishments:
+  # Soll der Ausführungszähler zurückgesetzt werden, wenn der Level unter die Schwelle fällt?
+  reset-execute-counter: true
   Simulation:
     # Nach wie vielen Sekunden soll ein Verstoß entfernt werden?
     remove-violations-after: 300

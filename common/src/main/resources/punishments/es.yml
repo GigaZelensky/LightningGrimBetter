@@ -7,6 +7,8 @@
 # [webhook] - comando especial para alertar mediante un webhook de Discord
 # [proxy] - special command to alert to other servers connected to your proxy (BungeeCord/Velocity)
 Punishments:
+  # ¿Se debe reiniciar el contador de ejecuciones cuando el nivel baje del umbral?
+  reset-execute-counter: true
   Simulation:
     # ¿Después de cuantos segundos deberíamos quitar una violación?
     remove-violations-after: 300

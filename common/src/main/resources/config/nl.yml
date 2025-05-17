@@ -66,6 +66,13 @@ Simulation:
     # Dit is om te voorkomen dat de speler te veel schendingen verzamelt en ze nooit allemaal kan opruimen
     # Standaard voordelenplatform (x-as = seconden, y-as = 1/1000 blok): https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # Hoe sterk moeten we VL-winst van een flag schalen op basis van het voordeel van de speler?
+    # ≤1 voor geen schaling (oud gedrag)
+    vl-scale: 1
+    # Beperkt het aantal VL's dat elke flag kan geven
+    # Dit voorkomt dat spelers met hoge latency veel VL krijgen door lagpieken
+    # -1 om uit te schakelen
+    max-vls-per-flag: -1
     # Drempelwaarde voor het schendingenniveau voor de terugslag
     # 1 voor het oude gedrag
     setback-violation-threshold: 1

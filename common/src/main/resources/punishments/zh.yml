@@ -7,6 +7,8 @@
 # [webhook] - 警告discord webhook 的特殊命令
 # [proxy] - 用于使用(BungeeCord/Velocity)服务器时的警报
 Punishments:
+  # 当等级低于阈值时是否重置执行计数器？
+  reset-execute-counter: true
   Simulation:
     # 多少秒后重置VL
     remove-violations-after: 300

@@ -58,6 +58,13 @@ Simulation:
     max-advantage: 1
     # Limite massimo di vantaggio accumulabile prima di arretrare il giocatore
     max-ceiling: 4
+    # Di quanto dovremmo scalare il guadagno di VL di un flag in base al vantaggio del giocatore?
+    # ≤1 per nessuna scalatura (comportamento precedente)
+    vl-scale: 1
+    # Limita il numero di VL che ogni flag può dare
+    # Questo evita che i giocatori con alta latenza ottengano molti VL a causa dei picchi di lag
+    # -1 per disabilitare
+    max-vls-per-flag: -1
     # Soglia del livello di violazione per il setback
     # 1 per il comportamento precedente
     setback-violation-threshold: 1

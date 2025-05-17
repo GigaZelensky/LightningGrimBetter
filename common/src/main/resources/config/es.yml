@@ -67,6 +67,13 @@ Simulation:
     # Esto es para prevenir que el jugador obtenga muchas violaciones y no pueda ser capaz de borrarlas
     # Tope de ventaja por defecto (eje x = segundos, eje y = bloque 1/1000): https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # ¿Cuánto debemos escalar el aumento de VL de una bandera según la ventaja del jugador?
+    # ≤1 para no escalar (comportamiento antiguo)
+    vl-scale: 1
+    # Limita la cantidad de VLs que podría ganar cada bandera
+    # Esto evita que jugadores con alta latencia obtengan grandes cantidades de VL por picos de lag
+    # -1 para desactivar
+    max-vls-per-flag: -1
     # Umbral del nivel de violación para el retroceso
     # 1 para el comportamiento antiguo
     setback-violation-threshold: 1

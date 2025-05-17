@@ -7,6 +7,8 @@
 # [webhook] - special command to alert to discord webhook
 # [proxy] - special command to alert to other servers connected to your proxy (BungeeCord/Velocity)
 Punishments:
+  # Il contatore delle esecuzioni deve essere azzerato quando il livello scende sotto la soglia?
+  reset-execute-counter: true
   Simulation:
     remove-violations-after: 300
     checks:
