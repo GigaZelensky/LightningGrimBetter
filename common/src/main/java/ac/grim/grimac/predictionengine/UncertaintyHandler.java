@@ -53,6 +53,8 @@ public class UncertaintyHandler {
     public boolean isSteppingOnHoney = false;
     public boolean wasSteppingOnBouncyBlock = false;
     public boolean isSteppingOnBouncyBlock = false;
+    // Gives vertical lenience for a few ticks after leaving a bouncy block
+    public int bouncyBlockTicks = 0;
     public boolean isSteppingNearBubbleColumn = false;
     public boolean isSteppingNearScaffolding = false;
     public boolean isSteppingNearShulker = false;
@@ -124,6 +126,7 @@ public class UncertaintyHandler {
         wasSteppingOnBouncyBlock = isSteppingOnBouncyBlock;
         isSteppingOnSlime = false;
         isSteppingOnBouncyBlock = false;
+        if (bouncyBlockTicks > 0) bouncyBlockTicks--;
         isSteppingOnIce = false;
         isSteppingOnHoney = false;
         isSteppingNearBubbleColumn = false;
@@ -259,8 +262,11 @@ public class UncertaintyHandler {
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             return 0.06;
 
+        if (bouncyBlockTicks > 0)
+            return player.getMovementThreshold() * 2;
+
         // We don't know if the player was pressing jump or not
-        if (player.uncertaintyHandler.wasSteppingOnBouncyBlock && (player.wasTouchingWater || player.wasTouchingLava))
+        if (player.uncertaintyHandler.influencedByBouncyBlock() && (player.wasTouchingWater || player.wasTouchingLava))
             return 0.06;
 
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
@@ -306,10 +312,7 @@ public class UncertaintyHandler {
             offset -= 0.01;
         }
 
-        if (player.uncertaintyHandler.influencedByBouncyBlock() && (!player.isPointThree() || player.inVehicle())) {
-            offset -= 0.03;
-        }
-        // This is the end of that section.
+        // Bouncy blocks only affect vertical movement
 
         // I can't figure out how the client exactly tracks boost time
         if (player.compensatedEntities.self.getRiding() instanceof PacketEntityRideable vehicle) {

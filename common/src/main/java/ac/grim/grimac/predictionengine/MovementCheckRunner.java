@@ -615,6 +615,10 @@ public class MovementCheckRunner extends Check implements PositionCheck {
         player.firstBreadExplosion = null;
         player.likelyExplosions = null;
 
+        if (!player.uncertaintyHandler.isSteppingOnBouncyBlock && player.uncertaintyHandler.wasSteppingOnBouncyBlock) {
+            player.uncertaintyHandler.bouncyBlockTicks = 3;
+        }
+
         player.trigHandler.setOffset(offset);
         player.pointThreeEstimator.endOfTickTick();
     }
