@@ -67,6 +67,13 @@ Simulation:
     # Esto es para prevenir que el jugador obtenga muchas violaciones y no pueda ser capaz de borrarlas
     # Tope de ventaja por defecto (eje x = segundos, eje y = bloque 1/1000): https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # How much should we scale VL gain from a flag by the player's advantage?
+    # ≤1 for no scaling (old behavior)
+    vl-scale: 1
+    # Limits the amount of VLs the player could gain from each flag
+    # This is to prevent high latency players from getting large amount of VLs because of lag spikes
+    # -1 to disable
+    max-vls-per-flag: -1
     # Umbral del nivel de violación para el retroceso
     # 1 para el comportamiento antiguo
     setback-violation-threshold: 1
