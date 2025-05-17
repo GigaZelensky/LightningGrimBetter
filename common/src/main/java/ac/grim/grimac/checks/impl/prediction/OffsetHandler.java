@@ -20,6 +20,8 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     double immediateSetbackThreshold;
     double maxAdvantage;
     double maxCeiling;
+    double vlScale;
+    double maxVlsPerFlag;
     double setbackViolationThreshold;
     // Current advantage gained
     double advantageGained = 0;
@@ -64,6 +66,13 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                         predictionComplete.setIdentifier(flagId);
                     }
 
+                    double extra = Math.ceil(offset * vlScale) - 1.0;
+                    int add = (int) Math.min(maxVlsPerFlag, extra);
+                    if (add > 0) {
+                        violations += add;
+                        player.punishmentManager.recordExtraViolations(this, add);
+                    }
+
                     if ((advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
                             && !isNoSetbackPermission()
                             && violations >= setbackViolationThreshold) {
@@ -104,9 +113,12 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         immediateSetbackThreshold = config.getDoubleElse("Simulation.immediate-setback-threshold", 0.1);
         maxAdvantage = config.getDoubleElse("Simulation.max-advantage", 1);
         maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
+        vlScale = Math.max(1.0, config.getDoubleElse("Simulation.vl-scale", 1));
+        maxVlsPerFlag = config.getDoubleElse("Simulation.max-vls-per-flag", -1);
         setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
         if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
         if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;
+        if (maxVlsPerFlag == -1) maxVlsPerFlag = Double.MAX_VALUE;
     }
 
     public boolean doesOffsetFlag(double offset) {

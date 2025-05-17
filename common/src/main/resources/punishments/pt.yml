@@ -8,6 +8,8 @@
 # [proxy] - comando especial para notificar os outros servidores conectados no mesmo proxy (BungeeCord/Velocity)
 Punishments:
   Simulation:
+    # Devemos reiniciar o contador de execuções quando o nível de violação cair abaixo do limite do comando?
+    reset-execute-counter: true
     # Depois de quantos segundos a violação deve expirar?
     remove-violations-after: 300
     # Essa sessão combina todas as verificações com os nomes listados abaixo.

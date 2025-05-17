@@ -8,6 +8,8 @@
 # [proxy] - speciaal commando om te waarschuwen voor andere servers die verbonden zijn met je proxy (BungeeCord/Velocity)
 Punishments:
   Simulation:
+    # Moeten we de uitvoerteller resetten wanneer het overtredingsniveau onder de drempel zakt?
+    reset-execute-counter: true
     # Na hoeveel seconden moet een overtreding worden verwijderd?
     remove-violations-after: 300
     # Deze sectie zal overeenkomen met alle controles met de naam,

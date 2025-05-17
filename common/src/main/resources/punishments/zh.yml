@@ -8,6 +8,8 @@
 # [proxy] - 用于使用(BungeeCord/Velocity)服务器时的警报
 Punishments:
   Simulation:
+    # 当违规等级低于指令阈值时是否重置执行计数？
+    reset-execute-counter: true
     # 多少秒后重置VL
     remove-violations-after: 300
     # 这个部分将会匹配检查的名字
