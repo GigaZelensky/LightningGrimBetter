@@ -113,8 +113,8 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         immediateSetbackThreshold = config.getDoubleElse("Simulation.immediate-setback-threshold", 0.1);
         maxAdvantage = config.getDoubleElse("Simulation.max-advantage", 1);
         maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
-        vlScale = Math.max(1.0, config.getDoubleElse("Simulation.vl-scale", 10));
-        maxVlsPerFlag = config.getDoubleElse("Simulation.max-vls-per-flag", 5);
+        vlScale = Math.max(1.0, config.getDoubleElse("Simulation.vl-scale", 1));
+        maxVlsPerFlag = config.getDoubleElse("Simulation.max-vls-per-flag", -1);
         setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
         if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
         if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;
