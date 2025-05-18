@@ -1,7 +1,10 @@
 package ac.grim.grimac.utils.nmsutil;
 
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.api.packet.world.chunk.PacketChunk;
 import ac.grim.grimac.events.packets.PacketWorldBorder;
@@ -24,8 +27,6 @@ import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.Direction;
 import ac.grim.grimac.api.packet.block.PacketBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3i;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.floats.FloatArraySet;
 import it.unimi.dsi.fastutil.floats.FloatArrays;
@@ -447,7 +448,7 @@ public class Collisions {
         // Use the bounding box for after the player's movement is applied
         double expandAmount = player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_19_4) ? 1e-5 : 0.001;
         SimpleCollisionBox aABB = player.inVehicle()
-                ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(-expandAmount)
+                ? GetBoundingBox.getCollisionBoxForPlayer(player, player.getX(), player.getY(), player.getZ()).expand(-expandAmount)
                 : player.boundingBox.copy().expand(-expandAmount);
 
         Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
@@ -486,7 +487,7 @@ public class Collisions {
             player.stuckSpeedMultiplier = new Vector3dm(0.800000011920929, 0.75, 0.800000011920929);
         }
 
-        if (blockType == PacketStateTypes.POWDER_SNOW && blockX == Math.floor(player.x) && blockY == Math.floor(player.y) && blockZ == Math.floor(player.z)
+        if (blockType == PacketStateTypes.POWDER_SNOW && blockX == Math.floor(player.getX()) && blockY == Math.floor(player.getY()) && blockZ == Math.floor(player.getZ())
                 && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_17)) {
             player.stuckSpeedMultiplier = new Vector3dm(0.8999999761581421, 1.5, 0.8999999761581421);
         }
@@ -555,13 +556,13 @@ public class Collisions {
     // Implementation of Collisions#handleInsideBlocks for >= 1.21.2
     public static void applyEffectsFromBlocks(GrimPlayer player) {
         for (GrimPlayer.Movement movement : player.finalMovementsThisTick) {
-            Vector3d from = movement.from();
-            Vector3d to = movement.to();
+            ImmutableVector3d from = movement.from();
+            ImmutableVector3d to = movement.to();
 
             SimpleCollisionBox boundingBox = (player.getClientVersion() == PacketClientVersions.V_1_21_2 ?
-                    player.boundingBox.copy() : GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z)).expand(-1.0E-5F);
+                    player.boundingBox.copy() : GetBoundingBox.getCollisionBoxForPlayer(player, to.getX(), to.getY(), to.getZ())).expand(-1.0E-5F);
 
-            for (Vector3i blockPos : boxTraverseBlocks(player, from, to, boundingBox)) {
+            for (ImmutableVector3i blockPos : boxTraverseBlocks(player, from, to, boundingBox)) {
                 PacketBlockState blockState = player.compensatedWorld.getBlock(blockPos);
                 PacketStateType blockType = blockState.getType();
 
@@ -570,7 +571,7 @@ public class Collisions {
                 }
 
                 if (player.visitedBlocks.add(GrimMath.asLong(blockPos.getX(), blockPos.getY(), blockPos.getZ()))) {
-                    onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z);
+                    onInsideBlock(player, blockType, blockState, blockPos.getX(), blockPos.getY(), blockPos.getZ());
                 }
             }
         }
@@ -578,19 +579,19 @@ public class Collisions {
         player.visitedBlocks.clear();
     }
 
-    public static Iterable<Vector3i> boxTraverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
-        Vector3d direction = end.subtract(start);
-        Iterable<Vector3i> initialBlocks = SimpleCollisionBox.betweenClosed(boundingBox);
+    public static Iterable<ImmutableVector3i> boxTraverseBlocks(GrimPlayer player, ImmutableVector3d start, ImmutableVector3d end, SimpleCollisionBox boundingBox) {
+        ImmutableVector3d direction = end.subtract(start);
+        Iterable<ImmutableVector3i> initialBlocks = SimpleCollisionBox.betweenClosed(boundingBox);
         if (direction.lengthSquared() < (double) GrimMath.square(0.99999F)) {
             return initialBlocks;
         } else {
             LongSet alreadyVisited = player.getClientVersion().isOlderThan(PacketClientVersions.V_1_21_5) ? null : new LongOpenHashSet();
-            Set<Vector3i> traversedBlocks = new ObjectLinkedOpenHashSet<>();
-            Vector3d boxMinPosition = boundingBox.getMinPosition();
-            Vector3d subtractedMinPosition = boxMinPosition.subtract(direction);
+            Set<ImmutableVector3i> traversedBlocks = new ObjectLinkedOpenHashSet<>();
+            ImmutableVector3d boxMinPosition = boundingBox.getMinPosition();
+            ImmutableVector3d subtractedMinPosition = boxMinPosition.subtract(direction);
             addCollisionsAlongTravel(alreadyVisited, traversedBlocks, subtractedMinPosition, boxMinPosition, boundingBox);
 
-            for (Vector3i blockPos : initialBlocks) {
+            for (ImmutableVector3i blockPos : initialBlocks) {
                 traversedBlocks.add(blockPos);
             }
 
@@ -598,20 +599,20 @@ public class Collisions {
         }
     }
 
-    public static void addCollisionsAlongTravel(LongSet alreadyVisited, Set<Vector3i> output, Vector3d start, Vector3d end, SimpleCollisionBox boundingBox) {
-        Vector3d direction = end.subtract(start);
-        int currentX = GrimMath.floor(start.x);
-        int currentY = GrimMath.floor(start.y);
-        int currentZ = GrimMath.floor(start.z);
-        int stepX = GrimMath.sign(direction.x);
-        int stepY = GrimMath.sign(direction.y);
-        int stepZ = GrimMath.sign(direction.z);
-        double tMaxX = stepX == 0 ? Double.MAX_VALUE : stepX / direction.x;
-        double tMaxY = stepY == 0 ? Double.MAX_VALUE : stepY / direction.y;
-        double tMaxZ = stepZ == 0 ? Double.MAX_VALUE : stepZ / direction.z;
-        double tDeltaX = tMaxX * (stepX > 0 ? 1.0 - GrimMath.frac(start.x) : GrimMath.frac(start.x));
-        double tDeltaY = tMaxY * (stepY > 0 ? 1.0 - GrimMath.frac(start.y) : GrimMath.frac(start.y));
-        double tDeltaZ = tMaxZ * (stepZ > 0 ? 1.0 - GrimMath.frac(start.z) : GrimMath.frac(start.z));
+    public static void addCollisionsAlongTravel(LongSet alreadyVisited, Set<ImmutableVector3i> output, ImmutableVector3d start, ImmutableVector3d end, SimpleCollisionBox boundingBox) {
+        ImmutableVector3d direction = end.subtract(start);
+        int currentX = GrimMath.floor(start.getX());
+        int currentY = GrimMath.floor(start.getY());
+        int currentZ = GrimMath.floor(start.getZ());
+        int stepX = GrimMath.sign(direction.getX());
+        int stepY = GrimMath.sign(direction.getY());
+        int stepZ = GrimMath.sign(direction.getZ());
+        double tMaxX = stepX == 0 ? Double.MAX_VALUE : stepX / direction.getX();
+        double tMaxY = stepY == 0 ? Double.MAX_VALUE : stepY / direction.getY();
+        double tMaxZ = stepZ == 0 ? Double.MAX_VALUE : stepZ / direction.getZ();
+        double tDeltaX = tMaxX * (stepX > 0 ? 1.0 - GrimMath.frac(start.getX()) : GrimMath.frac(start.getX()));
+        double tDeltaY = tMaxY * (stepY > 0 ? 1.0 - GrimMath.frac(start.getY()) : GrimMath.frac(start.getY()));
+        double tDeltaZ = tMaxZ * (stepZ > 0 ? 1.0 - GrimMath.frac(start.getZ()) : GrimMath.frac(start.getZ()));
         int iterationCount = 0;
 
         while (tDeltaX <= 1.0 || tDeltaY <= 1.0 || tDeltaZ <= 1.0) {
@@ -635,12 +636,12 @@ public class Collisions {
                 break;
             }
 
-            Optional<Vector3d> collisionPoint = clip(currentX, currentY, currentZ, currentX + 1, currentY + 1, currentZ + 1, start, end);
+            Optional<ImmutableVector3d> collisionPoint = clip(currentX, currentY, currentZ, currentX + 1, currentY + 1, currentZ + 1, start, end);
             if (collisionPoint.isPresent()) {
-                Vector3d collisionVec = collisionPoint.get();
-                double clampedX = GrimMath.clamp(collisionVec.x, currentX + 1.0E-5F, currentX + 1.0 - 1.0E-5F);
-                double clampedY = GrimMath.clamp(collisionVec.y, currentY + 1.0E-5F, currentY + 1.0 - 1.0E-5F);
-                double clampedZ = GrimMath.clamp(collisionVec.z, currentZ + 1.0E-5F, currentZ + 1.0 - 1.0E-5F);
+                ImmutableVector3d collisionVec = collisionPoint.get();
+                double clampedX = GrimMath.clamp(collisionVec.getX(), currentX + 1.0E-5F, currentX + 1.0 - 1.0E-5F);
+                double clampedY = GrimMath.clamp(collisionVec.getY(), currentY + 1.0E-5F, currentY + 1.0 - 1.0E-5F);
+                double clampedZ = GrimMath.clamp(collisionVec.getZ(), currentZ + 1.0E-5F, currentZ + 1.0 - 1.0E-5F);
                 int endX = GrimMath.floor(clampedX + boundingBox.getXSize());
                 int endY = GrimMath.floor(clampedY + boundingBox.getYSize());
                 int endZ = GrimMath.floor(clampedZ + boundingBox.getZSize());
@@ -649,7 +650,7 @@ public class Collisions {
                     for (int y = currentY; y <= endY; y++) {
                         for (int z = currentZ; z <= endZ; z++) {
                             if (alreadyVisited == null || alreadyVisited.add(GrimMath.asLong(x, y, z))) {
-                                output.add(new Vector3i(x, y, z));
+                                output.add(MCPacket.getAPI().getVectorFactory().getImmutableVec3i(x, y, z));
                             }
                         }
                     }
@@ -658,11 +659,11 @@ public class Collisions {
         }
     }
 
-    public static Optional<Vector3d> clip(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, Vector3d start, Vector3d end) {
+    public static Optional<ImmutableVector3d> clip(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, ImmutableVector3d start, ImmutableVector3d end) {
         double[] minDistance = new double[]{1.0};
-        double deltaX = end.x - start.x;
-        double deltaY = end.y - start.y;
-        double deltaZ = end.z - start.z;
+        double deltaX = end.getX() - start.getX();
+        double deltaY = end.getY() - start.getY();
+        double deltaZ = end.getZ() - start.getZ();
         Direction direction = getDirection(minX, minY, minZ, maxX, maxY, maxZ, start, minDistance, null, deltaX, deltaY, deltaZ);
         if (direction == null) {
             return Optional.empty();
@@ -679,7 +680,7 @@ public class Collisions {
             double maxX,
             double maxY,
             double maxZ,
-            Vector3d start,
+            ImmutableVector3d start,
             double[] minDistance,
             Direction facing,
             double deltaX,
@@ -687,21 +688,21 @@ public class Collisions {
             double deltaZ
     ) {
         if (deltaX > COLLISION_EPSILON) {
-            facing = clipPoint(minDistance, facing, deltaX, deltaY, deltaZ, minX, minY, maxY, minZ, maxZ, Direction.WEST, start.x, start.y, start.z);
+            facing = clipPoint(minDistance, facing, deltaX, deltaY, deltaZ, minX, minY, maxY, minZ, maxZ, Direction.WEST, start.getX(), start.getY(), start.getZ());
         } else if (deltaX < -COLLISION_EPSILON) {
-            facing = clipPoint(minDistance, facing, deltaX, deltaY, deltaZ, maxX, minY, maxY, minZ, maxZ, Direction.EAST, start.x, start.y, start.z);
+            facing = clipPoint(minDistance, facing, deltaX, deltaY, deltaZ, maxX, minY, maxY, minZ, maxZ, Direction.EAST, start.getX(), start.getY(), start.getZ());
         }
 
         if (deltaY > COLLISION_EPSILON) {
-            facing = clipPoint(minDistance, facing, deltaY, deltaZ, deltaX, minY, minZ, maxZ, minX, maxX, Direction.DOWN, start.y, start.z, start.x);
+            facing = clipPoint(minDistance, facing, deltaY, deltaZ, deltaX, minY, minZ, maxZ, minX, maxX, Direction.DOWN, start.getY(), start.getZ(), start.getX());
         } else if (deltaY < -COLLISION_EPSILON) {
-            facing = clipPoint(minDistance, facing, deltaY, deltaZ, deltaX, maxY, minZ, maxZ, minX, maxX, Direction.UP, start.y, start.z, start.x);
+            facing = clipPoint(minDistance, facing, deltaY, deltaZ, deltaX, maxY, minZ, maxZ, minX, maxX, Direction.UP, start.getY(), start.getZ(), start.getX());
         }
 
         if (deltaZ > COLLISION_EPSILON) {
-            facing = clipPoint(minDistance, facing, deltaZ, deltaX, deltaY, minZ, minX, maxX, minY, maxY, Direction.NORTH, start.z, start.x, start.y);
+            facing = clipPoint(minDistance, facing, deltaZ, deltaX, deltaY, minZ, minX, maxX, minY, maxY, Direction.NORTH, start.getZ(), start.getX(), start.getY());
         } else if (deltaZ < -COLLISION_EPSILON) {
-            facing = clipPoint(minDistance, facing, deltaZ, deltaX, deltaY, maxZ, minX, maxX, minY, maxY, Direction.SOUTH, start.z, start.x, start.y);
+            facing = clipPoint(minDistance, facing, deltaZ, deltaX, deltaY, maxZ, minX, maxX, minY, maxY, Direction.SOUTH, start.getZ(), start.getX(), start.getY());
         }
 
         return facing;
@@ -745,10 +746,10 @@ public class Collisions {
         return Math.abs(vector.getX()) < Math.abs(vector.getZ()) ? YZX_AXIS_ORDER : YXZ_AXIS_ORDER;
     }
 
-    public static Vector3d relative(Vector3d curr, Direction direction, double value) {
-        Vector3i vec = direction.getVector();
-        return new Vector3d(
-                curr.x + value * vec.getX(), curr.y + value * vec.getY(), curr.z + value * vec.getZ()
+    public static ImmutableVector3d relative(ImmutableVector3d curr, Direction direction, double value) {
+        ImmutableVector3i vec = direction.getVector();
+        return MCPacket.getAPI().getVectorFactory().getImmutableVec3d(
+                curr.getX() + value * vec.getX(), curr.getY() + value * vec.getY(), curr.getZ() + value * vec.getZ()
         );
     }
 
@@ -764,7 +765,7 @@ public class Collisions {
                                          int locationZ) {
         if (player.onGround) {
             return false;
-        } else if (player.y > (double) locationY + 0.9375D - COLLISION_EPSILON) {
+        } else if (player.getY() > (double) locationY + 0.9375D - COLLISION_EPSILON) {
             return false;
         } else if (getOldDeltaY(player, vector.getY()) >= -0.08D) {
             return false;
@@ -780,7 +781,7 @@ public class Collisions {
     // 0.03 hack
     public static boolean checkStuckSpeed(GrimPlayer player, double expand) {
         // Use the bounding box for after the player's movement is applied
-        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(expand);
+        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.getX(), player.getY(), player.getZ()).expand(expand);
 
         Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
         Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
@@ -802,7 +803,7 @@ public class Collisions {
                         return true;
                     }
 
-                    if (blockType == PacketStateTypes.POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z) && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_17)) {
+                    if (blockType == PacketStateTypes.POWDER_SNOW && i == Math.floor(player.getX()) && j == Math.floor(player.getY()) && k == Math.floor(player.getZ()) && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_17)) {
                         return true;
                     }
                 }
@@ -878,7 +879,7 @@ public class Collisions {
     }
 
     // Thanks Tuinity
-    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Pair<PacketBlockState, Vector3d>> searchingFor) {
+    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Pair<PacketBlockState, ImmutableVector3d>> searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX);
         int maxBlockX = (int) Math.floor(checkBox.maxX);
         int minBlockY = (int) Math.floor(checkBox.minY);
@@ -932,7 +933,7 @@ public class Collisions {
 
                             PacketBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
 
-                            if (searchingFor.test(new Pair<>(data, new Vector3d(x, y, z))))
+                            if (searchingFor.test(new Pair<>(data, MCPacket.getAPI().getVectorFactory().getImmutableVec3d(x, y, z))))
                                 return true;
                         }
                     }
@@ -943,7 +944,7 @@ public class Collisions {
     }
 
     // Thanks Tuinity
-    public static void forEachCollisionBox(GrimPlayer player, SimpleCollisionBox checkBox, Consumer<Vector3d> searchingFor) {
+    public static void forEachCollisionBox(GrimPlayer player, SimpleCollisionBox checkBox, Consumer<ImmutableVector3d> searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX - COLLISION_EPSILON) - 1;
         int maxBlockX = (int) Math.floor(checkBox.maxX + COLLISION_EPSILON) + 1;
         int minBlockY = (int) Math.floor(checkBox.minY - COLLISION_EPSILON) - 1;
@@ -1011,7 +1012,7 @@ public class Collisions {
                                 final CollisionBox collisionBox = CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
 
                                 if (collisionBox.isIntersected(checkBox)) {
-                                    searchingFor.accept(new Vector3d(x, y, z));
+                                    searchingFor.accept(MCPacket.getAPI().getVectorFactory().getImmutableVec3d(x, y, z));
                                 }
                             }
                         }

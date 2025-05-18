@@ -1,17 +1,17 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.types.event.PacketSendEvent;
+import ac.grim.grimac.api.packet.types.server.play.ServerPlayerInfoPacket;
+import ac.grim.grimac.api.packet.types.server.play.ServerPlayerInfoUpdatePacket;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfoUpdate;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -36,13 +36,13 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
                 return;
             }
 
-            WrapperPlayServerPlayerInfo info = new WrapperPlayServerPlayerInfo(event);
+            ServerPlayerInfoPacket info = new ServerPlayerInfoPacket(event);
 
-            if (info.getAction() == WrapperPlayServerPlayerInfo.Action.UPDATE_GAME_MODE || info.getAction() == WrapperPlayServerPlayerInfo.Action.ADD_PLAYER) {
-                List<WrapperPlayServerPlayerInfo.PlayerData> nmsPlayerInfoDataList = info.getPlayerDataList();
+            if (info.getAction() == ServerPlayerInfoPacket.Action.UPDATE_GAME_MODE || info.getAction() == ServerPlayerInfoPacket.Action.ADD_PLAYER) {
+                List<ServerPlayerInfoPacket.PlayerData> nmsPlayerInfoDataList = info.getPlayerDataList();
 
                 int hideCount = 0;
-                for (WrapperPlayServerPlayerInfo.PlayerData playerData : nmsPlayerInfoDataList) {
+                for (ServerPlayerInfoPacket.PlayerData playerData : nmsPlayerInfoDataList) {
                     if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(receiver, playerData)) {
                         hideCount++;
                         if (playerData.getGameMode() == GameMode.SPECTATOR)
@@ -51,7 +51,7 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
                 }
 
                 //if amount of hidden players is the amount of players updated & is an update game mode action just cancel it
-                if (hideCount == nmsPlayerInfoDataList.size() && info.getAction() == WrapperPlayServerPlayerInfo.Action.UPDATE_GAME_MODE) {
+                if (hideCount == nmsPlayerInfoDataList.size() && info.getAction() == ServerPlayerInfoPacket.Action.UPDATE_GAME_MODE) {
                     event.setCancelled(true);
                 } else if (hideCount > 0) {
                     event.markForReEncode(true);
@@ -61,23 +61,23 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
             GrimPlayer receiver = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (receiver == null) return;
             //create wrappers
-            WrapperPlayServerPlayerInfoUpdate wrapper = new WrapperPlayServerPlayerInfoUpdate(event);
-            EnumSet<WrapperPlayServerPlayerInfoUpdate.Action> actions = wrapper.getActions();
+            ServerPlayerInfoUpdatePacket wrapper = new ServerPlayerInfoUpdatePacket(event);
+            EnumSet<ServerPlayerInfoUpdatePacket.Action> actions = wrapper.getActions();
             //player's game mode updated
-            if (actions.contains(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_GAME_MODE)) {
+            if (actions.contains(ServerPlayerInfoUpdatePacket.Action.UPDATE_GAME_MODE)) {
                 boolean onlyGameMode = actions.size() == 1; // packet is being sent to only update game modes
                 int hideCount = 0;
-                List<WrapperPlayServerPlayerInfoUpdate.PlayerInfo> modified = new ArrayList<>(wrapper.getEntries().size());
+                List<ServerPlayerInfoUpdatePacket.PlayerInfo> modified = new ArrayList<>(wrapper.getEntries().size());
                 //iterate through the player entries
-                for (WrapperPlayServerPlayerInfoUpdate.PlayerInfo entry : wrapper.getEntries()) {
+                for (ServerPlayerInfoUpdatePacket.PlayerInfo entry : wrapper.getEntries()) {
                     //check if the player should be hidden
-                    WrapperPlayServerPlayerInfoUpdate.PlayerInfo modifiedPacket = null;
+                    ServerPlayerInfoUpdatePacket.PlayerInfo modifiedPacket = null;
                     final UserProfile gameProfile = entry.getGameProfile();
                     if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(receiver, gameProfile.getUUID())) {
                         hideCount++;
                         //modify & create a new packet from pre-existing one if they are a spectator
                         if (entry.getGameMode() == GameMode.SPECTATOR) {
-                            modifiedPacket = new WrapperPlayServerPlayerInfoUpdate.PlayerInfo(
+                            modifiedPacket = new ServerPlayerInfoUpdate.PlayerInfo(
                                     gameProfile,
                                     entry.isListed(),
                                     entry.getLatency(),
@@ -102,7 +102,7 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
                     if (onlyGameMode) { // if only the game mode changed, cancel
                         event.setCancelled(true);
                     } else { //if more than the game mode changed, remove the action
-                        wrapper.getActions().remove(WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_GAME_MODE);
+                        wrapper.getActions().remove(ServerPlayerInfoUpdate.Action.UPDATE_GAME_MODE);
                         event.markForReEncode(true);
                     }
                 } else { //modify entries

@@ -1,5 +1,6 @@
 package ac.grim.grimac.predictionengine.predictions.rideable;
 
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
@@ -12,7 +13,6 @@ import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
-import com.github.retrooper.packetevents.util.Vector3d;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +55,7 @@ public final class PredictionEngineRideableUtils {
             jumpYVelocity = jumpFactor;
         }
 
-        final double multiplier = (double) (22.2222F * player.vehicleData.horseJump) * camel.getAttributeValue(Attributes.MOVEMENT_SPEED) * (double) BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
+        final double multiplier = (double) (22.2222F * player.vehicleData.horseJump) * camel.getAttributeValue(Attributes.MOVEMENT_SPEED) * (double) BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.lastX, player.lastY, player.lastZ));
         Vector3dm jumpVelocity = ReachUtils.getLook(player, player.xRot, player.yRot).multiply(new Vector3dm(1.0, 0.0, 1.0)).normalize().multiply(multiplier).add(new Vector3dm(0, (double) (1.4285F * player.vehicleData.horseJump) * jumpYVelocity, 0));
 
         for (VectorData vectorData : possibleVectors) {

@@ -1,7 +1,7 @@
 package ac.grim.grimac.events.packets.worldreader;
 
+import ac.grim.grimac.api.packet.types.event.PacketSendEvent;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v1_16.Chunk_v1_9;
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.DataPalette;
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette;

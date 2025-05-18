@@ -15,7 +15,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attribute;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
+import ac.grim.grimac.api.packet.entity.EntityData;
 import ac.grim.grimac.api.packet.entity.PacketEntityType;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
@@ -23,8 +23,8 @@ import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.Direction;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
+import ac.grim.grimac.api.packet.types.server.play.ServerUpdateAttributesPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -104,16 +104,16 @@ public class CompensatedEntities {
         return self.getRiding() != null ? self.getRiding() : self;
     }
 
-    public void updateAttributes(int entityID, List<WrapperPlayServerUpdateAttributes.Property> objects) {
+    public void updateAttributes(int entityID, List<ServerUpdateAttributesPacket.Property> objects) {
         if (entityID == player.entityID) {
             // Check for sprinting attribute. Note that this value can desync: https://bugs.mojang.com/browse/MC-69459
-            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
+            for (ServerUpdateAttributesPacket.Property snapshotWrapper : objects) {
                 final Attribute attribute = snapshotWrapper.getAttribute();
                 if (attribute != Attributes.MOVEMENT_SPEED) continue;
 
                 boolean found = false;
-                List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
-                for (WrapperPlayServerUpdateAttributes.PropertyModifier modifier : modifiers) {
+                List<ServerUpdateAttributesPacket.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
+                for (ServerUpdateAttributesPacket.PropertyModifier modifier : modifiers) {
                     final ResourceLocation name = modifier.getName();
                     if (name.getKey().equals(SPRINTING_MODIFIER_UUID.toString()) || name.getKey().equals("sprinting")) {
                         found = true;
@@ -130,7 +130,7 @@ public class CompensatedEntities {
         PacketEntity entity = player.compensatedEntities.getEntity(entityID);
         if (entity == null) return;
 
-        for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
+        for (ServerUpdateAttributesPacket.Property snapshotWrapper : objects) {
             Attribute attribute = snapshotWrapper.getAttribute();
             if (attribute == null)
                 continue; // TODO: Warn if this happens? Either modded server or bug in packetevents.
@@ -162,7 +162,7 @@ public class CompensatedEntities {
         }
     }
 
-    public void addEntity(int entityID, UUID uuid, PacketEntityType entityType, Vector3d position, float xRot, int data) {
+    public void addEntity(int entityID, UUID uuid, PacketEntityType entityType, ImmutableVector3d position, float xRot, int data) {
         // Dropped items are all server sided and players can't interact with them (except create them!), save the performance
         if (entityType == PacketEntityTypes.ITEM) return;
 
@@ -198,11 +198,11 @@ public class CompensatedEntities {
         } else if (PacketEntityTypes.ARMOR_STAND.equals(entityType)) {
             packetEntity = new PacketEntityArmorStand(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), data);
         } else if (PacketEntityTypes.PAINTING.equals(entityType)) {
-            packetEntity = new PacketEntityPainting(player, uuid, position.x, position.y, position.z, Direction.values()[data]);
+            packetEntity = new PacketEntityPainting(player, uuid, position.getX(), position.getY(), position.getZ(), Direction.values()[data]);
         } else if (PacketEntityTypes.GUARDIAN.equals(entityType)) {
-            packetEntity = new PacketEntityGuardian(player, uuid, entityType, position.x, position.y, position.z, false); // can still be an Elder Guardian in 1.8-1.10.2 from entity metadata updates
+            packetEntity = new PacketEntityGuardian(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), false); // can still be an Elder Guardian in 1.8-1.10.2 from entity metadata updates
         } else if (PacketEntityTypes.ELDER_GUARDIAN.equals(entityType)) {
-            packetEntity = new PacketEntityGuardian(player, uuid, entityType, position.x, position.y, position.z, true);
+            packetEntity = new PacketEntityGuardian(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), true);
         } else {
             packetEntity = new PacketEntity(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         }

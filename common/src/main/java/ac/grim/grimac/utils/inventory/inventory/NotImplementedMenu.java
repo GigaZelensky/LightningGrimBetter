@@ -1,8 +1,8 @@
 package ac.grim.grimac.utils.inventory.inventory;
 
+import ac.grim.grimac.api.packet.types.client.play.ClientClickWindowPacket;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 
 public class NotImplementedMenu extends AbstractContainerMenu {
     public NotImplementedMenu(GrimPlayer player, Inventory playerInventory) {
@@ -12,7 +12,7 @@ public class NotImplementedMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public void doClick(int button, int slotID, WrapperPlayClientClickWindow.WindowClickType clickType) {
+    public void doClick(int button, int slotID, ClientClickWindowPacket.WindowClickType clickType) {
 
     }
 }

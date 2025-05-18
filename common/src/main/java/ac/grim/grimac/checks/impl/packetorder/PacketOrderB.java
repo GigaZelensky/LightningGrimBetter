@@ -2,12 +2,13 @@ package ac.grim.grimac.checks.impl.packetorder;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.client.play.ClientInteractEntityPacket;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
@@ -28,8 +29,8 @@ public class PacketOrderB extends Check implements PacketCheck {
         if (event.getPacketType() == PacketTypes.Play.Client.ANIMATION) {
             sentAnimation = true;
         } else if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
-            if (packet.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) return;
+            ClientInteractEntityPacket packet = packetFactory.clientInteractEntity(event);
+            if (packet.getInteractAction() != ClientInteractEntityPacket.InteractAction.ATTACK) return;
 
             // There is a "bug" in ViaRewind
             // 1.8 packet order: ANIMATION -> INTERACT

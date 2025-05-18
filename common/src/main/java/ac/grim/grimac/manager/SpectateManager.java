@@ -6,7 +6,7 @@ import ac.grim.grimac.api.platform.init.ReloadableInitable;
 import ac.grim.grimac.api.platform.init.StartableInitable;
 import ac.grim.grimac.api.platform.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
+import ac.grim.grimac.api.packet.types.server.play.ServerPlayerInfoPacket;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -48,7 +48,7 @@ public class SpectateManager implements StartableInitable, ReloadableInitable {
         return spectatingPlayers.containsKey(uuid);
     }
 
-    public boolean shouldHidePlayer(GrimPlayer receiver, WrapperPlayServerPlayerInfo.PlayerData playerData) {
+    public boolean shouldHidePlayer(GrimPlayer receiver, ServerPlayerInfoPacket.PlayerData playerData) {
         return playerData.getUser() != null
                 && playerData.getUser().getUUID() != null
                 && shouldHidePlayer(receiver, playerData.getUser().getUUID());

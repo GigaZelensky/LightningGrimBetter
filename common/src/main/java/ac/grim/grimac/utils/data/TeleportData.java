@@ -1,9 +1,9 @@
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
-import com.github.retrooper.packetevents.util.Vector3d;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,8 +11,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 public class TeleportData {
-    Vector3d location;
-    Vector3d velocity;
+    ImmutableVector3d location;
+    ImmutableVector3d velocity;
     RelativeFlag flags;
     @Setter
     int transaction;

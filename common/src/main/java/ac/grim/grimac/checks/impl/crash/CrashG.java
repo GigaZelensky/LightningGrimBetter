@@ -1,16 +1,16 @@
 package ac.grim.grimac.checks.impl.crash;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.client.play.ClientPlayerUseItemPacket;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 
 @CheckData(name = "CrashG", description = "Sent negative sequence id")
 public class CrashG extends BlockPlaceCheck {
@@ -22,7 +22,7 @@ public class CrashG extends BlockPlaceCheck {
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Client.USE_ITEM && isSupportedVersion()) {
-            WrapperPlayClientUseItem use = new WrapperPlayClientUseItem(event);
+            ClientPlayerUseItemPacket use = packetFactory.clientPlayerUseItem(event);
             if (use.getSequence() < 0) {
                 flagAndAlert();
                 event.setCancelled(true);

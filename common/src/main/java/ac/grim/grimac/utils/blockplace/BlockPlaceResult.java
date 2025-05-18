@@ -5,6 +5,7 @@ import ac.grim.grimac.api.packet.item.PacketItemType;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.api.packet.world.enums.*;
 import ac.grim.grimac.events.packets.CheckManagerListener;
@@ -23,7 +24,6 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.ItemTags;
 import ac.grim.grimac.api.packet.world.enums.Hinge;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
-import com.github.retrooper.packetevents.util.Vector3i;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,7 +55,7 @@ public enum BlockPlaceResult {
     }, ItemTags.BEDS),
 
     SNOW((player, place) -> {
-        Vector3i against = place.getPlacedAgainstBlockLocation();
+        ImmutableVector3i against = place.getPlacedAgainstBlockLocation();
         PacketBlockState blockState = place.getExistingBlockData();
         int layers = 0;
         if (blockState.getType() == PacketStateTypes.SNOW) {
@@ -159,7 +159,7 @@ public enum BlockPlaceResult {
     }, PacketItemTypes.AMETHYST_CLUSTER, PacketItemTypes.SMALL_AMETHYST_BUD, PacketItemTypes.MEDIUM_AMETHYST_BUD, PacketItemTypes.LARGE_AMETHYST_BUD),
 
     BAMBOO((player, place) -> {
-        Vector3i clicked = place.getPlacedAgainstBlockLocation();
+        ImmutableVector3i clicked = place.getPlacedAgainstBlockLocation();
         if (player.compensatedWorld.getFluidLevelAt(clicked.getX(), clicked.getY(), clicked.getZ()) > 0)
             return;
 
@@ -356,7 +356,7 @@ public enum BlockPlaceResult {
         // If the dripstone is -> <- pointed at one another
 
         // If check the blockstate that is above now with the direction of DOWN
-        Vector3i placedPos = place.getPlacedBlockPos();
+        ImmutableVector3i placedPos = place.getPlacedBlockPos();
         Dripstone.update(player, toPlace, placedPos.getX(), placedPos.getY(), placedPos.getZ(), place.isSecondaryUse());
 
         place.set(toPlace);
@@ -416,11 +416,11 @@ public enum BlockPlaceResult {
         }
 
         if (place.isOnDirt() || place.isOn(PacketStateTypes.SAND, PacketStateTypes.RED_SAND)) {
-            Vector3i pos = place.getPlacedBlockPos();
+            ImmutableVector3i pos = place.getPlacedBlockPos();
             pos = pos.withY(pos.getY() - 1);
 
             for (BlockFace direction : BlockPlace.getHorizontalFaces()) {
-                Vector3i toSearchPos = pos;
+                ImmutableVector3i toSearchPos = pos;
                 toSearchPos = toSearchPos.withX(toSearchPos.getX() + direction.getModX());
                 toSearchPos = toSearchPos.withZ(toSearchPos.getZ() + direction.getModZ());
 
@@ -481,7 +481,7 @@ public enum BlockPlaceResult {
                     return;
                 }
 
-                Vector3i placedPos = place.getPlacedBlockPos();
+                ImmutableVector3i placedPos = place.getPlacedBlockPos();
                 placedPos = placedPos.add(direction.getModX(), -1, direction.getModZ());
 
                 PacketBlockState blockstate2 = player.compensatedWorld.getBlock(placedPos);
@@ -999,7 +999,7 @@ public enum BlockPlaceResult {
             // Jesus christ, two desync's in a single block... should I be disappointed or concerned?
             // Ghost blocks won't be fixed because of how it depends on the world state
             int i = 0;
-            Vector3i starting = new Vector3i(place.getPlacedAgainstBlockLocation().getX() + direction.getModX(), place.getPlacedAgainstBlockLocation().getY() + direction.getModY(), place.getPlacedAgainstBlockLocation().getZ() + direction.getModZ());
+            ImmutableVector3i starting = MCPacket.getAPI().getVectorFactory().getImmutableVec3i(place.getPlacedAgainstBlockLocation().getX() + direction.getModX(), place.getPlacedAgainstBlockLocation().getY() + direction.getModY(), place.getPlacedAgainstBlockLocation().getZ() + direction.getModZ());
             while (i < 7) {
                 if (player.compensatedWorld.getBlock(starting).getType() != PacketStateTypes.SCAFFOLDING) {
                     if (player.compensatedWorld.getBlock(starting).getType().isReplaceable()) {
@@ -1010,7 +1010,7 @@ public enum BlockPlaceResult {
                     return; // Cancel block place
                 }
 
-                starting = new Vector3i(starting.getX() + direction.getModX(), starting.getY() + direction.getModY(), starting.getZ() + direction.getModZ());
+                starting = MCPacket.getAPI().getVectorFactory().getImmutableVec3i(starting.getX() + direction.getModX(), starting.getY() + direction.getModY(), starting.getZ() + direction.getModZ());
                 if (BlockFaceHelper.isFaceHorizontal(direction)) {
                     i++;
                 }
@@ -1043,7 +1043,7 @@ public enum BlockPlaceResult {
         if (BlockTags.MUSHROOM_GROW_BLOCK.contains(place.getBelowMaterial())) {
             place.set();
         } else if (place.isFullFace(BlockFace.DOWN)) { // TODO: Check occluding
-            Vector3i placedPos = place.getPlacedBlockPos();
+            ImmutableVector3i placedPos = place.getPlacedBlockPos();
             // This is wrong and depends on lighting, but the server resync's anyways plus this isn't a solid block. so I don't care.
             place.set();
         }

@@ -5,9 +5,9 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import com.github.retrooper.packetevents.util.Vector3d;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "BadPacketsV", description = "Did not move far enough", experimental = true)
@@ -26,7 +26,7 @@ public class BadPacketsV extends Check implements PacketCheck {
 
                 if (noReminderTicks < positionAtLeastEveryNTicks && !player.uncertaintyHandler.lastTeleportTicks.hasOccurredSince(1)) {
                     final double deltaSq = new WrapperPlayClientPlayerFlying(event).getLocation().getPosition()
-                            .distanceSquared(new Vector3d(player.lastX, player.lastY, player.lastZ));
+                            .distanceSquared(MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.lastX, player.lastY, player.lastZ));
                     if (deltaSq <= player.getMovementThreshold() * player.getMovementThreshold()) {
                         flagAndAlert("delta=" + Math.sqrt(deltaSq));
                     }

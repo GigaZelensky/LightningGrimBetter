@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.breaking;
 
+import ac.grim.grimac.api.packet.player.enums.DiggingAction;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -8,10 +9,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.util.Vector3i;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ public class MultiBreak extends Check implements BlockBreakCheck {
     private final List<String> flags = new ArrayList<>();
     private boolean hasBroken;
     private BlockFace lastFace;
-    private Vector3i lastPos;
+    private ImmutableVector3i lastPos;
 
     public MultiBreak(GrimPlayer player) {
         super(player);

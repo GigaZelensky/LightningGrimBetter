@@ -1,12 +1,13 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.client.play.ClientStatusPacket;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClientStatus;
 
 import java.util.ArrayDeque;
@@ -22,7 +23,7 @@ public class PacketOrderK extends Check implements PostPredictionCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Client.CLIENT_STATUS) {
-            if (new WrapperPlayClientClientStatus(event).getAction() == WrapperPlayClientClientStatus.Action.OPEN_INVENTORY_ACHIEVEMENT) {
+            if (packetFactory.clientStatus(event).getClientStatusAction() == ClientStatusPacket.Action.OPEN_INVENTORY_ACHIEVEMENT) {
                 if (player.packetOrderProcessor.isClickingInInventory() || player.packetOrderProcessor.isClosingInventory()) {
                     String verbose = "open, clicking=" + player.packetOrderProcessor.isClickingInInventory() + ", closing=" + player.packetOrderProcessor.isClosingInventory();
                     if (!player.canSkipTicks()) {

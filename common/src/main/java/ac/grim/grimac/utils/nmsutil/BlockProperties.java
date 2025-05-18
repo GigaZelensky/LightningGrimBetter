@@ -3,6 +3,8 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.MainSupportingBlockData;
@@ -14,8 +16,6 @@ import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.api.packet.item.PacketEnchantmentTypes;
 import ac.grim.grimac.api.packet.block.PacketBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3i;
 
 public class BlockProperties {
     public static float getFrictionInfluencedSpeed(float f, GrimPlayer player) {
@@ -59,16 +59,16 @@ public class BlockProperties {
      * For soul speed (server-sided only)
      * (we don't account for this and instead remove this debuff) And powder snow block attribute
      */
-    public static PacketStateType getOnPos(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
+    public static PacketStateType getOnPos(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, ImmutableVector3d playerPos) {
         if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_19_4)) {
             return BlockProperties.getOnBlock(player, playerPos.getX(), playerPos.getY(), playerPos.getZ());
         }
 
-        Vector3i pos = getOnPos(player, playerPos, mainSupportingBlockData, 0.2F);
+        ImmutableVector3i pos = getOnPos(player, playerPos, mainSupportingBlockData, 0.2F);
         return player.compensatedWorld.getBlockType(pos.x, pos.y, pos.z);
     }
 
-    public static float getFriction(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
+    public static float getFriction(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, ImmutableVector3d playerPos) {
         if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_19_4)) {
             double searchBelowAmount = 0.5000001;
 
@@ -83,7 +83,7 @@ public class BlockProperties {
         return getMaterialFriction(player, underPlayer);
     }
 
-    public static float getBlockSpeedFactor(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
+    public static float getBlockSpeedFactor(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, ImmutableVector3d playerPos) {
         // This system was introduces in 1.15 players to add support for honey blocks slowing players down
         if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_15)) return 1.0f;
         if (player.isGliding || player.isFlying) return 1.0f;
@@ -102,7 +102,7 @@ public class BlockProperties {
         return getModernVelocityMultiplier(player, getBlockSpeedFactor(player, underPlayer));
     }
 
-    public static boolean onHoneyBlock(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
+    public static boolean onHoneyBlock(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, ImmutableVector3d playerPos) {
         if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_15)) return false;
 
         PacketStateType inBlock = player.compensatedWorld.getBlockType(playerPos.getX(), playerPos.getY(), playerPos.getZ());
@@ -116,13 +116,13 @@ public class BlockProperties {
      * <p>
      * On soul speed block (server-sided only)
      */
-    private static PacketStateType getBlockPosBelowThatAffectsMyMovement(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
-        Vector3i pos = getOnPos(player, playerPos, mainSupportingBlockData, 0.500001F);
+    private static PacketStateType getBlockPosBelowThatAffectsMyMovement(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, ImmutableVector3d playerPos) {
+        ImmutableVector3i pos = getOnPos(player, playerPos, mainSupportingBlockData, 0.500001F);
         return player.compensatedWorld.getBlockType(pos.x, pos.y, pos.z);
     }
 
-    private static Vector3i getOnPos(GrimPlayer player, Vector3d playerPos, MainSupportingBlockData mainSupportingBlockData, float searchBelowPlayer) {
-        Vector3i mainBlockPos = mainSupportingBlockData.getBlockPos();
+    private static ImmutableVector3i getOnPos(GrimPlayer player, ImmutableVector3d playerPos, MainSupportingBlockData mainSupportingBlockData, float searchBelowPlayer) {
+        ImmutableVector3i mainBlockPos = mainSupportingBlockData.getBlockPos();
         if (mainBlockPos != null) {
             PacketStateType blockstate = player.compensatedWorld.getBlockType(mainBlockPos.x, mainBlockPos.y, mainBlockPos.z);
 
@@ -133,7 +133,7 @@ public class BlockProperties {
 
             return shouldReturn ? mainBlockPos.withY(GrimMath.floor(playerPos.getY() - (double) searchBelowPlayer)) : mainBlockPos;
         } else {
-            return new Vector3i(GrimMath.floor(playerPos.getX()), GrimMath.floor(playerPos.getY() - searchBelowPlayer), GrimMath.floor(playerPos.getZ()));
+            return MCPacket.getAPI().getVectorFactory().getImmutableVec3i(GrimMath.floor(playerPos.getX()), GrimMath.floor(playerPos.getY() - searchBelowPlayer), GrimMath.floor(playerPos.getZ()));
         }
     }
 
@@ -171,7 +171,7 @@ public class BlockProperties {
         return block1;
     }
 
-    private static float getBlockSpeedFactorLegacy(GrimPlayer player, Vector3d pos) {
+    private static float getBlockSpeedFactorLegacy(GrimPlayer player, ImmutableVector3d pos) {
         PacketStateType block = player.compensatedWorld.getBlockType(pos.getX(), pos.getY(), pos.getZ());
 
         // This is the 1.16.0 and 1.16.1 method for detecting if the player is on soul speed

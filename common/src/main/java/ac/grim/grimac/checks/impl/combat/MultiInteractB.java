@@ -1,23 +1,22 @@
 package ac.grim.grimac.checks.impl.combat;
 
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3f;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.util.Vector3f;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 import java.util.ArrayList;
 
 @CheckData(name = "MultiInteractB", experimental = true)
 public class MultiInteractB extends Check implements PostPredictionCheck {
     private final ArrayList<String> flags = new ArrayList<>();
-    private Vector3f lastPos;
+    private ImmutableVector3f lastPos;
     private boolean hasInteracted = false;
 
     public MultiInteractB(final GrimPlayer player) {
@@ -27,7 +26,7 @@ public class MultiInteractB extends Check implements PostPredictionCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY) {
-            Vector3f pos = new WrapperPlayClientInteractEntity(event).getTarget().orElse(null);
+            ImmutableVector3f pos = packetFactory.clientInteractEntity(event).getTarget().orElse(null);
 
             if (pos == null) {
                 return;

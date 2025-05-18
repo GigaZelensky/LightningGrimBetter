@@ -2,15 +2,15 @@ package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.client.play.ClientInteractEntityPacket;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
 @CheckData(name = "BadPacketsT")
 public class BadPacketsT extends Check implements PacketCheck {
@@ -29,7 +29,7 @@ public class BadPacketsT extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType().equals(PacketTypes.Play.Client.INTERACT_ENTITY)) {
-            final WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
+            final ClientInteractEntityPacket wrapper = packetFactory.clientInteractEntity(event);
             // Only INTERACT_AT actually has an interaction vector
             wrapper.getTarget().ifPresent(targetVector -> {
                 final PacketEntity packetEntity = player.compensatedEntities.getEntity(wrapper.getEntityId());
@@ -50,15 +50,15 @@ public class BadPacketsT extends Check implements PacketCheck {
                 //  28/12/2023 - Player-only is fine
                 //  30/12/2023 - Expansions differ in 1.9+
                 final float scale = (float) packetEntity.getAttributeValue(Attributes.SCALE);
-                if (targetVector.y > (minVerticalDisplacement * scale) && targetVector.y < (maxVerticalDisplacement * scale)
-                        && Math.abs(targetVector.x) < (maxHorizontalDisplacement * scale)
-                        && Math.abs(targetVector.z) < (maxHorizontalDisplacement * scale)) {
+                if (targetVector.getY() > (minVerticalDisplacement * scale) && targetVector.getY() < (maxVerticalDisplacement * scale)
+                        && Math.abs(targetVector.getX()) < (maxHorizontalDisplacement * scale)
+                        && Math.abs(targetVector.getZ()) < (maxHorizontalDisplacement * scale)) {
                     return;
                 }
 
                 // Log the vector
                 final String verbose = String.format("%.5f/%.5f/%.5f",
-                        targetVector.x, targetVector.y, targetVector.z);
+                        targetVector.getX(), targetVector.getY(), targetVector.getZ());
                 // We could pretty much ban the player at this point
                 flagAndAlert(verbose);
             });

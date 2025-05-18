@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.data;
 
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3i;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,8 +12,8 @@ import java.util.List;
 @Getter
 @Setter
 public class BlockPrediction {
-    List<Vector3i> forBlockUpdate;
-    Vector3i blockPosition;
+    List<ImmutableVector3i> forBlockUpdate;
+    ImmutableVector3i blockPosition;
     int originalBlockId;
-    Vector3d playerPosition;
+    ImmutableVector3d playerPosition;
 }

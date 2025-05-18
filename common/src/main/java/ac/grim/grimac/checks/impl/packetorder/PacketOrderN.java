@@ -7,7 +7,7 @@ import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
@@ -38,7 +38,7 @@ public class PacketOrderN extends BlockPlaceCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Client.USE_ITEM
                 || event.getPacketType() == PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT
-                && MCPacket.getAPI().packetFactory().newClientPlayerBlockPlacementPacket(event).blockFace() == BlockFace.OTHER) {
+                && MCPacket.getAPI().packetFactory().clientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER) {
             if (!placing) {
                 usingWithoutPlacing = true;
             }

@@ -3,12 +3,11 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.api.packet.entity.PacketEntityType;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.*;
 import ac.grim.grimac.utils.math.GrimMath;
-import com.github.retrooper.packetevents.util.Vector3d;
 
 /**
  * Yeah, I know this is a bad class
@@ -128,7 +127,7 @@ public final class BoundingBoxSize {
         return 0.6f;
     }
 
-    public static Vector3d getRidingOffsetFromVehicle(PacketEntity entity, GrimPlayer player) {
+    public static ImmutableVector3d getRidingOffsetFromVehicle(PacketEntity entity, GrimPlayer player) {
         SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
         double x = (box.maxX + box.minX) / 2d;
         double y = box.minY;
@@ -154,28 +153,28 @@ public final class BoundingBoxSize {
                     }
                 }
 
-                Vector3d vec3 = new Vector3d(f, 0d, 0d);
+                ImmutableVector3d vec3 = MCPacket.getAPI().getVectorFactory().getImmutableVec3d(f, 0d, 0d);
                 vec3 = yRot(GrimMath.radians(-xRotEntity.interpYaw) - ((float) Math.PI / 2f), vec3);
-                return new Vector3d(x + vec3.x, y + (double) f1, z + vec3.z);
+                return MCPacket.getAPI().getVectorFactory().getImmutableVec3d(x + vec3.x, y + (double) f1, z + vec3.z);
             } else if (entity.getType() == PacketEntityTypes.LLAMA) {
                 float f = player.trigHandler.cos(GrimMath.radians(xRotEntity.interpYaw));
                 float f1 = player.trigHandler.sin(GrimMath.radians(xRotEntity.interpYaw));
-                return new Vector3d(x + (double) (0.3f * f1), y + getPassengerRidingOffset(player, entity) - 0.35f, z + (double) (0.3f * f));
+                return MCPacket.getAPI().getVectorFactory().getImmutableVec3d(x + (double) (0.3f * f1), y + getPassengerRidingOffset(player, entity) - 0.35f, z + (double) (0.3f * f));
             } else if (entity.getType() == PacketEntityTypes.CHICKEN) {
                 float f = player.trigHandler.sin(GrimMath.radians(xRotEntity.interpYaw));
                 float f1 = player.trigHandler.cos(GrimMath.radians(xRotEntity.interpYaw));
                 y = y + (getHeight(player, entity) * 0.5f);
-                return new Vector3d(x + (double) (0.1f * f), y - 0.35f, z - (double) (0.1f * f1));
+                return MCPacket.getAPI().getVectorFactory().getImmutableVec3d(x + (double) (0.1f * f), y - 0.35f, z - (double) (0.1f * f1));
             }
         }
 
-        return new Vector3d(x, y + getPassengerRidingOffset(player, entity) - 0.35f, z);
+        return MCPacket.getAPI().getVectorFactory().getImmutableVec3d(x, y + getPassengerRidingOffset(player, entity) - 0.35f, z);
     }
 
-    private static Vector3d yRot(float yaw, Vector3d start) {
+    private static ImmutableVector3d yRot(float yaw, ImmutableVector3d start) {
         double cos = (float) Math.cos(yaw);
         double sin = (float) Math.sin(yaw);
-        return new Vector3d(
+        return MCPacket.getAPI().getVectorFactory().getImmutableVec3d(
                 start.x * cos + start.z * sin,
                 start.y,
                 start.z * cos - start.x * sin

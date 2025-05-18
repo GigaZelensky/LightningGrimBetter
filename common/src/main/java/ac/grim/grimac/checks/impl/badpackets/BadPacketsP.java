@@ -1,15 +1,15 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.api.packet.types.client.play.ClientClickWindowPacket;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
+import ac.grim.grimac.api.packet.types.event.PacketSendEvent;
+import ac.grim.grimac.api.packet.types.server.play.ServerOpenWindowPacket;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
+import ac.grim.grimac.api.packet.types.client.play.ClientClickWindowPacket.WindowClickType;
 
 @CheckData(name = "BadPacketsP", experimental = true)
 public class BadPacketsP extends Check implements PacketCheck {
@@ -24,7 +24,7 @@ public class BadPacketsP extends Check implements PacketCheck {
     @Override
     public void onPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Server.OPEN_WINDOW) {
-            WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
+            ServerOpenWindowPacket window = packetFactory.serverOpenWindow(event);
             this.containerType = window.getType();
             this.containerId = window.getContainerId();
         }
@@ -33,7 +33,7 @@ public class BadPacketsP extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Client.CLICK_WINDOW) {
-            WrapperPlayClientClickWindow wrapper = new WrapperPlayClientClickWindow(event);
+            ClientClickWindowPacket wrapper = packetFactory.clientClickWindow(event);
             WindowClickType clickType = wrapper.getWindowClickType();
             int button = wrapper.getButton();
 

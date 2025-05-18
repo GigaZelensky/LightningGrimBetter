@@ -1,7 +1,8 @@
 package ac.grim.grimac.predictionengine.movementtick;
 
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.server.play.ServerUpdateAttributesPacket;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
@@ -11,15 +12,13 @@ import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 
 import java.util.ArrayList;
 
 public class MovementTickerStrider extends MovementTickerRideable {
 
-    private static final WrapperPlayServerUpdateAttributes.PropertyModifier SUFFOCATING_MODIFIER = new WrapperPlayServerUpdateAttributes.PropertyModifier(
-            ResourceLocation.minecraft("suffocating"), -0.34F, WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.MULTIPLY_BASE);
+    private static final ServerUpdateAttributesPacket.PropertyModifier SUFFOCATING_MODIFIER = new ServerUpdateAttributesPacket.PropertyModifier(
+            ResourceLocation.minecraft("suffocating"), -0.34F, ServerUpdateAttributesPacket.PropertyModifier.Operation.MULTIPLY_BASE);
 
     public MovementTickerStrider(GrimPlayer player) {
         super(player);
@@ -45,7 +44,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
         super.livingEntityAIStep();
 
         PacketStateType posMaterial = player.compensatedWorld.getBlockType(player.x, player.y, player.z);
-        PacketStateType belowMaterial = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
+        PacketStateType belowMaterial = BlockProperties.getOnPos(player, player.mainSupportingBlockData, MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, player.y, player.z));
 
         final PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.self.getRiding();
         strider.isShaking = !BlockTags.STRIDER_WARM_BLOCKS.contains(posMaterial) &&
@@ -65,9 +64,9 @@ public class MovementTickerStrider extends MovementTickerRideable {
         final ValuedAttribute movementSpeedAttr = strider.getAttribute(Attributes.MOVEMENT_SPEED).orElseThrow();
         float updatedMovementSpeed = (float) movementSpeedAttr.get();
         if (newSpeed) {
-            final WrapperPlayServerUpdateAttributes.Property lastProperty = movementSpeedAttr.property().orElse(null);
+            final ServerUpdateAttributesPacket.Property lastProperty = movementSpeedAttr.property().orElse(null);
             if (lastProperty != null && (!strider.isShaking || lastProperty.getModifiers().stream().noneMatch(mod -> mod.getName().getKey().equals("suffocating")))) {
-                WrapperPlayServerUpdateAttributes.Property newProperty = new WrapperPlayServerUpdateAttributes.Property(lastProperty.getAttribute(), lastProperty.getValue(), new ArrayList<>(lastProperty.getModifiers()));
+                ServerUpdateAttributesPacket.Property newProperty = new ServerUpdateAttributesPacket.Property(lastProperty.getAttribute(), lastProperty.getValue(), new ArrayList<>(lastProperty.getModifiers()));
                 if (!strider.isShaking) {
                     newProperty.getModifiers().removeIf(modifier -> modifier.getName().getKey().equals("suffocating"));
                 } else {

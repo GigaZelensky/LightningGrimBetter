@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.type;
 
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
@@ -11,7 +12,6 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.util.Vector3i;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +68,7 @@ public class BlockPlaceCheck extends Check implements RotationCheck, BlockBreakC
 
     protected SimpleCollisionBox getCombinedBox(final BlockPlace place) {
         // Alright, instead of skidding AACAdditionsPro, let's just use bounding boxes
-        Vector3i clicked = place.getPlacedAgainstBlockLocation();
+        ImmutableVector3i clicked = place.getPlacedAgainstBlockLocation();
         CollisionBox placedOn = HitboxData.getBlockHitbox(player, place.getMaterial(), player.getClientVersion(), player.compensatedWorld.getBlock(clicked), true, clicked.getX(), clicked.getY(), clicked.getZ());
 
         int size = placedOn.downCast(boxes);

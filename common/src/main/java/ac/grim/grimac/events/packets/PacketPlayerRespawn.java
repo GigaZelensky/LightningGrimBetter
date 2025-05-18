@@ -1,9 +1,11 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsE;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsF;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsG;
@@ -16,10 +18,9 @@ import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
+import ac.grim.grimac.api.packet.types.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
-import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerJoinGame;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerRespawn;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateHealth;
@@ -154,8 +155,8 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.isInBed = false;
                 player.packetStateData.setSlowedByUsingItem(false);
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
-                player.packetStateData.lastClaimedPosition = new Vector3d();
-                player.filterMojangStupidityOnMojangStupidity = new Vector3d();
+                player.packetStateData.lastClaimedPosition = MCPacket.getAPI().getVectorFactory().getImmutableVec3d();
+                player.filterMojangStupidityOnMojangStupidity = MCPacket.getAPI().getVectorFactory().getImmutableVec3d();
 
                 final boolean keepTrackedData = this.hasFlag(respawn, KEEP_TRACKED_DATA);
 

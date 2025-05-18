@@ -3,12 +3,12 @@ package ac.grim.grimac.checks.impl.vehicle;
 import ac.grim.grimac.api.packet.entity.PacketEntityType;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
+import ac.grim.grimac.api.packet.types.client.play.ClientEntityActionPacket;
 
 @CheckData(name = "VehicleD", experimental = true, description = "Jumped in a vehicle that cannot jump")
 public class VehicleD extends Check implements PacketCheck {
@@ -18,7 +18,7 @@ public class VehicleD extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketTypes.Play.Client.ENTITY_ACTION && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_JUMPING_WITH_HORSE) {
+        if (event.getPacketType() == PacketTypes.Play.Client.ENTITY_ACTION && packetFactory.clientEntityAction(event).getAction() == ClientEntityActionPacket.Action.START_JUMPING_WITH_HORSE) {
             final PacketEntityType vehicle = player.inVehicle() ? player.compensatedEntities.self.getRiding().getType() : null;
 
             if (!PacketEntityTypes.isTypeInstanceOf(vehicle, PacketEntityTypes.ABSTRACT_HORSE)) {

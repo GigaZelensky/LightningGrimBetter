@@ -1,16 +1,16 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3f;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
-import com.github.retrooper.packetevents.util.Vector3f;
-import com.github.retrooper.packetevents.util.Vector3i;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +20,8 @@ public class MultiPlace extends BlockPlaceCheck {
     private final List<String> flags = new ArrayList<>();
     private boolean hasPlaced;
     private BlockFace lastFace;
-    private Vector3f lastCursor;
-    private Vector3i lastPos;
+    private ImmutableVector3f lastCursor;
+    private ImmutableVector3i lastPos;
 
     public MultiPlace(GrimPlayer player) {
         super(player);
@@ -30,8 +30,8 @@ public class MultiPlace extends BlockPlaceCheck {
     @Override
     public void onBlockPlace(final BlockPlace place) {
         final BlockFace face = place.getDirection();
-        final Vector3f cursor = place.getCursor();
-        final Vector3i pos = place.getPlacedAgainstBlockLocation();
+        final ImmutableVector3f cursor = place.getCursor();
+        final ImmutableVector3i pos = place.getPlacedAgainstBlockLocation();
 
         if (hasPlaced && (face != lastFace || !cursor.equals(lastCursor) || !pos.equals(lastPos))) {
             final String verbose = "face=" + face + ", lastFace=" + lastFace

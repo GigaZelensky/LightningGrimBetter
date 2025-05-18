@@ -2,12 +2,12 @@ package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimUser;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.api.platform.player.PlatformPlayer;
 import ac.grim.grimac.api.platform.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.api.util.ChatUtil;
-import com.github.retrooper.packetevents.util.Vector3f;
-import com.github.retrooper.packetevents.util.Vector3i;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3f;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -25,11 +25,11 @@ public class MessageUtil {
     private final Pattern HEX_PATTERN = Pattern.compile("([&§]#[A-Fa-f0-9]{6})|([&§]x([&§][A-Fa-f0-9]){6})");
     private final char PLACEHOLDER_ESCAPE_CHAR = '\uFFFF'; // this specific character holds no significance
 
-    public @NotNull String toUnlabledString(@Nullable Vector3i vec) {
+    public @NotNull String toUnlabledString(@Nullable ImmutableVector3i vec) {
         return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
     }
 
-    public @NotNull String toUnlabledString(@Nullable Vector3f vec) {
+    public @NotNull String toUnlabledString(@Nullable ImmutableVector3f vec) {
         return vec == null ? "null" : vec.x + ", " + vec.y + ", " + vec.z;
     }
 

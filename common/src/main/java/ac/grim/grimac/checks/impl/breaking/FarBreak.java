@@ -9,7 +9,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import ac.grim.grimac.api.packet.player.enums.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 @CheckData(name = "FarBreak", description = "Breaking blocks too far away", experimental = true)

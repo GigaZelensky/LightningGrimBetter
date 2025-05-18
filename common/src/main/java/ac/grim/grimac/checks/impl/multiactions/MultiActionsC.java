@@ -5,7 +5,7 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 
 @CheckData(name = "MultiActionsC", description = "Clicked in inventory while sprinting", experimental = true)
 public class MultiActionsC extends Check implements PacketCheck {

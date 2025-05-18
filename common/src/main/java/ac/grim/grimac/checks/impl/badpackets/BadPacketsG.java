@@ -1,12 +1,12 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
+import ac.grim.grimac.api.packet.types.client.play.ClientEntityActionPacket;
 
 @CheckData(name = "BadPacketsG", description = "Sent duplicate sneaking status")
 public class BadPacketsG extends Check implements PacketCheck {
@@ -19,9 +19,9 @@ public class BadPacketsG extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Client.ENTITY_ACTION) {
-            WrapperPlayClientEntityAction packet = new WrapperPlayClientEntityAction(event);
+            ClientEntityActionPacket packet = packetFactory.clientEntityAction(event);
 
-            if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SNEAKING) {
+            if (packet.getAction() == ClientEntityActionPacket.Action.START_SNEAKING) {
                 // The player may send two START_SNEAKING packets if they respawned
                 if (lastSneaking && !respawn) {
                     if (flagAndAlert("state=true") && shouldModifyPackets()) {
@@ -32,7 +32,7 @@ public class BadPacketsG extends Check implements PacketCheck {
                     lastSneaking = true;
                 }
                 respawn = false;
-            } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SNEAKING) {
+            } else if (packet.getAction() == ClientEntityActionPacket.Action.STOP_SNEAKING) {
                 if (!lastSneaking && !respawn) {
                     if (flagAndAlert("state=false") && shouldModifyPackets()) {
                         event.setCancelled(true);

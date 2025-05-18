@@ -1,10 +1,13 @@
 package ac.grim.grimac.utils.anticheat.update;
 
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketStateType;
+import ac.grim.grimac.api.packet.player.enums.InteractionHand;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.api.packet.world.enums.North;
 import ac.grim.grimac.api.packet.world.enums.South;
@@ -30,16 +33,14 @@ import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import ac.grim.grimac.api.packet.world.enums.East;
 import ac.grim.grimac.api.packet.world.enums.Half;
 import ac.grim.grimac.api.packet.world.enums.Type;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3f;
-import com.github.retrooper.packetevents.util.Vector3i;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3f;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +57,7 @@ public class BlockPlace {
     // Allocated once instead of in functions to reduce new[] calls that need to be made. Since per-instance BlockPlace is always dealt with on the same thread we can use 1 buffer array
     private final SimpleCollisionBox[] collisions = new SimpleCollisionBox[ComplexCollisionBox.DEFAULT_MAX_COLLISION_BOX_SIZE];
     @Setter
-    Vector3i blockPosition;
+    ImmutableVector3i blockPosition;
     @Getter
     InteractionHand hand;
     @Getter
@@ -79,10 +80,10 @@ public class BlockPlace {
     boolean isInside;
     @Getter
     @Setter
-    Vector3f cursor;
+    ImmutableVector3f cursor;
     public final int sequence;
 
-    public BlockPlace(GrimPlayer player, InteractionHand hand, Vector3i blockPosition, int faceId, BlockFace face, PacketItemStack itemStack, HitData hitData, int sequence) {
+    public BlockPlace(GrimPlayer player, InteractionHand hand, ImmutableVector3i blockPosition, int faceId, BlockFace face, PacketItemStack itemStack, HitData hitData, int sequence) {
         this.player = player;
         this.hand = hand;
         this.blockPosition = blockPosition;
@@ -111,7 +112,7 @@ public class BlockPlace {
         return ((ac.grim.grimac.api.packet.item.PacketStateType) material).createBlockState(blockVersion);
     }
 
-    public Vector3i getPlacedAgainstBlockLocation() {
+    public ImmutableVector3i getPlacedAgainstBlockLocation() {
         return blockPosition;
     }
 
@@ -124,19 +125,19 @@ public class BlockPlace {
     }
 
     public PacketBlockState getBelowState() {
-        Vector3i pos = getPlacedBlockPos();
+        ImmutableVector3i pos = getPlacedBlockPos();
         pos = pos.withY(pos.getY() - 1);
         return player.compensatedWorld.getBlock(pos);
     }
 
     public PacketBlockState getAboveState() {
-        Vector3i pos = getPlacedBlockPos();
+        ImmutableVector3i pos = getPlacedBlockPos();
         pos = pos.withY(pos.getY() + 1);
         return player.compensatedWorld.getBlock(pos);
     }
 
     public PacketBlockState getDirectionalState(BlockFace facing) {
-        Vector3i pos = getPlacedBlockPos();
+        ImmutableVector3i pos = getPlacedBlockPos();
         pos = pos.add(facing.getModX(), facing.getModY(), facing.getModZ());
         return player.compensatedWorld.getBlock(pos);
     }
@@ -324,7 +325,7 @@ public class BlockPlace {
     }
 
     public boolean isBlockFaceOpen(BlockFace facing) {
-        Vector3i pos = getPlacedBlockPos();
+        ImmutableVector3i pos = getPlacedBlockPos();
         pos = pos.add(facing.getModX(), facing.getModY(), facing.getModZ());
         // You can't build above height limit.
         if (pos.getY() >= player.compensatedWorld.getMaxHeight()) return false;
@@ -374,7 +375,7 @@ public class BlockPlace {
     }
 
     public boolean isLava(BlockFace facing) {
-        Vector3i pos = getPlacedBlockPos();
+        ImmutableVector3i pos = getPlacedBlockPos();
         pos = pos.add(facing.getModX(), facing.getModY(), facing.getModZ());
         return player.compensatedWorld.getBlock(pos).getType() == PacketStateTypes.LAVA;
     }
@@ -385,12 +386,12 @@ public class BlockPlace {
     }
 
     public boolean isInWater() {
-        Vector3i pos = getPlacedBlockPos();
+        ImmutableVector3i pos = getPlacedBlockPos();
         return player.compensatedWorld.isWaterSourceBlock(pos.getX(), pos.getY(), pos.getZ());
     }
 
     public boolean isInLiquid() {
-        Vector3i pos = getPlacedBlockPos();
+        ImmutableVector3i pos = getPlacedBlockPos();
         PacketBlockState data = player.compensatedWorld.getBlock(pos);
         return Materials.isWater(player.getClientVersion(), data) || data.getType() == PacketStateTypes.LAVA;
     }
@@ -412,10 +413,10 @@ public class BlockPlace {
     // It's interested that redstone code is actually really simple, but has so many quirks
     // we don't need to account for these quirks though as they are more related to block updates.
     public boolean isBlockPlacedPowered() {
-        Vector3i placed = getPlacedBlockPos();
+        ImmutableVector3i placed = getPlacedBlockPos();
 
         for (BlockFace face : BY_3D) {
-            Vector3i modified = placed.add(face.getModX(), face.getModY(), face.getModZ());
+            ImmutableVector3i modified = placed.add(face.getModX(), face.getModY(), face.getModZ());
 
             // A block next to the player is providing power.  Therefore the block is powered
             if (player.compensatedWorld.getRawPowerAtState(face, modified.getX(), modified.getY(), modified.getZ()) > 0) {
@@ -441,7 +442,7 @@ public class BlockPlace {
             // There's a better way to do this, but this is "good enough"
             // Mojang probably does it in a worse way than this.
             for (BlockFace recursive : BY_3D) {
-                Vector3i poweredRecursive = placed.add(recursive.getModX(), recursive.getModY(), recursive.getModZ());
+                ImmutableVector3i poweredRecursive = placed.add(recursive.getModX(), recursive.getModY(), recursive.getModZ());
 
                 // A block next to the player is directly powered.  Therefore, the block is powered
                 if (player.compensatedWorld.getDirectSignalAtState(recursive, poweredRecursive.getX(), poweredRecursive.getY(), poweredRecursive.getZ()) > 0) {
@@ -541,23 +542,23 @@ public class BlockPlace {
         return face == BlockFace.WEST || face == BlockFace.EAST;
     }
 
-    public Vector3i getPlacedBlockPos() {
+    public ImmutableVector3i getPlacedBlockPos() {
         if (replaceClicked) return blockPosition;
 
         int x = blockPosition.getX() + getNormalBlockFace().getX();
         int y = blockPosition.getY() + getNormalBlockFace().getY();
         int z = blockPosition.getZ() + getNormalBlockFace().getZ();
-        return new Vector3i(x, y, z);
+        return MCPacket.getAPI().getVectorFactory().getImmutableVec3i(x, y, z);
     }
 
-    public Vector3i getNormalBlockFace() {
+    public ImmutableVector3i getNormalBlockFace() {
         return switch (face) {
-            case DOWN -> new Vector3i(0, -1, 0);
-            case SOUTH -> new Vector3i(0, 0, 1);
-            case NORTH -> new Vector3i(0, 0, -1);
-            case WEST -> new Vector3i(-1, 0, 0);
-            case EAST -> new Vector3i(1, 0, 0);
-            default -> new Vector3i(0, 1, 0);
+            case DOWN -> MCPacket.getAPI().getVectorFactory().getImmutableVec3i(0, -1, 0);
+            case SOUTH -> MCPacket.getAPI().getVectorFactory().getImmutableVec3i(0, 0, 1);
+            case NORTH -> MCPacket.getAPI().getVectorFactory().getImmutableVec3i(0, 0, -1);
+            case WEST -> MCPacket.getAPI().getVectorFactory().getImmutableVec3i(-1, 0, 0);
+            case EAST -> MCPacket.getAPI().getVectorFactory().getImmutableVec3i(1, 0, 0);
+            default -> MCPacket.getAPI().getVectorFactory().getImmutableVec3i(0, 1, 0);
         };
     }
 
@@ -566,11 +567,11 @@ public class BlockPlace {
     }
 
     public void set(BlockFace face, PacketBlockState state) {
-        Vector3i blockPos = getPlacedBlockPos().add(face.getModX(), face.getModY(), face.getModZ());
+        ImmutableVector3i blockPos = getPlacedBlockPos().add(face.getModX(), face.getModY(), face.getModZ());
         set(blockPos, state);
     }
 
-    public void set(Vector3i position, PacketBlockState state) {
+    public void set(ImmutableVector3i position, PacketBlockState state) {
         // Hack for scaffolding to be the correct bounding box
         CollisionBox box = CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, position.getX(), position.getY(), position.getZ());
 
@@ -604,7 +605,7 @@ public class BlockPlace {
                     // This happens due to the lack of an idle packet on 1.9+ clients
                     // On 1.8 clients this should practically never happen
                     if (interpWidth - width > 0.05 || interpHeight - height > 0.05) {
-                        Vector3d entityPos = entity.trackedServerPosition.getPos();
+                        ImmutableVector3d entityPos = entity.trackedServerPosition.getPos();
                         interpBox = GetBoundingBox.getPacketEntityBoundingBox(player, entityPos.getX(), entityPos.getY(), entityPos.getZ(), entity);
                     }
 
@@ -643,13 +644,13 @@ public class BlockPlace {
     }
 
     // We need to now run block
-    public void tryCascadeBlockUpdates(Vector3i pos) {
+    public void tryCascadeBlockUpdates(ImmutableVector3i pos) {
         if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_12_2)) return;
 
         cascadeBlockUpdates(pos);
     }
 
-    private void cascadeBlockUpdates(Vector3i pos) {
+    private void cascadeBlockUpdates(ImmutableVector3i pos) {
 
     }
 
@@ -706,13 +707,13 @@ public class BlockPlace {
     }
 
     public void setAbove() {
-        Vector3i placed = getPlacedBlockPos();
+        ImmutableVector3i placed = getPlacedBlockPos();
         placed = placed.add(0, 1, 0);
         set(placed, createBlockState(material, CompensatedWorld.blockVersion));
     }
 
     public void setAbove(PacketBlockState toReplaceWith) {
-        Vector3i placed = getPlacedBlockPos();
+        ImmutableVector3i placed = getPlacedBlockPos();
         placed = placed.add(0, 1, 0);
         set(placed, toReplaceWith);
     }

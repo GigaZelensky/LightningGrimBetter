@@ -15,9 +15,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.utils.data.packetentity;
 
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.entity.PacketEntityType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachInterpolationData;
@@ -26,7 +27,6 @@ import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import com.github.retrooper.packetevents.protocol.attribute.Attribute;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
-import com.github.retrooper.packetevents.util.Vector3d;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
@@ -69,12 +69,12 @@ public class PacketEntity extends TypedPacketEntity {
         this.uuid = uuid;
         initAttributes(player);
         this.trackedServerPosition = new TrackedPosition();
-        this.trackedServerPosition.setPos(new Vector3d(x, y, z));
+        this.trackedServerPosition.setPos(MCPacket.getAPI().getVectorFactory().getImmutableVec3d(x, y, z));
         if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)) { // Thanks ViaVersion
-            trackedServerPosition.setPos(new Vector3d(((int) (x * 32)) / 32d, ((int) (y * 32)) / 32d, ((int) (z * 32)) / 32d));
+            trackedServerPosition.setPos(MCPacket.getAPI().getVectorFactory().getImmutableVec3d(((int) (x * 32)) / 32d, ((int) (y * 32)) / 32d, ((int) (z * 32)) / 32d));
         }
-        final Vector3d pos = trackedServerPosition.getPos();
-        this.newPacketLocation = new ReachInterpolationData(player, new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, false), trackedServerPosition, this);
+        final ImmutableVector3d pos = trackedServerPosition.getPos();
+        this.newPacketLocation = new ReachInterpolationData(player, new SimpleCollisionBox(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ(), false), trackedServerPosition, this);
     }
 
     protected void trackAttribute(ValuedAttribute valuedAttribute) {
@@ -125,7 +125,7 @@ public class PacketEntity extends TypedPacketEntity {
             if (relative) {
                 // This only matters for 1.9+ clients, but it won't hurt 1.8 clients either... align for imprecision
                 final double scale = trackedServerPosition.getScale();
-                Vector3d vec3d;
+                ImmutableVector3d vec3d;
                 if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_16)) {
                     vec3d = trackedServerPosition.withDelta(TrackedPosition.pack(relX, scale), TrackedPosition.pack(relY, scale), TrackedPosition.pack(relZ, scale));
                 } else {
@@ -133,12 +133,12 @@ public class PacketEntity extends TypedPacketEntity {
                 }
                 trackedServerPosition.setPos(vec3d);
             } else {
-                trackedServerPosition.setPos(new Vector3d(relX, relY, relZ));
+                trackedServerPosition.setPos(MCPacket.getAPI().getVectorFactory().getImmutableVec3d(relX, relY, relZ));
                 // ViaVersion desync's here for teleports
                 // It simply teleports the entity with its position divided by 32... ignoring the offset this causes.
                 // Thanks a lot ViaVersion!  Please don't fix this, or it will be a pain to support.
                 if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_9)) {
-                    trackedServerPosition.setPos(new Vector3d(((int) (relX * 32)) / 32d, ((int) (relY * 32)) / 32d, ((int) (relZ * 32)) / 32d));
+                    trackedServerPosition.setPos(MCPacket.getAPI().getVectorFactory().getImmutableVec3d(((int) (relX * 32)) / 32d, ((int) (relY * 32)) / 32d, ((int) (relZ * 32)) / 32d));
                 }
             }
         }
@@ -194,7 +194,7 @@ public class PacketEntity extends TypedPacketEntity {
     public void setPositionRaw(GrimPlayer player, SimpleCollisionBox box) {
         // I'm disappointed in you mojang.  Please don't set the packet position as it desyncs it...
         // But let's follow this flawed client-sided logic!
-        this.trackedServerPosition.setPos(new Vector3d((box.maxX - box.minX) / 2 + box.minX, box.minY, (box.maxZ - box.minZ) / 2 + box.minZ));
+        this.trackedServerPosition.setPos(MCPacket.getAPI().getVectorFactory().getImmutableVec3d((box.maxX - box.minX) / 2 + box.minX, box.minY, (box.maxZ - box.minZ) / 2 + box.minZ));
         // This disables interpolation
         this.newPacketLocation = new ReachInterpolationData(player, box, this);
     }

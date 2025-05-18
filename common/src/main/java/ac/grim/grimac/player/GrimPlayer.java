@@ -7,6 +7,7 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.data.world.ICompensatedWorld;
 import ac.grim.grimac.api.handler.ResyncHandler;
 import ac.grim.grimac.api.math.Location;
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.component.PacketComponentItemEquippable;
 import ac.grim.grimac.api.packet.component.PacketComponentTypes;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
@@ -16,6 +17,11 @@ import ac.grim.grimac.api.packet.player.PacketUser;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.protocol.PacketConnectionState;
+import ac.grim.grimac.api.packet.types.event.PacketSendEvent;
+import ac.grim.grimac.api.packet.types.server.play.ServerEntityTeleportPacket;
+import ac.grim.grimac.api.packet.types.server.play.ServerEntityVelocityPacket;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -58,7 +64,6 @@ import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -66,11 +71,8 @@ import ac.grim.grimac.api.packet.item.PacketItemStack;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.dimension.DimensionType;
 import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDisconnect;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
 import com.viaversion.viaversion.api.Via;
@@ -146,7 +148,7 @@ public class GrimPlayer implements GrimUser {
     public double gravity;
     public float friction;
     public double speed;
-    public Vector3d filterMojangStupidityOnMojangStupidity = new Vector3d();
+    public ImmutableVector3d filterMojangStupidityOnMojangStupidity = MCPacket.getAPI().getVectorFactory().getImmutableVec3d();
     public double x;
     public double y;
     public double z;
@@ -234,7 +236,7 @@ public class GrimPlayer implements GrimUser {
     public int maxAttackSlow = 0;
     public GameMode gamemode;
     public DimensionType dimensionType;
-    public Vector3d bedPosition;
+    public ImmutableVector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
     public long lastBlockBreak = 0;
     public final AtomicInteger cancelledPackets = new AtomicInteger(0);
@@ -693,7 +695,7 @@ public class GrimPlayer implements GrimUser {
                 if (PacketEntityTypes.isTypeInstanceOf(data.getEntityType(), PacketEntityTypes.BOAT) || PacketEntityTypes.isTypeInstanceOf(data.getEntityType(), PacketEntityTypes.ABSTRACT_HORSE) || data.getEntityType() == PacketEntityTypes.PIG || data.getEntityType() == PacketEntityTypes.STRIDER) {
                     // We need to set its velocity otherwise it will jump a bit on us, flagging the anticheat
                     // The server does override this with some vehicles. This is intentional.
-                    user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
+                    user.writePacket(ServerEntityVelocityPacket.from(vehicleID, new Vector3d()));
                 }
             }
         }
@@ -718,7 +720,7 @@ public class GrimPlayer implements GrimUser {
                 int ridingId = getRidingVehicleId();
                 TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);
                 if (data != null) {
-                    user.writePacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
+                    user.writePacket(ServerEntityTeleportPacket.from(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
                 }
             }
         });
@@ -915,12 +917,12 @@ public class GrimPlayer implements GrimUser {
         if (platformPlayer != null) platformPlayer.sendMessage(message);
     }
 
-    public void resyncPosition(Vector3i pos) {
+    public void resyncPosition(ImmutableVector3i pos) {
         this.resyncHandler.resync(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public void resyncPosition(Vector3i pos, int sequenceID) {
-        this.resyncHandler.resyncPosition(pos.x, pos.y, pos.z, sequenceID);
+    public void resyncPosition(ImmutableVector3i pos, int sequenceID) {
+        this.resyncHandler.resyncPosition(pos.getX(), pos.getY(), pos.getZ(), sequenceID);
     }
 
     public void resyncPositions(SimpleCollisionBox box) {
@@ -928,7 +930,7 @@ public class GrimPlayer implements GrimUser {
                 GrimMath.ceil(box.maxX), GrimMath.ceil(box.maxY), GrimMath.ceil(box.maxZ));
     }
 
-    public record Movement(Vector3d from, Vector3d to) {}
+    public record Movement(ImmutableVector3d from, ImmutableVector3d to) {}
 
     // TODO (Cross-platform) keep track of world at packet level; do not rely on potentially non-lag-compensated platformPlayer.getWorld()
     public Location getLocation() {

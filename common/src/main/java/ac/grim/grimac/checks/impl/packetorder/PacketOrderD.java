@@ -1,15 +1,14 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.packet.player.enums.InteractionHand;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.client.play.ClientInteractEntityPacket;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity.InteractAction;
 
 @CheckData(name = "PacketOrderD", experimental = true)
 public class PacketOrderD extends Check implements PacketCheck {
@@ -24,14 +23,14 @@ public class PacketOrderD extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9)) {
-            final WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
-            InteractAction action = packet.getAction();
-            if (action != InteractAction.ATTACK) {
+            final ClientInteractEntityPacket packet = packetFactory.clientInteractEntity(event);
+            ClientInteractEntityPacket.InteractAction action = packet.getInteractAction();
+            if (action != ClientInteractEntityPacket.InteractAction.ATTACK) {
                 final boolean sneaking = packet.isSneaking().orElse(false);
                 final int entity = packet.getEntityId();
 
-                if (packet.getHand() == InteractionHand.OFF_HAND) {
-                    if (action == InteractAction.INTERACT) {
+                if (packet.getInteractionHand() == InteractionHand.OFF_HAND) {
+                    if (action == ClientInteractEntityPacket.InteractAction.INTERACT) {
                         if (!sentMainhand) {
                             if (flagAndAlert("Skipped Mainhand") && shouldModifyPackets()) {
                                 event.setCancelled(true);

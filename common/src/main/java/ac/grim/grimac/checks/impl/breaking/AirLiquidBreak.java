@@ -4,14 +4,14 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.util.Vector3i;
+import ac.grim.grimac.api.packet.player.enums.DiggingAction;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 @CheckData(name = "AirLiquidBreak", description = "Breaking a block that cannot be broken")
@@ -20,7 +20,7 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
     private int lastTick;
     private boolean didLastFlag;
     // Initialize to non-null values to prevent NPE when checking for blockType properties and if position equals old position
-    private @NonNull Vector3i lastBreakLoc = new Vector3i();
+    private @NonNull ImmutableVector3i lastBreakLoc = MCPacket.getAPI().getVectorFactory().getImmutableVec3i();
     private @NonNull PacketStateType lastBlockType = PacketStateTypes.AIR;
 
     public AirLiquidBreak(GrimPlayer player) {

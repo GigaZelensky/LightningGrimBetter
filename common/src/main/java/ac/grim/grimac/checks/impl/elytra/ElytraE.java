@@ -2,13 +2,13 @@ package ac.grim.grimac.checks.impl.elytra;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.client.play.ClientEntityActionPacket;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 
 @CheckData(name = "ElytraE", description = "Started gliding while flying", experimental = true)
 public class ElytraE extends Check implements PostPredictionCheck {
@@ -25,7 +25,7 @@ public class ElytraE extends Check implements PostPredictionCheck {
         }
 
         if (event.getPacketType() == PacketTypes.Play.Client.ENTITY_ACTION
-                && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA
+                && packetFactory.clientEntityAction(event).getAction() == ClientEntityActionPacket.Action.START_FLYING_WITH_ELYTRA
                 && player.isFlying
                 && flagAndAlert()
         ) {

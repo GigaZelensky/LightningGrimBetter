@@ -1,22 +1,22 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.server.play.ServerEntityMetadataPacket;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
+import ac.grim.grimac.api.packet.types.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
+import ac.grim.grimac.api.packet.entity.EntityData;
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3i;
+import ac.grim.grimac.api.packet.player.enums.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUseBed;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
     @Override
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Server.ENTITY_METADATA) {
-            WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
+            ServerEntityMetadataPacket entityMetadata = ServerEntityMetadataPacket.from(event);
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null)
@@ -144,11 +144,11 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         hasSendTransaction = true;
 
                         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                            Optional<Vector3i> bed = (Optional<Vector3i>) bedObject.getValue();
+                            Optional<ImmutableVector3i> bed = (Optional<ImmutableVector3i>) bedObject.getValue();
                             if (bed.isPresent()) {
                                 player.isInBed = true;
-                                Vector3i bedPos = bed.get();
-                                player.bedPosition = new Vector3d(bedPos.getX() + 0.5, bedPos.getY(), bedPos.getZ() + 0.5);
+                                ImmutableVector3i bedPos = bed.get();
+                                player.bedPosition = MCPacket.getAPI().getVectorFactory().getImmutableVec3d(bedPos.getX() + 0.5, bedPos.getY(), bedPos.getZ() + 0.5);
                             } else { // Run when we know the player is not in bed 100%
                                 player.isInBed = false;
                             }
@@ -228,7 +228,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 // Split so packet received after transaction
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     player.isInBed = true;
-                    player.bedPosition = new Vector3d(bed.getPosition().getX() + 0.5, bed.getPosition().getY(), bed.getPosition().getZ() + 0.5);
+                    player.bedPosition = MCPacket.getAPI().getVectorFactory().getImmutableVec3d(bed.getPosition().getX() + 0.5, bed.getPosition().getY(), bed.getPosition().getZ() + 0.5);
                 });
             }
         }

@@ -1,12 +1,12 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.api.packet.types.client.play.ClientEntityActionPacket;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
 @CheckData(name = "BadPacketsF", description = "Sent duplicate sprinting status")
 public class BadPacketsF extends Check implements PacketCheck {
@@ -20,9 +20,9 @@ public class BadPacketsF extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Client.ENTITY_ACTION) {
-            WrapperPlayClientEntityAction packet = new WrapperPlayClientEntityAction(event);
+            ClientEntityActionPacket packet = packetFactory.clientEntityAction(event);
 
-            if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
+            if (packet.getAction() == ClientEntityActionPacket.Action.START_SPRINTING) {
                 if (lastSprinting) {
                     if (exemptNext) {
                         exemptNext = false;
@@ -35,7 +35,7 @@ public class BadPacketsF extends Check implements PacketCheck {
                 }
 
                 lastSprinting = true;
-            } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SPRINTING) {
+            } else if (packet.getAction() == ClientEntityActionPacket.Action.STOP_SPRINTING) {
                 if (!lastSprinting) {
                     if (exemptNext) {
                         exemptNext = false;

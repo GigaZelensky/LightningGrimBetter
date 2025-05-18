@@ -1,11 +1,11 @@
 package ac.grim.grimac.checks.impl.misc;
 
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.api.platform.world.PlatformWorld;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
-import com.github.retrooper.packetevents.util.Vector3i;
 
 public class GhostBlockMitigation extends BlockPlaceCheck {
 
@@ -21,8 +21,8 @@ public class GhostBlockMitigation extends BlockPlaceCheck {
         if (allow || player.platformPlayer == null) return;
 
         PlatformWorld world = player.platformPlayer.getWorld();
-        Vector3i pos = place.getPlacedBlockPos();
-        Vector3i posAgainst = place.getPlacedAgainstBlockLocation();
+        ImmutableVector3i pos = place.getPlacedBlockPos();
+        ImmutableVector3i posAgainst = place.getPlacedAgainstBlockLocation();
 
         int x = pos.getX();
         int y = pos.getY();

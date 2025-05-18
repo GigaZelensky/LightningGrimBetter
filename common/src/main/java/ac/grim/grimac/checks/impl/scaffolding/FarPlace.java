@@ -10,7 +10,7 @@ import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.util.Vector3i;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 
 @CheckData(name = "FarPlace", description = "Placing blocks from too far away")
 public class FarPlace extends BlockPlaceCheck {
@@ -22,7 +22,7 @@ public class FarPlace extends BlockPlaceCheck {
     public void onBlockPlace(final BlockPlace place) {
         if (player.gamemode == GameMode.SPECTATOR || player.inVehicle()) return;
 
-        Vector3i blockPos = place.getPlacedAgainstBlockLocation();
+        ImmutableVector3i blockPos = place.getPlacedAgainstBlockLocation();
 
         if (place.getMaterial() == PacketStateTypes.SCAFFOLDING) return;
 

@@ -2,8 +2,15 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.api.packet.item.PacketItemStack;
 import ac.grim.grimac.api.packet.item.PacketItemTypes;
+import ac.grim.grimac.api.packet.player.enums.DiggingAction;
+import ac.grim.grimac.api.packet.player.enums.InteractionHand;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.client.play.ClientClickWindowPacket;
+import ac.grim.grimac.api.packet.types.client.play.ClientCreativeInventoryActionPacket;
+import ac.grim.grimac.api.packet.types.client.play.ClientPlayerDiggingPacket;
+import ac.grim.grimac.api.packet.types.client.play.ClientPlayerUseItemPacket;
+import ac.grim.grimac.api.packet.types.event.PacketSendEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -15,22 +22,14 @@ import ac.grim.grimac.utils.inventory.inventory.MenuType;
 import ac.grim.grimac.utils.inventory.inventory.NotImplementedMenu;
 import ac.grim.grimac.utils.lists.CorrectingPlayerInventoryStorage;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCreativeInventoryAction;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenHorseWindow;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
+import ac.grim.grimac.api.packet.types.server.play.ServerOpenHorseWindowPacket;
+import ac.grim.grimac.api.packet.types.server.play.ServerOpenWindowPacket;
+import ac.grim.grimac.api.packet.types.server.play.ServerSetSlotPacket;
+import ac.grim.grimac.api.packet.types.server.play.ServerWindowItemsPacket;
 
 import java.util.List;
 import java.util.Map;
@@ -192,7 +191,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
 
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Client.USE_ITEM) {
-            WrapperPlayClientUseItem item = new WrapperPlayClientUseItem(event);
+            ClientPlayerUseItemPacket item = packetFactory.clientPlayerUseItem(event);
 
             PacketItemStack use = item.getHand() == InteractionHand.MAIN_HAND ? player.getInventory().getHeldItem() : player.getInventory().getOffHand();
 
@@ -234,12 +233,12 @@ public class CompensatedInventory extends Check implements PacketCheck {
         }
 
         if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_DIGGING) {
-            WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
+            ClientPlayerDiggingPacket dig = packetFactory.clientPlayerDigging(event);
 
             // 1.8 clients don't predict dropping items
             if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8)) return;
 
-            if (dig.getAction() == DiggingAction.DROP_ITEM) {
+            if (dig.getDiggingAction() == DiggingAction.DROP_ITEM) {
                 PacketItemStack heldItem = getHeldItem();
                 if (heldItem != null) {
                     heldItem.setAmount(heldItem.getAmount() - 1);
@@ -251,14 +250,14 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(Inventory.HOTBAR_OFFSET + player.packetStateData.lastSlotSelected);
             }
 
-            if (dig.getAction() == DiggingAction.DROP_ITEM_STACK) {
+            if (dig.getDiggingAction() == DiggingAction.DROP_ITEM_STACK) {
                 inventory.setHeldItem(null);
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(Inventory.HOTBAR_OFFSET + player.packetStateData.lastSlotSelected);
             }
         }
 
         if (event.getPacketType() == PacketTypes.Play.Client.HELD_ITEM_CHANGE) {
-            final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
+            final int slot = packetFactory.clientHeldItemChange(event).getSlot();
 
             // Stop people from spamming the server with an out-of-bounds exception
             if (slot > 8 || slot < 0) return;
@@ -267,7 +266,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         }
 
         if (event.getPacketType() == PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION) {
-            WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
+            ClientCreativeInventoryActionPacket action = packetFactory.clientCreativeInventoryAction(event);
             if (player.gamemode != GameMode.CREATIVE) return;
 
             boolean valid = action.getSlot() >= 1 &&
@@ -281,7 +280,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         }
 
         if (event.getPacketType() == PacketTypes.Play.Client.CLICK_WINDOW && !event.isCancelled()) {
-            WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
+            ClientClickWindowPacket click = packetFactory.clientClickWindow(event);
 
             // How is this possible? Maybe transaction splitting.
             if (click.getWindowId() != openWindowID) {
@@ -293,6 +292,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
                 return;
             }
 
+            // TODO (Packet Rewrite) (Update this for 1.21.5?)
             // Mark the slots the player has changed as changed, then continue simulating what they changed
             Optional<Map<Integer, PacketItemStack>> slots = (Optional) click.getSlots();
             slots.ifPresent(integerItemStackMap -> integerItemStackMap.keySet().forEach(this::markPlayerSlotAsChanged));
@@ -304,7 +304,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             // Is -999 when clicking off the screen
             int slot = click.getSlot();
             // Self-explanatory, look at the enum's values
-            WrapperPlayClientClickWindow.WindowClickType clickType = click.getWindowClickType();
+            ClientClickWindowPacket.WindowClickType clickType = click.getWindowClickType();
 
             if (slot == -1 || slot == -999 || slot < menu.getSlots().size()) {
                 menu.doClick(button, slot, clickType);
@@ -339,7 +339,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
         // For example, we don't need permanent storage, only storing data until the client closes the window
         // We also don't need a lot of server-sided only logic
         if (event.getPacketType() == PacketTypes.Play.Server.OPEN_WINDOW) {
-            WrapperPlayServerOpenWindow open = new WrapperPlayServerOpenWindow(event);
+            ServerOpenWindowPacket open = packetFactory.serverOpenWindow(event);
 
             MenuType menuType = MenuType.getMenuType(open.getType());
 
@@ -364,7 +364,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
 
         // I'm not implementing this lol
         if (event.getPacketType() == PacketTypes.Play.Server.OPEN_HORSE_WINDOW) {
-            WrapperPlayServerOpenHorseWindow open = new WrapperPlayServerOpenHorseWindow(event);
+            ServerOpenHorseWindowPacket open = packetFactory.serverOpenHorseWindow(event);
 
             packetSendingInventorySize = UNSUPPORTED_INVENTORY_CASE;
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
@@ -389,7 +389,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
 
         // Should be 1:1 MCP
         if (event.getPacketType() == PacketTypes.Play.Server.WINDOW_ITEMS) {
-            WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
+            ServerWindowItemsPacket items = packetFactory.serverWindowItems(event);
             stateID = items.getStateId();
 
             List<PacketItemStack> slots = (List) items.getItems();
@@ -436,7 +436,7 @@ public class CompensatedInventory extends Check implements PacketCheck {
             // Only edit hotbar (36 to 44) if window ID is 0
             // Set cursor by putting -1 as window ID and as slot
             // Window ID -2 means any slot can be used
-            WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
+            ServerSetSlotPacket slot = packetFactory.serverSetSlot(event);
 
             if (slot.getWindowId() == -2) { // Direct inventory change
                 inventory.getInventoryStorage().handleServerCorrectSlot(slot.getSlot());

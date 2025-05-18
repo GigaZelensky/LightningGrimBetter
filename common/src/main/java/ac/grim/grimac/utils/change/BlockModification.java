@@ -1,11 +1,11 @@
 package ac.grim.grimac.utils.change;
 
 import ac.grim.grimac.api.packet.block.PacketBlockState;
-import com.github.retrooper.packetevents.util.Vector3i;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 
 public record BlockModification(PacketBlockState oldBlockContents,
                                 PacketBlockState newBlockContents,
-                                Vector3i location, int tick,
+                                ImmutableVector3i location, int tick,
                                 Cause cause) {
 
     @Override

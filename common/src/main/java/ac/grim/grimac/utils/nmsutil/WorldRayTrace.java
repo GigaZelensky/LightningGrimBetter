@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
@@ -14,8 +15,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.api.packet.item.PacketStateType;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3i;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,12 +23,12 @@ import java.util.function.BiFunction;
 
 public class WorldRayTrace {
     public static HitData getNearestBlockHitResult(GrimPlayer player, PacketStateType heldItem, boolean sourcesHaveHitbox, boolean fluidPlacement, boolean itemUsePlacement) {
-        Vector3d startingPos = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
+        ImmutableVector3d startingPos = MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, player.y + player.getEyeHeight(), player.z);
         Vector3dm startingVec = new Vector3dm(startingPos.getX(), startingPos.getY(), startingPos.getZ());
         Ray trace = new Ray(player, startingPos.getX(), startingPos.getY(), startingPos.getZ(), player.xRot, player.yRot);
         final double distance = itemUsePlacement && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_20_5) ? 5 : player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
         Vector3dm endVec = trace.getPointAtDistance(distance);
-        Vector3d endPos = new Vector3d(endVec.getX(), endVec.getY(), endVec.getZ());
+        ImmutableVector3d endPos = MCPacket.getAPI().getVectorFactory().getImmutableVec3d(endVec.getX(), endVec.getY(), endVec.getZ());
 
         return traverseBlocks(player, startingPos, endPos, (block, vector3i) -> {
             if (fluidPlacement && player.getClientVersion().isOlderThan(PacketClientVersions.V_1_13) && CollisionData.getData(block.getType())
@@ -83,7 +83,7 @@ public class WorldRayTrace {
     //
     // I do have to admit that I'm starting to like bifunctions/new java 8 things more than I originally did.
     // although I still don't understand Mojang's obsession with streams in some of the hottest methods... that kills performance
-    public static HitData traverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, BiFunction<PacketBlockState, Vector3i, HitData> predicate) {
+    public static HitData traverseBlocks(GrimPlayer player, ImmutableVector3d start, ImmutableVector3d end, BiFunction<PacketBlockState, ImmutableVector3i, HitData> predicate) {
         // I guess go back by the collision epsilon?
         double endX = GrimMath.lerp(-1.0E-7D, end.x, start.x);
         double endY = GrimMath.lerp(-1.0E-7D, end.y, start.y);
@@ -99,7 +99,7 @@ public class WorldRayTrace {
         if (start.equals(end)) return null;
 
         PacketBlockState state = player.compensatedWorld.getBlock(floorStartX, floorStartY, floorStartZ);
-        HitData apply = predicate.apply(state, new Vector3i(floorStartX, floorStartY, floorStartZ));
+        HitData apply = predicate.apply(state, MCPacket.getAPI().getVectorFactory().getImmutableVec3i(floorStartX, floorStartY, floorStartZ));
 
         if (apply != null) {
             return apply;
@@ -139,7 +139,7 @@ public class WorldRayTrace {
             }
 
             state = player.compensatedWorld.getBlock(floorStartX, floorStartY, floorStartZ);
-            apply = predicate.apply(state, new Vector3i(floorStartX, floorStartY, floorStartZ));
+            apply = predicate.apply(state, MCPacket.getAPI().getVectorFactory().getImmutableVec3i(floorStartX, floorStartY, floorStartZ));
 
             if (apply != null) {
                 return apply;

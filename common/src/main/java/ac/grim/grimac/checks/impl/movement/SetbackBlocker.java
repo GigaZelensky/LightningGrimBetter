@@ -1,12 +1,11 @@
 package ac.grim.grimac.checks.impl.movement;
 
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 
 public class SetbackBlocker extends Check implements PacketCheck {
     public SetbackBlocker(GrimPlayer playerData) {
@@ -26,7 +25,7 @@ public class SetbackBlocker extends Check implements PacketCheck {
         // Don't block teleport packets
         if (player.packetStateData.lastPacketWasTeleport) return;
 
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+        if (isFlying(event.getPacketType())) {
             // The player must obey setbacks
             if (player.getSetbackTeleportUtil().shouldBlockMovement()) {
                 event.setCancelled(true);
@@ -38,7 +37,7 @@ public class SetbackBlocker extends Check implements PacketCheck {
             }
 
             // The player is sleeping, should be safe to block position packets
-            if (player.isInBed && new Vector3d(player.x, player.y, player.z).distanceSquared(player.bedPosition) > 1) {
+            if (player.isInBed && MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, player.y, player.z).distanceSquared(player.bedPosition) > 1) {
                 event.setCancelled(true);
             }
 

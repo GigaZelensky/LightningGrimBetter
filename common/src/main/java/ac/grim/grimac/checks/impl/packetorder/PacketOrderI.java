@@ -3,16 +3,16 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.client.play.ClientInteractEntityPacket;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.nmsutil.BlockBreakSpeed;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import ac.grim.grimac.api.packet.types.client.play.ClientPlayerDiggingPacket;
 
 import java.util.ArrayDeque;
 
@@ -31,7 +31,7 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY) {
-            if (new WrapperPlayClientInteractEntity(event).getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+            if (packetFactory.clientInteractEntity(event).getInteractAction() == ClientInteractEntityPacket.InteractAction.ATTACK) {
                 if (player.packetOrderProcessor.isRightClicking() || player.packetOrderProcessor.isPicking() || player.packetOrderProcessor.isReleasing() || player.packetOrderProcessor.isDigging()) {
                     String verbose = "type=attack, rightClicking=" + player.packetOrderProcessor.isRightClicking()
                             + ", picking=" + player.packetOrderProcessor.isPicking()
@@ -74,9 +74,9 @@ public class PacketOrderI extends Check implements PostPredictionCheck {
         }
 
         if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_DIGGING) {
-            WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
+            ClientPlayerDiggingPacket packet = packetFactory.clientPlayerDigging(event);
 
-            switch (packet.getAction()) {
+            switch (packet.getDiggingAction()) {
                 case RELEASE_USE_ITEM:
                     if (player.packetOrderProcessor.isAttacking() || player.packetOrderProcessor.isRightClicking() || player.packetOrderProcessor.isPicking() || player.packetOrderProcessor.isDigging()) {
                         String verbose = "type=release, attacking=" + player.packetOrderProcessor.isAttacking()

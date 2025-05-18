@@ -2,14 +2,14 @@ package ac.grim.grimac.events.packets.worldreader;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.event.ListenerPriority;
+import ac.grim.grimac.api.packet.types.event.PacketListenerInterface;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.TeleportData;
-import com.github.retrooper.packetevents.event.PacketListenerAbstract;
-import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
+import ac.grim.grimac.api.packet.types.event.PacketSendEvent;
 import ac.grim.grimac.api.packet.world.chunk.PacketChunk;
-import com.github.retrooper.packetevents.util.Vector3i;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgePlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
@@ -19,10 +19,11 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCh
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk;
 
-public class BasePacketWorldReader extends PacketListenerAbstract {
+public class BasePacketWorldReader implements PacketListenerInterface {
 
-    public BasePacketWorldReader() {
-        super(PacketListenerPriority.HIGH);
+    @Override
+    public int getListenerPriority() {
+        return ListenerPriority.HIGH;
     }
 
     @Override
@@ -155,7 +156,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         WrapperPlayServerBlockChange blockChange = new WrapperPlayServerBlockChange(event);
         int range = 16;
 
-        Vector3i blockPosition = blockChange.getBlockPosition();
+        ImmutableVector3i blockPosition = blockChange.getBlockPosition();
         // Don't spam transactions (block changes are sent in batches)
         if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range &&
                 player.lastTransSent + 2 < System.currentTimeMillis())

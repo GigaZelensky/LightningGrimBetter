@@ -1,15 +1,14 @@
 package ac.grim.grimac.checks.impl.multiactions;
 
+import ac.grim.grimac.api.packet.player.enums.InteractionHand;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import ac.grim.grimac.api.packet.player.enums.DiggingAction;
 
 @CheckData(name = "MultiActionsE", description = "Swinging while using an item", experimental = true)
 public class MultiActionsE extends Check implements PacketCheck {
@@ -36,7 +35,7 @@ public class MultiActionsE extends Check implements PacketCheck {
         dropping = false;
 
         if (event.getPacketType() == PacketTypes.Play.Client.PLAYER_DIGGING && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_15)) {
-            DiggingAction action = new WrapperPlayClientPlayerDigging(event).getAction();
+            DiggingAction action = packetFactory.clientPlayerDigging(event).getDiggingAction();
             dropping = action == DiggingAction.DROP_ITEM || action == DiggingAction.DROP_ITEM_STACK;
         }
     }

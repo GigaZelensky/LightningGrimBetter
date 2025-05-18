@@ -1,13 +1,14 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
 import ac.grim.grimac.api.data.boxes.BaseSCB;
+import ac.grim.grimac.api.packet.MCPacket;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.api.math.Location;
 import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3i;
 import com.google.common.collect.AbstractIterator;
 import it.unimi.dsi.fastutil.doubles.AbstractDoubleList;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
@@ -29,7 +30,7 @@ public class SimpleCollisionBox extends BaseSCB implements CollisionBox {
         this(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
     }
 
-    public SimpleCollisionBox(Vector3i pos) {
+    public SimpleCollisionBox(ImmutableVector3i pos) {
         this(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
     }
 
@@ -61,7 +62,7 @@ public class SimpleCollisionBox extends BaseSCB implements CollisionBox {
             isFullBlock = true;
     }
 
-    public SimpleCollisionBox(Vector3d min, Vector3d max) {
+    public SimpleCollisionBox(ImmutableVector3d min, ImmutableVector3d max) {
         this(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
     }
 
@@ -450,16 +451,16 @@ public class SimpleCollisionBox extends BaseSCB implements CollisionBox {
         return null;
     }
 
-    public Vector3d getMaxPosition() { // done to omit conversions bukkit -> packetevents
-        return new Vector3d(maxX, maxY, maxZ);
+    public ImmutableVector3d getMaxPosition() { // done to omit conversions bukkit -> packetevents
+        return MCPacket.getAPI().getVectorFactory().getImmutableVec3d(maxX, maxY, maxZ);
     }
 
     public Vector3dm max() {
         return new Vector3dm(maxX, maxY, maxZ);
     }
 
-    public Vector3d getMinPosition() { // done to omit conversions bukkit -> packetevents
-        return new Vector3d(minX, minY, minZ);
+    public ImmutableVector3d getMinPosition() { // done to omit conversions bukkit -> packetevents
+        return MCPacket.getAPI().getVectorFactory().getImmutableVec3d(minX, minY, minZ);
     }
 
     public Vector3dm min() {
@@ -527,17 +528,17 @@ public class SimpleCollisionBox extends BaseSCB implements CollisionBox {
         return maxZ - minZ;
     }
 
-    public static Iterable<Vector3i> betweenClosed(SimpleCollisionBox box) {
-        Vector3i startBlockPos = containing(box.minX, box.minY, box.minZ);
-        Vector3i endBlockPos = containing(box.maxX, box.maxY, box.maxZ);
+    public static Iterable<ImmutableVector3i> betweenClosed(SimpleCollisionBox box) {
+        ImmutableVector3i startBlockPos = containing(box.minX, box.minY, box.minZ);
+        ImmutableVector3i endBlockPos = containing(box.maxX, box.maxY, box.maxZ);
         return betweenClosed(startBlockPos, endBlockPos);
     }
 
-    public static Vector3i containing(double x, double y, double z) {
-        return new Vector3i(GrimMath.floor(x), GrimMath.floor(y), GrimMath.floor(z));
+    public static ImmutableVector3i containing(double x, double y, double z) {
+        return MCPacket.getAPI().getVectorFactory().getImmutableVec3i(GrimMath.floor(x), GrimMath.floor(y), GrimMath.floor(z));
     }
 
-    public static Iterable<Vector3i> betweenClosed(Vector3i firstPos, Vector3i secondPos) {
+    public static Iterable<ImmutableVector3i> betweenClosed(ImmutableVector3i firstPos, ImmutableVector3i secondPos) {
         return betweenClosed(
                 Math.min(firstPos.getX(), secondPos.getX()),
                 Math.min(firstPos.getY(), secondPos.getY()),
@@ -548,7 +549,7 @@ public class SimpleCollisionBox extends BaseSCB implements CollisionBox {
         );
     }
 
-    public static Iterable<Vector3i> betweenClosed(int xStart, int yStart, int zStart, int xEnd, int yEnd, int zEnd) {
+    public static Iterable<ImmutableVector3i> betweenClosed(int xStart, int yStart, int zStart, int xEnd, int yEnd, int zEnd) {
         int xRange = xEnd - xStart + 1;
         int yRange = yEnd - yStart + 1;
         int zRange = zEnd - zStart + 1;
@@ -557,7 +558,7 @@ public class SimpleCollisionBox extends BaseSCB implements CollisionBox {
             private int index;
 
             @Override
-            protected Vector3i computeNext() {
+            protected ImmutableVector3i computeNext() {
                 if (this.index == totalVectors) {
                     return this.endOfData();
                 } else {
@@ -566,7 +567,7 @@ public class SimpleCollisionBox extends BaseSCB implements CollisionBox {
                     int yOffsetMod = yOffset % yRange;
                     int zOffset = yOffset / yRange;
                     this.index++;
-                    return new Vector3i(xStart + xOffset, yStart + yOffsetMod, zStart + zOffset);
+                    return MCPacket.getAPI().getVectorFactory().getImmutableVec3i(xStart + xOffset, yStart + yOffsetMod, zStart + zOffset);
                 }
             }
         };

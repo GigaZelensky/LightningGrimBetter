@@ -1,8 +1,11 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.event.PacketSendEvent;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.RotationData;
@@ -11,10 +14,8 @@ import ac.grim.grimac.api.math.Location;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
-import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerRotation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
@@ -32,7 +33,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
 
-            Vector3d pos = new Vector3d(teleport.getX(), teleport.getY(), teleport.getZ());
+            ImmutableVector3d pos = MCPacket.getAPI().getVectorFactory().getImmutableVec3d(teleport.getX(), teleport.getY(), teleport.getZ());
 
             if (player == null) return;
 
@@ -62,17 +63,17 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             // If you do actually need this make an issue on GitHub with an explanation for why
             if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_8)) {
                 if (teleport.isRelativeFlag(RelativeFlag.X)) {
-                    pos = pos.add(new Vector3d(player.x, 0, 0));
+                    pos = pos.add(MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, 0, 0));
                     teleport.setRelative(RelativeFlag.X, false);
                 }
 
                 if (teleport.isRelativeFlag(RelativeFlag.Y)) {
-                    pos = pos.add(new Vector3d(0, player.y, 0));
+                    pos = pos.add(MCPacket.getAPI().getVectorFactory().getImmutableVec3d(0, player.y, 0));
                     teleport.setRelative(RelativeFlag.Y, false);
                 }
 
                 if (teleport.isRelativeFlag(RelativeFlag.Z)) {
-                    pos = pos.add(new Vector3d(0, 0, player.z));
+                    pos = pos.add(MCPacket.getAPI().getVectorFactory().getImmutableVec3d(0, 0, player.z));
                     teleport.setRelative(RelativeFlag.Z, false);
                 }
 
@@ -127,7 +128,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             player.sendTransaction();
             int lastTransactionSent = player.lastTransactionSent.get();
-            Vector3d finalPos = vehicleMove.getPosition();
+            ImmutableVector3d finalPos = vehicleMove.getPosition();
 
             event.getTasksAfterSend().add(player::sendTransaction);
             player.vehicleData.vehicleTeleports.add(new Pair<>(lastTransactionSent, finalPos));

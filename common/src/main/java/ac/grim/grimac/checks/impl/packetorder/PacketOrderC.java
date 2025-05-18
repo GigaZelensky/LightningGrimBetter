@@ -1,17 +1,16 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.packet.player.enums.InteractionHand;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.client.play.ClientInteractEntityPacket;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "PacketOrderC")
 public class PacketOrderC extends Check implements PacketCheck {
@@ -33,7 +32,7 @@ public class PacketOrderC extends Check implements PacketCheck {
         }
 
         if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY) {
-            final WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
+            final ClientInteractEntityPacket packet = packetFactory.clientInteractEntity(event);
 
             final PacketEntity entity = player.compensatedEntities.entityMap.get(packet.getEntityId());
 
@@ -45,7 +44,7 @@ public class PacketOrderC extends Check implements PacketCheck {
 
             final boolean sneaking = packet.isSneaking().orElse(false);
 
-            switch (packet.getAction()) {
+            switch (packet.getInteractAction()) {
                 // INTERACT_AT then INTERACT
                 case INTERACT:
                     if (!sentInteractAt) {
@@ -53,9 +52,9 @@ public class PacketOrderC extends Check implements PacketCheck {
                             event.setCancelled(true);
                             player.onPacketCancel();
                         }
-                    } else if (packet.getEntityId() != requiredEntity || packet.getHand() != requiredHand || sneaking != requiredSneaking) {
+                    } else if (packet.getEntityId() != requiredEntity || packet.getInteractionHand() != requiredHand || sneaking != requiredSneaking) {
                         String verbose = "requiredEntity=" + requiredEntity + ", entity=" + packet.getEntityId()
-                                + ", requiredHand=" + requiredHand + ", hand=" + packet.getHand()
+                                + ", requiredHand=" + requiredHand + ", hand=" + packet.getInteractionHand()
                                 + ", requiredSneaking=" + requiredSneaking + ", sneaking=" + sneaking;
                         if (flagAndAlert(verbose) && shouldModifyPackets()) {
                             event.setCancelled(true);
@@ -73,7 +72,7 @@ public class PacketOrderC extends Check implements PacketCheck {
                         }
                     }
 
-                    requiredHand = packet.getHand();
+                    requiredHand = packet.getInteractionHand();
                     requiredEntity = packet.getEntityId();
                     requiredSneaking = sneaking;
                     sentInteractAt = true;
@@ -81,7 +80,7 @@ public class PacketOrderC extends Check implements PacketCheck {
             }
         }
 
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+        if (isFlying(event.getPacketType())) {
             if (sentInteractAt) {
                 sentInteractAt = false;
                 flagAndAlert("Skipped Interact (Tick)");

@@ -1,11 +1,11 @@
 package ac.grim.grimac.manager;
 
+import ac.grim.grimac.api.packet.types.client.play.ClientInteractEntityPacket;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import lombok.Getter;
 
 @Getter
@@ -20,8 +20,8 @@ public class ActionManager extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
-            if (action.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+            ClientInteractEntityPacket action = packetFactory.clientInteractEntity(event);
+            if (action.getInteractAction() == ClientInteractEntityPacket.InteractAction.ATTACK) {
                 player.totalFlyingPacketsSent = 0;
                 attacking = true;
                 lastAttack = System.currentTimeMillis();

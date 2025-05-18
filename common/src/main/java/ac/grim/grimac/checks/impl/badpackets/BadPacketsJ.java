@@ -7,11 +7,11 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.HeadRotation;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
+import ac.grim.grimac.api.packet.types.client.play.ClientPlayerUseItemPacket;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,7 @@ public class BadPacketsJ extends Check implements PostPredictionCheck {
 
         if (event.getPacketType() == PacketTypes.Play.Client.USE_ITEM && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21)
                 && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)) {
-            WrapperPlayClientUseItem packet = new WrapperPlayClientUseItem(event);
+            ClientPlayerUseItemPacket packet = packetFactory.clientPlayerUseItem(event);
             rotations.add(new HeadRotation(packet.getYaw(), packet.getPitch()));
         }
 

@@ -1,14 +1,15 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
+import ac.grim.grimac.api.packet.types.PacketType;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.client.play.ClientInteractEntityPacket;
+import ac.grim.grimac.api.packet.types.client.play.ClientStatusPacket;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.wrapper.play.client.*;
+import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 
@@ -40,16 +41,16 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        final PacketTypeCommon packetType = event.getPacketType();
+        final PacketType packetType = event.getPacketType();
 
         if (packetType == PacketTypes.Play.Client.CLIENT_STATUS) {
-            if (new WrapperPlayClientClientStatus(event).getAction() == WrapperPlayClientClientStatus.Action.OPEN_INVENTORY_ACHIEVEMENT) {
+            if (packetFactory.clientStatus(event).getClientStatusAction() == ClientStatusPacket.Action.OPEN_INVENTORY_ACHIEVEMENT) {
                 openingInventory = true;
             }
         }
 
         if (packetType == PacketTypes.Play.Client.INTERACT_ENTITY) {
-            if (new WrapperPlayClientInteractEntity(event).getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+            if (packetFactory.clientInteractEntity(event).getInteractAction() == ClientInteractEntityPacket.InteractAction.ATTACK) {
                 attacking = true;
             } else {
                 interacting = true;
@@ -57,7 +58,7 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
         }
 
         if (packetType == PacketTypes.Play.Client.PLAYER_DIGGING) {
-            switch (new WrapperPlayClientPlayerDigging(event).getAction()) {
+            switch (packetFactory.clientPlayerDigging(event).getDiggingAction()) {
                 case SWAP_ITEM_WITH_OFFHAND -> swapping = true;
                 case DROP_ITEM, DROP_ITEM_STACK -> dropping = true;
                 case RELEASE_USE_ITEM -> releasing = true;
@@ -66,7 +67,7 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
         }
 
         if (packetType == PacketTypes.Play.Client.ENTITY_ACTION) {
-            switch (new WrapperPlayClientEntityAction(event).getAction()) {
+            switch (packetFactory.clientEntityAction(event).getAction()) {
                 case START_SPRINTING, STOP_SPRINTING -> {
                     if (!player.inVehicle()) {
                         sprinting = true;
@@ -85,7 +86,7 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
         }
 
         if (packetType == PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT) {
-            if (new WrapperPlayClientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER) {
+            if (packetFactory.clientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER) {
                 using = true;
             } else {
                 placing = true;
@@ -99,7 +100,7 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
         if (packetType == PacketTypes.Play.Client.CLICK_WINDOW) {
             clickingInInventory = true;
 
-            switch (new WrapperPlayClientClickWindow(event).getWindowClickType()) {
+            switch (packetFactory.clientClickWindow(event).getWindowClickType()) {
                 case QUICK_MOVE -> quickMoveClicking = true;
                 case PICKUP, PICKUP_ALL -> pickUpClicking = true;
             }

@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.post;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -9,12 +10,11 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.lists.EvictingQueue;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
+import ac.grim.grimac.api.packet.types.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
+import ac.grim.grimac.api.packet.types.PacketType;
+import ac.grim.grimac.api.packet.types.client.play.ClientEntityActionPacket;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
 
 import java.util.ArrayDeque;
@@ -33,7 +33,7 @@ import static ac.grim.grimac.api.packet.types.PacketTypes.Play.Client.USE_ITEM;
 
 @CheckData(name = "Post")
 public class Post extends Check implements PacketCheck, PostPredictionCheck {
-    private final ArrayDeque<PacketTypeCommon> post = new ArrayDeque<>();
+    private final ArrayDeque<PacketType> post = new ArrayDeque<>();
     // Due to 1.9+ missing the idle packet, we must queue flags
     // 1.8 clients will have the same logic for simplicity, although it's not needed
     private final List<String> flags = new EvictingQueue<>(10);
@@ -80,7 +80,7 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
             sentFlying = true;
         } else {
             // 1.13+ clients can click inventory outside tick loop, so we can't post check those two packets on 1.13+
-            PacketTypeCommon packetType = event.getPacketType();
+            PacketType packetType = event.getPacketType();
             if (isTransaction(packetType) && player.packetStateData.lastTransactionPacketWasValid) {
                 if (sentFlying && !post.isEmpty()) {
                     flags.add(post.getFirst().toString().toLowerCase(Locale.ROOT).replace("_", " ") + " v" + player.getClientVersion().getReleaseName());
@@ -102,7 +102,7 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
                     && isExemptFromSwingingCheck < player.lastTransactionReceived.get()) { // Exempt when the server sends animations because viaversion
                 if (sentFlying) post.add(event.getPacketType());
             } else if (ENTITY_ACTION.equals(packetType) // ViaRewind sends START_FALL_FLYING packets async for 1.8 clients on 1.9+ servers
-                    && (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) || new WrapperPlayClientEntityAction(event).getAction() != WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA)) {
+                    && (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9) || packetFactory.clientEntityAction(event).getAction() != ClientEntityActionPacket.Action.START_FLYING_WITH_ELYTRA)) {
                 // https://github.com/GrimAnticheat/Grim/issues/824
                 if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_19_3) && player.inVehicle()) {
                     return;

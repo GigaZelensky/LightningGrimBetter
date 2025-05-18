@@ -4,11 +4,13 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.event.events.FlagEvent;
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.api.packet.types.PacketType;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.PacketWrapperFactory;
+import ac.grim.grimac.api.packet.types.client.play.ClientPlayerFlyingMetaPacket;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,6 +40,8 @@ public class Check extends GrimProcessor implements AbstractCheck {
     private boolean noSetbackPermission;
     private boolean noModifyPacketPermission;
     private long lastViolationTime;
+
+    protected PacketWrapperFactory packetFactory = MCPacket.getAPI().packetFactory();
 
     public Check(final @NotNull GrimPlayer player) {
         this.player = Objects.requireNonNull(player);
@@ -172,22 +176,22 @@ public class Check extends GrimProcessor implements AbstractCheck {
         return offset > 0.001 ? String.format("%.5f", offset) : String.format("%.2E", offset);
     }
 
-    public boolean isTransaction(PacketTypeCommon packetType) {
+    public boolean isTransaction(PacketType packetType) {
         return packetType == PacketTypes.Play.Client.PONG ||
                 packetType == PacketTypes.Play.Client.WINDOW_CONFIRMATION;
     }
 
-    public boolean isFlying(PacketTypeCommon packetType) {
-        return WrapperPlayClientPlayerFlying.isFlying(packetType);
+    public boolean isFlying(PacketType type) {
+        return ClientPlayerFlyingMetaPacket.isFlying(type);
     }
 
-    public boolean isUpdate(PacketTypeCommon packetType) {
+    public boolean isUpdate(PacketType packetType) {
         return isFlying(packetType)
                 || packetType == PacketTypes.Play.Client.CLIENT_TICK_END
                 || isTransaction(packetType);
     }
 
-    public boolean isTickPacket(PacketTypeCommon packetType) {
+    public boolean isTickPacket(PacketType packetType) {
         if (isTickPacketIncludingNonMovement(packetType)) {
             if (isFlying(packetType)) {
                 return !player.packetStateData.lastPacketWasTeleport && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate;
@@ -197,7 +201,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
         return false;
     }
 
-    public boolean isTickPacketIncludingNonMovement(PacketTypeCommon packetType) {
+    public boolean isTickPacketIncludingNonMovement(PacketType packetType) {
         // On 1.21.2+ fall back to the TICK_END packet IF the player did not send a movement packet for their tick
         // TickTimer checks to see if player did not send a tick end packet before new flying packet is sent
         if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21_2)

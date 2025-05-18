@@ -18,6 +18,8 @@ package ac.grim.grimac.checks.impl.combat;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -27,12 +29,10 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragonPart;
 import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.api.packet.entity.PacketEntityType;
 import ac.grim.grimac.api.packet.types.PacketTypes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -54,7 +54,7 @@ public class Reach extends Check implements PacketCheck {
     private static final CheckResult NONE = new CheckResult(ResultType.NONE, "");
     // Only one flag per reach attack, per entity, per tick.
     // We store position because lastX isn't reliable on teleports.
-    private final Int2ObjectMap<Vector3d> playerAttackQueue = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<ImmutableVector3d> playerAttackQueue = new Int2ObjectOpenHashMap<>();
     private boolean cancelImpossibleHits;
     private double threshold;
     private double cancelBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
@@ -66,7 +66,7 @@ public class Reach extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (!player.disableGrim && event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
+            WrapperPlayClientInteractEntity action = packetFactory.clientInteractEntity(event);
 
             // Don't let the player teleport to bypass reach
             if (player.getSetbackTeleportUtil().shouldBlockMovement()) {
@@ -102,7 +102,7 @@ public class Reach extends Check implements PacketCheck {
 
             boolean tooManyAttacks = playerAttackQueue.size() > 10;
             if (!tooManyAttacks) {
-                playerAttackQueue.put(action.getEntityId(), new Vector3d(player.x, player.y, player.z)); // Queue for next tick for very precise check
+                playerAttackQueue.put(action.getEntityId(), MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, player.y, player.z)); // Queue for next tick for very precise check
             }
 
             boolean knownInvalid = isKnownInvalid(entity);
@@ -138,7 +138,7 @@ public class Reach extends Check implements PacketCheck {
 
         // Filter out what we assume to be cheats
         if (cancelBuffer != 0) {
-            CheckResult result = checkReach(reachEntity, new Vector3d(player.x, player.y, player.z), true);
+            CheckResult result = checkReach(reachEntity, MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, player.y, player.z), true);
             return result.isFlag(); // If they flagged
         } else {
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
@@ -150,7 +150,7 @@ public class Reach extends Check implements PacketCheck {
     }
 
     private void tickBetterReachCheckWithAngle() {
-        for (Int2ObjectMap.Entry<Vector3d> attack : playerAttackQueue.int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<ImmutableVector3d> attack : playerAttackQueue.int2ObjectEntrySet()) {
             PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attack.getIntKey());
             if (reachEntity == null) continue;
 
@@ -171,7 +171,7 @@ public class Reach extends Check implements PacketCheck {
     }
 
     @NotNull
-    private CheckResult checkReach(PacketEntity reachEntity, Vector3d from, boolean isPrediction) {
+    private CheckResult checkReach(PacketEntity reachEntity, ImmutableVector3d from, boolean isPrediction) {
         SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
 
         if (reachEntity.getType() == PacketEntityTypes.END_CRYSTAL) { // Hardcode end crystal box

@@ -3,6 +3,8 @@ package ac.grim.grimac.checks.impl.velocity;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.types.PacketTypes;
+import ac.grim.grimac.api.packet.types.event.PacketSendEvent;
+import ac.grim.grimac.api.packet.types.server.play.ServerExplosionPacket;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -12,15 +14,13 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3i;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +47,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
     @Override
     public void onPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Server.EXPLOSION) {
-            WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
+            ServerExplosionPacket explosion = packetFactory.serverExplosion(event);
 
             // Since 1.21.2, the server will instead send these changes via block change packets
             final boolean hasBlocks = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2);
@@ -55,8 +55,8 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
                 this.handleBlockExplosions(explosion);
             }
 
-            Vector3d velocity = explosion.getKnockback();
-            if (velocity != null && (velocity.x != 0 || velocity.y != 0 || velocity.z != 0)) {
+            ImmutableVector3d velocity = explosion.getKnockback();
+            if (velocity != null && (velocity.getX() != 0 || velocity.getY() != 0 || velocity.getZ() != 0)) {
                 // No need to spam transactions
                 if (!hasBlocks || explosion.getRecords().isEmpty()) player.sendTransaction();
                 addPlayerExplosion(player.lastTransactionSent.get(), velocity);
@@ -65,9 +65,9 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
         }
     }
 
-    private void handleBlockExplosions(WrapperPlayServerExplosion explosion) {
-        final @Nullable WrapperPlayServerExplosion.BlockInteraction blockInteraction = explosion.getBlockInteraction();
-        final boolean shouldDestroy = blockInteraction != WrapperPlayServerExplosion.BlockInteraction.KEEP_BLOCKS;
+    private void handleBlockExplosions(ServerExplosionPacket explosion) {
+        final @Nullable ServerExplosionPacket.BlockInteraction blockInteraction = explosion.getBlockInteraction();
+        final boolean shouldDestroy = blockInteraction != ServerExplosionPacket.BlockInteraction.KEEP_BLOCKS;
         if (explosion.getRecords().isEmpty() || !shouldDestroy) {
             return;
         }
@@ -75,10 +75,10 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
         player.sendTransaction();
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            for (Vector3i record : explosion.getRecords()) {
+            for (ImmutableVector3i record : explosion.getRecords()) {
                 // Null OR not flip redstone blocks, then set to air
-                if (blockInteraction != WrapperPlayServerExplosion.BlockInteraction.TRIGGER_BLOCKS) {
-                    player.compensatedWorld.updateBlock(record.x, record.y, record.z, 0);
+                if (blockInteraction != ServerExplosionPacket.BlockInteraction.TRIGGER_BLOCKS) {
+                    player.compensatedWorld.updateBlock(record.getX(), record.getY(), record.getZ(), 0);
                 } else {
                     // We need to flip redstone blocks, or do special things with other blocks
                     final PacketBlockState state = player.compensatedWorld.getBlock(record);
@@ -97,7 +97,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
                     final Object poweredValue = state.getInternalData().get(StateValue.POWERED);
                     final boolean canFlip = (poweredValue != null && !(Boolean) poweredValue) || type == PacketStateTypes.LEVER;
                     if (canFlip) {
-                        player.compensatedWorld.tickOpenable(record.x, record.y, record.z);
+                        player.compensatedWorld.tickOpenable(record.getX(), record.getY(), record.getZ());
                     }
                 }
             }
@@ -135,7 +135,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
         return (player.likelyExplosions != null && player.likelyExplosions.offset > offsetToFlag) || (player.firstBreadExplosion != null && player.firstBreadExplosion.offset > offsetToFlag);
     }
 
-    public void addPlayerExplosion(int breadOne, Vector3d explosion) {
+    public void addPlayerExplosion(int breadOne, ImmutableVector3d explosion) {
         firstBreadMap.add(new VelocityData(-1, breadOne, player.getSetbackTeleportUtil().isSendingSetback, new Vector3dm(explosion.getX(), explosion.getY(), explosion.getZ())));
     }
 

@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
-import com.github.retrooper.packetevents.util.Vector3d;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -20,7 +20,7 @@ public class VehicleData {
     public float vehicleForward = 0f;
     public boolean lastDummy = false;
     public boolean wasVehicleSwitch = false;
-    public ConcurrentLinkedQueue<Pair<Integer, Vector3d>> vehicleTeleports = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<Pair<Integer, ImmutableVector3d>> vehicleTeleports = new ConcurrentLinkedQueue<>();
     public float nextHorseJump = 0;
     public float horseJump = 0;
     public boolean horseJumping = false;

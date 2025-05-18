@@ -2,6 +2,10 @@ package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.packet.MCPacket;
+import ac.grim.grimac.api.packet.types.event.PacketSendEvent;
+import ac.grim.grimac.api.packet.types.server.play.ServerEntityVelocityPacket;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
@@ -11,10 +15,7 @@ import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.api.math.Vector3dm;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +44,7 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
     @Override
     public void onPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Server.ENTITY_VELOCITY) {
-            WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
+            ServerEntityVelocityPacket velocity = ServerEntityVelocityPacket.from(event);
             int entityId = velocity.getEntityId();
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
@@ -60,11 +61,11 @@ public class KnockbackHandler extends Check implements PostPredictionCheck {
 
             // If the player isn't in a vehicle and the ID is for the player, the player will take kb
             // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
-            Vector3d playerVelocity = velocity.getVelocity();
+            ImmutableVector3d playerVelocity = velocity.getVelocity();
 
             // Blacklist problemated vector until mojang fixes a client-sided bug
             if (playerVelocity.getY() == -0.04) {
-                velocity.setVelocity(playerVelocity.add(new Vector3d(0, 1 / 8000D, 0)));
+                velocity.setVelocity(playerVelocity.add(MCPacket.getAPI().getVectorFactory().getImmutableVec3d(0, 1 / 8000D, 0)));
                 playerVelocity = velocity.getVelocity();
                 event.markForReEncode(true);
             }

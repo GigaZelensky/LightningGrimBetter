@@ -1,6 +1,10 @@
 package ac.grim.grimac.checks.impl.breaking;
 
+import ac.grim.grimac.api.packet.MCPacket;
+import ac.grim.grimac.api.packet.player.enums.DiggingAction;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3f;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
@@ -12,11 +16,8 @@ import ac.grim.grimac.api.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -91,25 +92,25 @@ public class RotationBreak extends Check implements BlockBreakCheck {
         }
         // End checking if the player is in the block
 
-        List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
-                new Vector3f(player.lastXRot, player.yRot, 0),
-                new Vector3f(player.xRot, player.yRot, 0)
+        List<ImmutableVector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
+                MCPacket.getAPI().getVectorFactory().getImmutableVector3f(player.lastXRot, player.yRot, 0),
+                MCPacket.getAPI().getVectorFactory().getImmutableVector3f(player.xRot, player.yRot, 0)
         ));
 
         // 1.9+ players could be a tick behind because we don't get skipped ticks
         if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9)) {
-            possibleLookDirs.add(new Vector3f(player.lastXRot, player.lastYRot, 0));
+            possibleLookDirs.add(MCPacket.getAPI().getVectorFactory().getImmutableVector3f(player.lastXRot, player.lastYRot, 0));
         }
 
         // 1.7 players do not have any of these issues! They are always on the latest look vector
         if (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_8)) {
-            possibleLookDirs = Collections.singletonList(new Vector3f(player.xRot, player.yRot, 0));
+            possibleLookDirs = Collections.singletonList(MCPacket.getAPI().getVectorFactory().getImmutableVector3f(player.xRot, player.yRot, 0));
         }
 
         final double distance = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
         for (double d : possibleEyeHeights) {
-            for (Vector3f lookDir : possibleLookDirs) {
-                Vector3d starting = new Vector3d(player.x, player.y + d, player.z);
+            for (ImmutableVector3f lookDir : possibleLookDirs) {
+                ImmutableVector3d starting = MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, player.y + d, player.z);
                 Ray trace = new Ray(player, starting.getX(), starting.getY(), starting.getZ(), lookDir.getX(), lookDir.getY());
                 Pair<Vector3dm, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(distance));
 

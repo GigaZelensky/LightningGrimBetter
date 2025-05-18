@@ -6,7 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
-import com.github.retrooper.packetevents.util.Vector3f;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3f;
 
 @CheckData(name = "FabricatedPlace")
 public class FabricatedPlace extends BlockPlaceCheck {
@@ -16,7 +16,7 @@ public class FabricatedPlace extends BlockPlaceCheck {
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        Vector3f cursor = place.getCursor();
+        ImmutableVector3f cursor = place.getCursor();
         if (cursor == null) return;
 
         double allowed = Materials.isShapeExceedsCube(place.getPlacedAgainstMaterial()) || place.getPlacedAgainstMaterial() == PacketStateTypes.LECTERN ? 1.5 : 1;

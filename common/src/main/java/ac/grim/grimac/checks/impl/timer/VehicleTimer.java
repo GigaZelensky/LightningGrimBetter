@@ -3,7 +3,7 @@ package ac.grim.grimac.checks.impl.timer;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
+import ac.grim.grimac.api.packet.types.PacketType;
 
 @CheckData(name = "Timer - Vehicle", configName = "TimerVehicle", setback = 10)
 public class VehicleTimer extends Timer {
@@ -14,7 +14,7 @@ public class VehicleTimer extends Timer {
     }
 
     @Override
-    public boolean shouldCountPacketForTimer(PacketTypeCommon packetType) {
+    public boolean shouldCountPacketForTimer(PacketType packetType) {
         // Ignore teleports
         if (player.packetStateData.lastPacketWasTeleport) return false;
 

@@ -17,6 +17,7 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
@@ -25,8 +26,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
-import com.github.retrooper.packetevents.util.Vector3d;
 
 // You may not copy the check unless you are licensed under GPL
 public class ReachInterpolationData {
@@ -43,8 +42,8 @@ public class ReachInterpolationData {
         final boolean isPointNine = !player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_9);
 
         this.startingLocation = startingLocation;
-        final Vector3d pos = position.getPos();
-        this.targetLocation = new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, false);
+        final ImmutableVector3d pos = position.getPos();
+        this.targetLocation = new SimpleCollisionBox(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ(), false);
         this.player = player;
         this.entity = entity;
 

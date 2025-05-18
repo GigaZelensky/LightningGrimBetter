@@ -3,6 +3,7 @@ package ac.grim.grimac.predictionengine.movementtick;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.PlayerBaseTick;
@@ -30,7 +31,6 @@ import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.util.Vector3d;
 import com.viaversion.viaversion.api.Via;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -176,8 +176,8 @@ public class MovementTicker {
             Collisions.handleInsideBlocks(player);
         }
 
-        player.mainSupportingBlockData = MainSupportingBlockPosFinder.findMainSupportingBlockPos(player, player.mainSupportingBlockData, new Vector3d(collide.getX(), collide.getY(), collide.getZ()), player.boundingBox, player.onGround);
-        PacketStateType onBlock = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
+        player.mainSupportingBlockData = MainSupportingBlockPosFinder.findMainSupportingBlockPos(player, player.mainSupportingBlockData, MCPacket.getAPI().getVectorFactory().getImmutableVec3d(collide.getX(), collide.getY(), collide.getZ()), player.boundingBox, player.onGround);
+        PacketStateType onBlock = BlockProperties.getOnPos(player, player.mainSupportingBlockData, MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, player.y, player.z));
 
         // Hack with 1.14+ poses issue
         if (inputVel.getY() != collide.getY()) {
@@ -212,13 +212,13 @@ public class MovementTicker {
                 && (player.getClientVersion().isOlderThan(PacketClientVersions.V_1_21_2) || inputVel.lengthSquared() - collide.lengthSquared() >= 1e-7)) {
             collide = new Vector3dm();
         } else if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21_5)) {
-            Vector3d position = new Vector3d(player.lastX, player.lastY, player.lastZ);
+            ImmutableVector3d position = MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.lastX, player.lastY, player.lastZ);
             List<GrimPlayer.Movement> movements = new ObjectArrayList<>();
 
             for (Collisions.Axis axis : Collisions.axisStepOrder(collide)) {
                 double value = axis.choose(collide.getX(), collide.getY(), collide.getZ());
                 if (value != 0.0) {
-                    Vector3d vector = Collisions.relative(position, axis.getPositive(), value);
+                    ImmutableVector3d vector = Collisions.relative(position, axis.getPositive(), value);
                     movements.add(new GrimPlayer.Movement(position, vector));
                     position = vector;
                 }
@@ -230,7 +230,7 @@ public class MovementTicker {
         // This is where vanilla moves the bounding box and sets it
         player.predictedVelocity = new VectorData(collide.clone(), player.predictedVelocity.lastVector, player.predictedVelocity.vectorType);
 
-        float f = BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
+        float f = BlockProperties.getBlockSpeedFactor(player, player.mainSupportingBlockData, MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, player.y, player.z));
         player.clientVelocity.multiply(new Vector3dm(f, 1, f));
 
         if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_21_2)) {
@@ -462,7 +462,7 @@ public class MovementTicker {
                 new PredictionEngineElytra().guessBestMovement(0, player);
 
             } else {
-                float blockFriction = BlockProperties.getFriction(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ));
+                float blockFriction = BlockProperties.getFriction(player, player.mainSupportingBlockData, MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.lastX, player.lastY, player.lastZ));
                 player.friction = player.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
                 doNormalMove(blockFriction);
@@ -478,8 +478,8 @@ public class MovementTicker {
             player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
             player.finalMovementsThisTick.clear();
 
-            Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
-            Vector3d to = new Vector3d(player.x, player.y, player.z);
+            ImmutableVector3d from = MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.lastX, player.lastY, player.lastZ);
+            ImmutableVector3d to = MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, player.y, player.z);
 
             PacketClientVersion clientVersion = player.getClientVersion();
             if (clientVersion.isOlderThan(PacketClientVersions.V_1_21_5)) {

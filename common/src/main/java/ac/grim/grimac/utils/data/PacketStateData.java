@@ -1,7 +1,8 @@
 package ac.grim.grimac.utils.data;
 
-import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.util.Vector3d;
+import ac.grim.grimac.api.packet.MCPacket;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
+import ac.grim.grimac.api.packet.player.enums.InteractionHand;
 import lombok.Getter;
 
 // This is to keep all the packet data out of the main player class
@@ -23,7 +24,7 @@ public class PacketStateData {
     // This works on 1.21.2+ only
     public boolean didSendMovementBeforeTickEnd = false;
     public KnownInput knownInput = new KnownInput(false, false, false, false, false, false, false);
-    public Vector3d lastClaimedPosition = new Vector3d(0, 0, 0);
+    public ImmutableVector3d lastClaimedPosition = MCPacket.getAPI().getVectorFactory().getImmutableVec3d(0, 0, 0);
     public float lastHealth, lastSaturation;
     public int lastFood;
     public boolean lastServerTransWasValid = false;

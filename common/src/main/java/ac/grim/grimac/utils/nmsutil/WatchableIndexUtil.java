@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.nmsutil;
 
-import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
+import ac.grim.grimac.api.packet.entity.EntityData;
 
 import java.util.List;
 

@@ -1,15 +1,15 @@
 package ac.grim.grimac.checks.impl.multiactions;
 
+import ac.grim.grimac.api.packet.player.enums.DiggingAction;
+import ac.grim.grimac.api.packet.player.enums.InteractionHand;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
-import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import ac.grim.grimac.api.packet.types.client.play.ClientPlayerDiggingPacket;
 
 @CheckData(name = "MultiActionsB", description = "Breaking blocks while using an item", experimental = true)
 public class MultiActionsB extends Check implements PacketCheck {
@@ -25,9 +25,9 @@ public class MultiActionsB extends Check implements PacketCheck {
                 return;
             }
 
-            final WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
+            final ClientPlayerDiggingPacket packet = packetFactory.clientPlayerDigging(event);
 
-            if (packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING) {
+            if (packet.getDiggingAction() == DiggingAction.START_DIGGING || packet.getDiggingAction() == DiggingAction.CANCELLED_DIGGING || packet.getDiggingAction() == DiggingAction.FINISHED_DIGGING) {
                 if (flagAndAlert() && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();

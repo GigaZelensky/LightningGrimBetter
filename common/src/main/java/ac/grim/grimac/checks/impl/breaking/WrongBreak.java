@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
@@ -9,9 +10,8 @@ import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import ac.grim.grimac.api.packet.player.enums.DiggingAction;
 import ac.grim.grimac.api.packet.block.PacketBlockState;
-import com.github.retrooper.packetevents.util.Vector3i;
 
 import static ac.grim.grimac.utils.nmsutil.BlockBreakSpeed.getBlockDamage;
 
@@ -19,7 +19,7 @@ import static ac.grim.grimac.utils.nmsutil.BlockBreakSpeed.getBlockDamage;
 public class WrongBreak extends Check implements BlockBreakCheck {
     private final int exemptedY = player.getClientVersion().isOlderThan(PacketClientVersions.V_1_8) ? 255 : (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14) ? -1 : 4095);
     private boolean lastBlockWasInstantBreak = false;
-    private Vector3i lastBlock, lastCancelledBlock, lastLastBlock = null;
+    private ImmutableVector3i lastBlock, lastCancelledBlock, lastLastBlock = null;
 
     public WrongBreak(final GrimPlayer player) {
         super(player);
@@ -42,7 +42,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
         if (blockBreak.action == DiggingAction.START_DIGGING) {
-            final Vector3i pos = blockBreak.position;
+            final ImmutableVector3i pos = blockBreak.position;
 
             lastBlockWasInstantBreak = getBlockDamage(player, blockBreak.block) >= 1;
             lastCancelledBlock = null;
@@ -51,7 +51,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
         }
 
         if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) {
-            final Vector3i pos = blockBreak.position;
+            final ImmutableVector3i pos = blockBreak.position;
 
             if (!shouldExempt(blockBreak.block, pos.y) && !pos.equals(lastBlock)) {
                 // https://github.com/GrimAnticheat/Grim/issues/1512
@@ -71,7 +71,7 @@ public class WrongBreak extends Check implements BlockBreakCheck {
         }
 
         if (blockBreak.action == DiggingAction.FINISHED_DIGGING) {
-            final Vector3i pos = blockBreak.position;
+            final ImmutableVector3i pos = blockBreak.position;
 
             // when a player looks away from the mined block, they send a cancel, and if they look at it again, they don't send another start. (thanks mojang!)
             if (!pos.equals(lastCancelledBlock) && (!lastBlockWasInstantBreak || player.getClientVersion().isOlderThan(PacketClientVersions.V_1_14_4)) && !pos.equals(lastBlock)) {

@@ -1,5 +1,6 @@
 package ac.grim.grimac.predictionengine;
 
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import ac.grim.grimac.player.GrimPlayer;
@@ -18,8 +19,7 @@ import ac.grim.grimac.utils.nmsutil.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
+import ac.grim.grimac.api.packet.types.server.play.ServerUpdateAttributesPacket;
 
 import java.util.Optional;
 
@@ -149,7 +149,7 @@ public final class PlayerBaseTick {
         final ValuedAttribute playerSpeed = player.compensatedEntities.self.getAttribute(Attributes.MOVEMENT_SPEED).orElseThrow();
 
         // Might be null after respawn?
-        final Optional<WrapperPlayServerUpdateAttributes.Property> property = playerSpeed.property();
+        final Optional<ServerUpdateAttributesPacket.Property> property = playerSpeed.property();
         if (property.isEmpty()) return;
 
         // The client first desync's this attribute
@@ -157,7 +157,7 @@ public final class PlayerBaseTick {
         playerSpeed.recalculate();
 
         // And then re-adds it using purely what the server has sent it
-        PacketStateType type = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
+        PacketStateType type = BlockProperties.getOnPos(player, player.mainSupportingBlockData, MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, player.y, player.z));
 
         if (!type.isAir()) {
             int i = player.powderSnowFrozenTicks;
@@ -167,7 +167,7 @@ public final class PlayerBaseTick {
                 float percentFrozen = (float) Math.min(i, ticksToFreeze) / (float) ticksToFreeze;
                 float percentFrozenReducedToSpeed = -0.05F * percentFrozen;
 
-                property.get().getModifiers().add(new WrapperPlayServerUpdateAttributes.PropertyModifier(CompensatedEntities.SNOW_MODIFIER_UUID, percentFrozenReducedToSpeed, WrapperPlayServerUpdateAttributes.PropertyModifier.Operation.ADDITION));
+                property.get().getModifiers().add(new ServerUpdateAttributesPacket.PropertyModifier(CompensatedEntities.SNOW_MODIFIER_UUID, percentFrozenReducedToSpeed, ServerUpdateAttributesPacket.PropertyModifier.Operation.ADDITION));
                 playerSpeed.recalculate();
             }
         }

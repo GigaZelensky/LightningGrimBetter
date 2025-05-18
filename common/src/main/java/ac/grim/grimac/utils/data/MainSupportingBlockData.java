@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.data;
 
-import com.github.retrooper.packetevents.util.Vector3i;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.jetbrains.annotations.Nullable;
@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 @AllArgsConstructor
 public class MainSupportingBlockData {
     @Nullable
-    Vector3i blockPos;
+    ImmutableVector3i blockPos;
     boolean onGround;
 
     public boolean lastOnGroundAndNoBlock() {

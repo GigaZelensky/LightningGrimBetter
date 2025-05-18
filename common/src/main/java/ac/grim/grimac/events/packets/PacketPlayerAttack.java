@@ -3,6 +3,8 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.packet.item.PacketEnchantmentTypes;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.client.play.ClientInteractEntityPacket;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsW;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -10,7 +12,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
@@ -27,7 +28,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketTypes.Play.Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity interact = new WrapperPlayClientInteractEntity(event);
+            WrapperPlayClientInteractEntity interact = packetFactory.clientInteractEntity(event);
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
 
             if (player == null) return;
@@ -42,7 +43,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                 return;
             }
 
-            if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+            if (interact.getInteractAction() == ClientInteractEntityPacket.InteractAction.ATTACK) {
                 if (player.isResetItemUsageOnAttack()) {
                     GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
                 }
@@ -86,7 +87,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                         player.maxAttackSlow++;
                     }
                 }
-            } else if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.INTERACT) {
+            } else if (interact.getInteractAction() == ClientInteractEntityPacket.InteractAction.INTERACT) {
                 // Interacting with a horse in versions 1.13- will cause the client to
                 // set the player's rotation to the horse's rotation
                 if (player.compensatedEntities.getEntity(interact.getEntityId()) instanceof PacketEntityHorse

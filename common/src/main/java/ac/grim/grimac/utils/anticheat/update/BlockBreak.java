@@ -1,20 +1,20 @@
 package ac.grim.grimac.utils.anticheat.update;
 
 import ac.grim.grimac.api.packet.block.PacketBlockState;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.HitboxData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import ac.grim.grimac.api.packet.player.enums.DiggingAction;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
-import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class BlockBreak {
-    public final Vector3i position;
+    public final ImmutableVector3i position;
     public final BlockFace face;
     public final int faceId;
     public final DiggingAction action;
@@ -24,7 +24,7 @@ public final class BlockBreak {
     @Getter
     private boolean cancelled;
 
-    public BlockBreak(GrimPlayer player, Vector3i position, BlockFace face, int faceId, DiggingAction action, int sequence, PacketBlockState block) {
+    public BlockBreak(GrimPlayer player, ImmutableVector3i position, BlockFace face, int faceId, DiggingAction action, int sequence, PacketBlockState block) {
         this.player = player;
         this.position = position;
         this.face = face;
@@ -39,12 +39,12 @@ public final class BlockBreak {
     }
 
     public SimpleCollisionBox getCombinedBox() {
-        CollisionBox placedOn = HitboxData.getBlockHitbox(player, player.getInventory().getHeldItem().getType().getPlacedType(), player.getClientVersion(), block, true, position.x, position.y, position.z);
+        CollisionBox placedOn = HitboxData.getBlockHitbox(player, player.getInventory().getHeldItem().getType().getPlacedType(), player.getClientVersion(), block, true, position.getX(), position.getY(), position.getZ());
 
         List<SimpleCollisionBox> boxes = new ArrayList<>();
         placedOn.downCast(boxes);
 
-        SimpleCollisionBox combined = new SimpleCollisionBox(position.x, position.y, position.z);
+        SimpleCollisionBox combined = new SimpleCollisionBox(position.getX(), position.getY(), position.getZ());
         for (SimpleCollisionBox box : boxes) {
             double minX = Math.max(box.minX, combined.minX);
             double minY = Math.max(box.minY, combined.minY);

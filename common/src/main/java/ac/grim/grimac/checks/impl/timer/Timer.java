@@ -1,13 +1,13 @@
 package ac.grim.grimac.checks.impl.timer;
 
 import ac.grim.grimac.api.config.ConfigManager;
+import ac.grim.grimac.api.packet.types.PacketType;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import ac.grim.grimac.api.packet.types.event.PacketReceiveEvent;
 import ac.grim.grimac.api.packet.types.PacketTypes;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 
 @CheckData(name = "Timer", configName = "TimerA", setback = 10)
 public class Timer extends Check implements PacketCheck {
@@ -99,12 +99,12 @@ public class Timer extends Check implements PacketCheck {
         timerBalanceRealTime = Math.max(timerBalanceRealTime, playerClock - clockDrift);
     }
 
-    public boolean checkForTransaction(PacketTypeCommon packetType) {
+    public boolean checkForTransaction(PacketType packetType) {
         return packetType == PacketTypes.Play.Client.PONG ||
                 packetType == PacketTypes.Play.Client.WINDOW_CONFIRMATION;
     }
 
-    public boolean shouldCountPacketForTimer(PacketTypeCommon packetType) {
+    public boolean shouldCountPacketForTimer(PacketType packetType) {
         // If not flying, or this was a teleport, or this was a duplicate 1.17 mojang stupidity packet
         return isTickPacket(packetType);
     }

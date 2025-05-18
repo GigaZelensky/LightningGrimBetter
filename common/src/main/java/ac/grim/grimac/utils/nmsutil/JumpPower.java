@@ -5,7 +5,7 @@ import ac.grim.grimac.api.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
-import com.github.retrooper.packetevents.util.Vector3d;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 
 import java.util.OptionalInt;
 
@@ -34,6 +34,6 @@ public class JumpPower {
     }
 
     public static float getPlayerJumpFactor(GrimPlayer player) {
-        return BlockProperties.onHoneyBlock(player, player.mainSupportingBlockData, new Vector3d(player.lastX, player.lastY, player.lastZ)) ? 0.5f : 1f;
+        return BlockProperties.onHoneyBlock(player, player.mainSupportingBlockData, MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.lastX, player.lastY, player.lastZ)) ? 0.5f : 1f;
     }
 }

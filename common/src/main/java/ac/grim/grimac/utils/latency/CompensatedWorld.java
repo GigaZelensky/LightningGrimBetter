@@ -3,11 +3,16 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.data.boxes.BaseSCB;
 import ac.grim.grimac.api.data.world.ICompensatedWorld;
+import ac.grim.grimac.api.packet.MCPacket;
 import ac.grim.grimac.api.packet.block.PacketBlockState;
 import ac.grim.grimac.api.packet.item.PacketStateType;
 import ac.grim.grimac.api.packet.player.PacketUser;
+import ac.grim.grimac.api.packet.player.enums.DiggingAction;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersion;
 import ac.grim.grimac.api.packet.protocol.PacketClientVersions;
+import ac.grim.grimac.api.packet.types.Packet;
+import ac.grim.grimac.api.packet.types.client.play.ClientPlayerDiggingPacket;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import ac.grim.grimac.api.packet.world.PacketStateTypes;
 import ac.grim.grimac.api.packet.world.chunk.PacketChunk;
 import ac.grim.grimac.api.packet.world.enums.North;
@@ -31,7 +36,6 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import ac.grim.grimac.api.packet.entity.PacketEntityTypes;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import ac.grim.grimac.api.packet.world.enums.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v1_16.Chunk_v1_9;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
@@ -46,12 +50,9 @@ import ac.grim.grimac.api.packet.world.enums.Half;
 import ac.grim.grimac.api.packet.world.enums.South;
 import ac.grim.grimac.api.packet.world.enums.West;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3i;
-import com.github.retrooper.packetevents.wrapper.PacketWrapper;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
+import ac.grim.grimac.api.packet.types.client.play.ClientPlayerBlockPlacementPacket;
+import ac.grim.grimac.api.packet.types.client.play.ClientPlayerUseItemPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -87,9 +88,9 @@ public class CompensatedWorld implements ICompensatedWorld {
     // The owning list is so that this info can be removed when the final list is processed
     private final Long2ObjectOpenHashMap<BlockPrediction> originalServerBlocks = new Long2ObjectOpenHashMap<>();
     // Blocks the client changed while placing or breaking blocks
-    private List<Vector3i> currentlyChangedBlocks = new LinkedList<>();
-    private final Int2ObjectMap<List<Vector3i>> serverIsCurrentlyProcessingThesePredictions = new Int2ObjectOpenHashMap<>();
-    private final Object2ObjectLinkedOpenHashMap<Pair<Vector3i, DiggingAction>, Vector3d> unackedActions = new Object2ObjectLinkedOpenHashMap<>();
+    private List<ImmutableVector3i> currentlyChangedBlocks = new LinkedList<>();
+    private final Int2ObjectMap<List<ImmutableVector3i>> serverIsCurrentlyProcessingThesePredictions = new Int2ObjectOpenHashMap<>();
+    private final Object2ObjectLinkedOpenHashMap<Pair<ImmutableVector3i, ac.grim.grimac.api.packet.player.enums.DiggingAction>, ImmutableVector3d> unackedActions = new Object2ObjectLinkedOpenHashMap<>();
     private boolean isCurrentlyPredicting = false;
     public boolean isRaining = false;
 
@@ -107,8 +108,8 @@ public class CompensatedWorld implements ICompensatedWorld {
     }
 
     public void handlePredictionConfirmation(int prediction) {
-        for (Iterator<Int2ObjectMap.Entry<List<Vector3i>>> it = serverIsCurrentlyProcessingThesePredictions.int2ObjectEntrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<Integer, List<Vector3i>> iter = it.next();
+        for (Iterator<Int2ObjectMap.Entry<List<ImmutableVector3i>>> it = serverIsCurrentlyProcessingThesePredictions.int2ObjectEntrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Integer, List<ImmutableVector3i>> iter = it.next();
             if (iter.getKey() <= prediction) {
                 applyBlockChanges(iter.getValue());
                 it.remove();
@@ -118,11 +119,11 @@ public class CompensatedWorld implements ICompensatedWorld {
         }
     }
 
-    public void handleBlockBreakAck(Vector3i blockPos, int blockState, DiggingAction action, boolean accepted) {
+    public void handleBlockBreakAck(ImmutableVector3i blockPos, int blockState, DiggingAction action, boolean accepted) {
         if (!accepted || action != DiggingAction.START_DIGGING || !unackedActions.containsKey(new Pair<>(blockPos, action))) {
             player.sendTransaction(); // This packet actually matters
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                Vector3d playerPos = unackedActions.remove(new Pair<>(blockPos, action));
+                ImmutableVector3d playerPos = unackedActions.remove(new Pair<>(blockPos, action));
                 handleAck(blockPos, blockState, playerPos);
             });
         } else {
@@ -136,7 +137,7 @@ public class CompensatedWorld implements ICompensatedWorld {
         });
     }
 
-    private void applyBlockChanges(List<Vector3i> toApplyBlocks) {
+    private void applyBlockChanges(List<ImmutableVector3i> toApplyBlocks) {
         player.sendTransaction();
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> toApplyBlocks.forEach(vector3i -> {
             BlockPrediction predictionData = originalServerBlocks.get(vector3i.getSerializedPosition());
@@ -150,7 +151,7 @@ public class CompensatedWorld implements ICompensatedWorld {
         }));
     }
 
-    private void handleAck(Vector3i vector3i, int originalBlockId, Vector3d playerPosition) {
+    private void handleAck(ImmutableVector3i vector3i, int originalBlockId, ImmutableVector3d playerPosition) {
         // If we need to change the world block state
         if (getBlock(vector3i).getGlobalId() != originalBlockId) {
             player.blockHistory.add(
@@ -178,32 +179,32 @@ public class CompensatedWorld implements ICompensatedWorld {
         }
     }
 
-    public void handleBlockBreakPrediction(WrapperPlayClientPlayerDigging digging) {
+    public void handleBlockBreakPrediction(ClientPlayerDiggingPacket digging) {
         // 1.14.4 intentional and correct, do not change it to 1.14
         if (player.getClientVersion().isNewerThanOrEquals(PacketClientVersions.V_1_14_4) && player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_18_2)) {
-            unackedActions.put(new Pair<>(digging.getBlockPosition(), digging.getAction()), new Vector3d(player.x, player.y, player.z));
+            unackedActions.put(new Pair<>(digging.getBlockPosition(), digging.getDiggingAction()), MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, player.y, player.z));
         }
     }
 
-    public void stopPredicting(PacketWrapper<?> wrapper) {
+    public void stopPredicting(Packet wrapper) {
         if (player.getClientVersion().isOlderThanOrEquals(PacketClientVersions.V_1_18_2)) return; // No predictions
         this.isCurrentlyPredicting = false; // We aren't in a block place or use item
 
         if (this.currentlyChangedBlocks.isEmpty()) return; // Nothing to change
 
-        List<Vector3i> toApplyBlocks = this.currentlyChangedBlocks; // We must now track the client applying the server predicted blocks
+        List<ImmutableVector3i> toApplyBlocks = this.currentlyChangedBlocks; // We must now track the client applying the server predicted blocks
         this.currentlyChangedBlocks = new LinkedList<>(); // Reset variable without changing original
 
         // We don't need to simulate any packets, it is native to the version we are on
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
             // Pull the confirmation ID out of the packet
             int confirmationId = 0;
-            if (wrapper instanceof WrapperPlayClientPlayerBlockPlacement) {
-                confirmationId = ((WrapperPlayClientPlayerBlockPlacement) wrapper).getSequence();
-            } else if (wrapper instanceof WrapperPlayClientUseItem) {
-                confirmationId = ((WrapperPlayClientUseItem) wrapper).getSequence();
-            } else if (wrapper instanceof WrapperPlayClientPlayerDigging) {
-                confirmationId = ((WrapperPlayClientPlayerDigging) wrapper).getSequence();
+            if (wrapper instanceof ClientPlayerBlockPlacementPacket) {
+                confirmationId = ((ClientPlayerBlockPlacementPacket) wrapper).getSequence();
+            } else if (wrapper instanceof ClientPlayerUseItemPacket) {
+                confirmationId = ((ClientPlayerUseItemPacket) wrapper).getSequence();
+            } else if (wrapper instanceof ClientPlayerDiggingPacket) {
+                confirmationId = ((ClientPlayerDiggingPacket) wrapper).getSequence();
             }
 
             serverIsCurrentlyProcessingThesePredictions.put(confirmationId, toApplyBlocks);
@@ -262,17 +263,17 @@ public class CompensatedWorld implements ICompensatedWorld {
         return new Chunk_v1_9(0, new DataPalette(new ListPalette(4), new LegacyFlexibleStorage(4, 4096), PaletteType.CHUNK));
     }
 
-    public void updateBlock(Vector3i pos, PacketBlockState state) {
+    public void updateBlock(ImmutableVector3i pos, PacketBlockState state) {
         updateBlock(pos.getX(), pos.getY(), pos.getZ(), state.getGlobalId());
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
-        Vector3i asVector = new Vector3i(x, y, z);
+        ImmutableVector3i asVector = MCPacket.getAPI().getVectorFactory().getImmutableVec3i(x, y, z);
         BlockPrediction prediction = originalServerBlocks.get(asVector.getSerializedPosition());
 
         if (isCurrentlyPredicting) {
             if (prediction == null) {
-                originalServerBlocks.put(asVector.getSerializedPosition(), new BlockPrediction(currentlyChangedBlocks, asVector, getBlock(asVector).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
+                originalServerBlocks.put(asVector.getSerializedPosition(), new BlockPrediction(currentlyChangedBlocks, asVector, getBlock(asVector).getGlobalId(), MCPacket.getAPI().getVectorFactory().getImmutableVec3d(player.x, player.y, player.z))); // Remember server controlled block type
             } else {
                 prediction.setForBlockUpdate(currentlyChangedBlocks); // Block existing there was placed by client, mark block to have a new prediction
             }
@@ -441,8 +442,8 @@ public class CompensatedWorld implements ICompensatedWorld {
         });
     }
 
-    public PacketBlockState getBlock(Vector3i position) {
-        return getBlock(position.x, position.y, position.z);
+    public PacketBlockState getBlock(ImmutableVector3i position) {
+        return getBlock(position.getX(), position.getY(), position.getZ());
     }
 
     public PacketBlockState getBlock(int x, int y, int z) {

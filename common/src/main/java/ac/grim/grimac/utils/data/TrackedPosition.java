@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.data;
 
-import com.github.retrooper.packetevents.util.Vector3d;
+import ac.grim.grimac.api.packet.MCPacket;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3d;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +13,7 @@ public final class TrackedPosition {
 
     private final double scale;
     @Setter
-    private Vector3d pos = new Vector3d();
+    private ImmutableVector3d pos = MCPacket.getAPI().getVectorFactory().getImmutableVec3d();
 
     public TrackedPosition() {
 //        this.scale = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? MODERN_COORDINATE_SCALE : LEGACY_COORDINATE_SCALE;
@@ -36,22 +37,22 @@ public final class TrackedPosition {
     }
 
     // Method since 1.16.
-    public Vector3d withDelta(long x, long y, long z) {
+    public ImmutableVector3d withDelta(long x, long y, long z) {
         if (x == 0L && y == 0L && z == 0L) {
             return this.pos;
         }
 
-        double d = x == 0L ? this.pos.x : unpack(pack(this.pos.x, scale) + x);
-        double e = y == 0L ? this.pos.y : unpack(pack(this.pos.y, scale) + y);
-        double f = z == 0L ? this.pos.z : unpack(pack(this.pos.z, scale) + z);
-        return new Vector3d(d, e, f);
+        double d = x == 0L ? this.pos.getX() : unpack(pack(this.pos.getX(), scale) + x);
+        double e = y == 0L ? this.pos.getY() : unpack(pack(this.pos.getY(), scale) + y);
+        double f = z == 0L ? this.pos.getZ() : unpack(pack(this.pos.getZ(), scale) + z);
+        return MCPacket.getAPI().getVectorFactory().getImmutableVec3d(d, e, f);
     }
 
     // In 1.16-, this was different.
-    public Vector3d withDeltaLegacy(double x, double y, double z) {
-        double d = unpackLegacy(packLegacy(this.pos.x, scale) + x);
-        double e = unpackLegacy(packLegacy(this.pos.y, scale) + y);
-        double f = unpackLegacy(packLegacy(this.pos.z, scale) + z);
-        return new Vector3d(d, e, f);
+    public ImmutableVector3d withDeltaLegacy(double x, double y, double z) {
+        double d = unpackLegacy(packLegacy(this.pos.getX(), scale) + x);
+        double e = unpackLegacy(packLegacy(this.pos.getY(), scale) + y);
+        double f = unpackLegacy(packLegacy(this.pos.getZ(), scale) + z);
+        return MCPacket.getAPI().getVectorFactory().getImmutableVec3d(d, e, f);
     }
 }

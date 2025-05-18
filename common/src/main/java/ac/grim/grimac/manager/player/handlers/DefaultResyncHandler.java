@@ -3,13 +3,13 @@ package ac.grim.grimac.manager.player.handlers;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.handler.ResyncHandler;
 import ac.grim.grimac.api.math.Vector3dm;
+import ac.grim.grimac.api.packet.util.vec.ImmutableVector3i;
 import ac.grim.grimac.api.platform.world.PlatformChunk;
 import ac.grim.grimac.api.platform.world.PlatformWorld;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
-import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
@@ -89,7 +89,7 @@ public class DefaultResyncHandler implements ResyncHandler {
                                     }
                                 }
 
-                                WrapperPlayServerMultiBlockChange packet = new WrapperPlayServerMultiBlockChange(new Vector3i(currChunkX, currChunkY, currChunkZ), true, encodedBlocks);
+                                WrapperPlayServerMultiBlockChange packet = new WrapperPlayServerMultiBlockChange(MCPacket.getAPI().getVectorFactory().getImmutableVec3i(currChunkX, currChunkY, currChunkZ), true, encodedBlocks);
                                 ChannelHelper.runInEventLoop(player.user.getChannel(), () -> player.user.sendPacket(packet));
                             }
                         }
@@ -123,7 +123,7 @@ public class DefaultResyncHandler implements ResyncHandler {
 
             final int blockId = world.getChunkAt(chunkX, chunkZ).getBlockID(x & 15, y, z & 15);
 
-            player.user.sendPacket(new WrapperPlayServerBlockChange(new Vector3i(x, y, z), blockId));
+            player.user.sendPacket(new WrapperPlayServerBlockChange(MCPacket.getAPI().getVectorFactory().getImmutableVec3i(x, y, z), blockId));
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) { // Via will handle this for us pre-1.19
                 player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(sequence)); // Make 1.19 clients apply the changes
             }
