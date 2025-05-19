@@ -69,6 +69,8 @@ Simulation:
     # Hoeveel moeten we de VL-verhoging van een flag schalen op basis van het voordeel van de speler?
     # ≤1 voor geen schaal (oud gedrag)
     vl-scale: 1
+    # Delay in milliseconds between flags for VL scaling
+    vl-scale-delay: 0
     # Beperkt hoeveel VL een speler per flag kan krijgen
     # -1 om uit te schakelen
     max-vls-per-flag: -1
@@ -188,6 +190,7 @@ debug-pipeline-on-join: false
 
 # Experimentele controles inschakelen
 experimental-checks: false
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

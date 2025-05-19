@@ -69,6 +69,8 @@ Simulation:
     # Dans quelle mesure doit-on augmenter les VL en fonction de l'avantage du joueur ?
     # ≤1 pour conserver l'ancien comportement sans échelle
     vl-scale: 1
+    # Delay in milliseconds between flags for VL scaling
+    vl-scale-delay: 0
     # Limite la quantité de VL que le joueur peut gagner par alerte
     # -1 pour désactiver
     max-vls-per-flag: -1
@@ -184,6 +186,7 @@ debug-pipeline-on-join: false
 
 # Active les vérifications expérimentales
 experimental-checks: false
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

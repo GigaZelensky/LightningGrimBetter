@@ -21,6 +21,8 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     double maxAdvantage;
     double maxCeiling;
     double vlScale;
+    long vlScaleDelay;
+    long lastScaledFlagTime = 0;
     double maxVlsPerFlag;
     double setbackViolationThreshold;
     // Current advantage gained
@@ -67,10 +69,11 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                     }
 
                     double extra = Math.ceil(offset * vlScale) - 1.0;
-                    if (extra > 0) {
+                    if (extra > 0 && (vlScaleDelay <= 0 || System.currentTimeMillis() - lastScaledFlagTime >= vlScaleDelay)) {
                         int amount = (int) Math.min(maxVlsPerFlag, extra);
                         violations += amount;
                         player.punishmentManager.addExtraViolation(this, amount);
+                        lastScaledFlagTime = System.currentTimeMillis();
                     }
 
                     if ((advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
@@ -114,6 +117,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         maxAdvantage = config.getDoubleElse("Simulation.max-advantage", 1);
         maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
         vlScale = Math.max(1.0, config.getDoubleElse("Simulation.vl-scale", 1));
+        vlScaleDelay = config.getLongElse("Simulation.vl-scale-delay", 0L);
         maxVlsPerFlag = config.getDoubleElse("Simulation.max-vls-per-flag", -1);
         setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
         if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
