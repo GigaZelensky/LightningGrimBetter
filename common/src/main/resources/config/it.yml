@@ -61,6 +61,8 @@ Simulation:
     # Di quanto dobbiamo scalare l'aumento di VL di un flag in base al vantaggio del giocatore?
     # ≤1 per mantenere il vecchio comportamento
     vl-scale: 1
+    # Delay in milliseconds between flags for VL scaling
+    vl-scale-delay: 0
     # Limita quante VL si possono ottenere per ogni flag
     # -1 per disattivare
     max-vls-per-flag: -1
@@ -166,6 +168,7 @@ debug-pipeline-on-join: false
 
 # Enables experimental checks
 experimental-checks: false
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

@@ -74,6 +74,8 @@ Simulation:
     # 根据玩家的优势对VL增量进行缩放
     # ≤1 表示与以前相同
     vl-scale: 1
+    # Delay in milliseconds between flags for VL scaling
+    vl-scale-delay: 0
     # 限制每次触发可增加的VL数量
     # -1 表示不限制
     max-vls-per-flag: -1
@@ -190,6 +192,7 @@ debug-pipeline-on-join: false
 
 # 启用实验性检查
 experimental-checks: false
+reset-punishment-execute-count: true
 
 # 取消有问题的格挡
 reset-item-usage-on-item-update: true
