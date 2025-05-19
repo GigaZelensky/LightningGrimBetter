@@ -69,7 +69,8 @@ Simulation:
     # Насколько увеличивать получение VL в зависимости от преимущества игрока?
     # ≤1 — оставить старое поведение
     vl-scale: 1
-    # Ограничивает количество VL, которое можно получить за один флаг
+    # Задержка в миллисекундах между флагами для масштабирования VL
+    vl-scale-delay: 0
     # -1 для отключения
     max-vls-per-flag: -1
     # Порог уровня нарушения для отката
@@ -184,6 +185,8 @@ debug-pipeline-on-join: false
 
 # Включает экспериментальные проверки
 experimental-checks: false
+# Сбрасывать количество выполнения наказания, когда VL игрока опускается ниже порога
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

@@ -24,6 +24,7 @@ public class PunishmentManager implements ConfigReloadable {
     String experimentalSymbol = "*";
     private String alertString;
     private boolean testMode;
+    private boolean resetExecuteCount;
     private String proxyAlertString = "";
 
     public PunishmentManager(GrimPlayer player) {
@@ -36,6 +37,7 @@ public class PunishmentManager implements ConfigReloadable {
         experimentalSymbol = config.getStringElse("experimental-symbol", "*");
         alertString = config.getStringElse("alerts-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
         testMode = config.getBooleanElse("test-mode", false);
+        resetExecuteCount = config.getBooleanElse("reset-punishment-execute-count", true);
         proxyAlertString = config.getStringElse("alerts-format-proxy", "%prefix% &f[&cproxy&f] &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
         try {
             groups.clear();
@@ -114,6 +116,9 @@ public class PunishmentManager implements ConfigReloadable {
             if (group.checks.contains(check)) {
                 final int vl = getViolations(group, check);
                 for (ParsedCommand command : group.commands) {
+                    if (resetExecuteCount && vl < command.threshold) {
+                        command.executeCount = 0;
+                    }
                     String cmd = replaceAlertPlaceholders(command.command, vl, check, verbose);
 
                     @Nullable Set<@Nullable PlatformPlayer> verboseListeners = null;
