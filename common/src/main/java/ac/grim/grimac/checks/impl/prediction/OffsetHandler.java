@@ -11,7 +11,6 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 
 import java.util.concurrent.TimeUnit;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 @CheckData(name = "Simulation", decay = 0.02)
