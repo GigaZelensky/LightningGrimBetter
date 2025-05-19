@@ -8,6 +8,9 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
+
+import java.util.concurrent.TimeUnit;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,6 +24,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     double maxAdvantage;
     double maxCeiling;
     double vlScale;
+    long vlScaleDelay;
     double maxVlsPerFlag;
     double setbackViolationThreshold;
     // Current advantage gained
@@ -70,7 +74,24 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                     if (extra > 0) {
                         int amount = (int) Math.min(maxVlsPerFlag, extra);
                         violations += amount;
-                        player.punishmentManager.addExtraViolation(this, amount);
+
+                        if (vlScaleDelay > 0 && player.platformPlayer != null) {
+                            for (int i = 0; i < amount; i++) {
+                                long ticks = PlatformScheduler.convertTimeToTicks(vlScaleDelay * (i + 1), TimeUnit.MILLISECONDS);
+                                GrimAPI.INSTANCE.getScheduler().getEntityScheduler().runDelayed(
+                                        player.platformPlayer,
+                                        GrimAPI.INSTANCE.getGrimPlugin(),
+                                        () -> {
+                                            player.punishmentManager.addExtraViolation(this, 1);
+                                            alert(verbose);
+                                        },
+                                        null,
+                                        ticks
+                                );
+                            }
+                        } else {
+                            player.punishmentManager.addExtraViolation(this, amount);
+                        }
                     }
 
                     if ((advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold)
@@ -114,6 +135,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
         maxAdvantage = config.getDoubleElse("Simulation.max-advantage", 1);
         maxCeiling = config.getDoubleElse("Simulation.max-ceiling", 4);
         vlScale = Math.max(1.0, config.getDoubleElse("Simulation.vl-scale", 1));
+        vlScaleDelay = config.getLongElse("Simulation.vl-scale-delay", 0L);
         maxVlsPerFlag = config.getDoubleElse("Simulation.max-vls-per-flag", -1);
         setbackViolationThreshold = config.getDoubleElse("Simulation.setback-violation-threshold", 1);
         if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
