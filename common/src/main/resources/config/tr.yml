@@ -69,7 +69,7 @@ Simulation:
     # Oyuncunun avantajına bağlı olarak VL artışını ne kadar ölçekleyelim?
     # ≤1 eski davranış için
     vl-scale: 1
-    # Delay in milliseconds between flags for VL scaling
+    # VL ölçeklendirme için bayraklar arasındaki gecikme (ms)
     vl-scale-delay: 0
     # Her bir flagden alınabilecek VL miktarını sınırlar
     # -1 devre dışı bırakır
@@ -190,6 +190,7 @@ debug-pipeline-on-join: false
 
 # Deneysel kontrolleri etkinleştir
 experimental-checks: false
+# Oyuncunun VL degeri esik altina dustugunde cezanin yurutulme sayisini sifirlar
 reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true

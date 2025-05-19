@@ -70,7 +70,7 @@ Simulation:
     # ¿Cuánto deberíamos escalar la ganancia de VL por una bandera según la ventaja del jugador?
     # ≤1 para no escalar (comportamiento antiguo)
     vl-scale: 1
-    # Delay in milliseconds between flags for VL scaling
+    # Retraso en milisegundos entre flags para el escalado de VL
     vl-scale-delay: 0
     # Limita la cantidad de VL que el jugador puede ganar por cada bandera
     # -1 para desactivar
@@ -191,6 +191,7 @@ debug-pipeline-on-join: false
 
 # Habilitar comprobaciones experimentales
 experimental-checks: false
+# Restablece el conteo de ejecuciones del castigo cuando el VL del jugador baja del umbral
 reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
