@@ -71,7 +71,7 @@ Simulation:
     # プレイヤーのアドバンテージに応じてVL増加量をどれだけスケールさせるか
     # 1以下で従来の挙動になります
     vl-scale: 1
-    # Delay in milliseconds between flags for VL scaling
+    # VLスケーリングのフラグ間の遅延（ミリ秒）
     vl-scale-delay: 0
     # 1回のフラグで増加できるVLの上限
     # -1で無制限
@@ -199,6 +199,7 @@ debug-pipeline-on-join: false
 
 # 実験的なチェックを有効にします
 experimental-checks: false
+# プレイヤーのVLがしきい値を下回ったときに制裁実行回数をリセット
 reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true

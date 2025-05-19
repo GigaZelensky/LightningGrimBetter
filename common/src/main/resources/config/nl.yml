@@ -69,7 +69,7 @@ Simulation:
     # Hoeveel moeten we de VL-verhoging van een flag schalen op basis van het voordeel van de speler?
     # ≤1 voor geen schaal (oud gedrag)
     vl-scale: 1
-    # Delay in milliseconds between flags for VL scaling
+    # Vertraging in milliseconden tussen vlaggen voor VL-schaal
     vl-scale-delay: 0
     # Beperkt hoeveel VL een speler per flag kan krijgen
     # -1 om uit te schakelen
@@ -190,6 +190,7 @@ debug-pipeline-on-join: false
 
 # Experimentele controles inschakelen
 experimental-checks: false
+# Reset het aantal keren dat een straf is uitgevoerd wanneer de VL onder de drempel zakt
 reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
