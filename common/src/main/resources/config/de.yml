@@ -69,6 +69,8 @@ Simulation:
     # Wie stark sollen wir den VL-Gewinn anhand des Vorteils des Spielers skaliieren?
     # ≤1 für keine Skalierung (altes Verhalten)
     vl-scale: 1
+    # Verzögerung in Millisekunden zwischen Flags für die VL-Skalierung
+    vl-scale-delay: 0
     # Beschränkt die Menge an VL, die pro Flag hinzugefügt werden kann
     # -1 deaktiviert die Begrenzung
     max-vls-per-flag: -1
@@ -188,6 +190,8 @@ debug-pipeline-on-join: false
 
 # Aktiviert experimentelle Prüfungen
 experimental-checks: false
+# Setzt die Ausführungsanzahl einer Bestrafung zurück, wenn der VL unter den Schwellenwert fällt
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
