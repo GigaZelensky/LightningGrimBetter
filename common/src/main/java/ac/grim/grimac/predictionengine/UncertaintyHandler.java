@@ -290,6 +290,11 @@ public class UncertaintyHandler {
     }
 
     public double reduceOffset(double offset) {
+        // Give players a small lenience when touching liquids
+        if (player.wasTouchingWater || player.wasTouchingLava || player.slightlyTouchingWater || player.slightlyTouchingLava) {
+            offset -= 0.001;
+        }
+
         // Boats are too glitchy to check.
         // Yes, they have caused an insane amount of uncertainty!
         // Even 1 block offset reduction isn't enough... damn it mojang
