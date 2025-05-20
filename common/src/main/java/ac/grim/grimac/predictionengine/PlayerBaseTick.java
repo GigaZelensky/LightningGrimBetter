@@ -147,7 +147,7 @@ public final class PlayerBaseTick {
         }
 
         if (player.wasTouchingLava) {
-            player.liquidLenienceTicks = 4;
+            player.liquidLenienceTicks = 7;
         }
     }
 
@@ -397,7 +397,7 @@ public final class PlayerBaseTick {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         player.wasTouchingWater = updateFluidHeightAndDoFluidPushing(player, FluidTag.WATER, 0.014) && !(riding != null && riding.isBoat());
         if (player.wasTouchingWater) {
-            player.liquidLenienceTicks = 4; // current tick + 3 extra
+            player.liquidLenienceTicks = 7; // current tick + 3 extra
             player.fallDistance = 0;
         }
     }
