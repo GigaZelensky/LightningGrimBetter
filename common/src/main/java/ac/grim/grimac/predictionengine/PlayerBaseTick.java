@@ -42,6 +42,11 @@ public final class PlayerBaseTick {
         player.baseTickAddition = new Vector3dm();
         player.baseTickWaterPushing = new Vector3dm();
 
+        // Reduce remaining liquid lenience ticks
+        if (player.liquidLenienceTicks > 0) {
+            player.liquidLenienceTicks--;
+        }
+
         if (player.isFlying && player.isSneaking && !player.inVehicle()) {
             Vector3dm flyingShift = new Vector3dm(0, player.flySpeed * -3, 0);
             player.baseTickAddVector(flyingShift);
@@ -139,6 +144,10 @@ public final class PlayerBaseTick {
         else if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
             SimpleCollisionBox playerBox = player.boundingBox.copy().expand(-0.1F, -0.4F, -0.1F);
             player.wasTouchingLava = player.compensatedWorld.containsLava(playerBox);
+        }
+
+        if (player.wasTouchingLava) {
+            player.liquidLenienceTicks = 4;
         }
     }
 
@@ -387,8 +396,10 @@ public final class PlayerBaseTick {
     public static void updateInWaterStateAndDoWaterCurrentPushing(GrimPlayer player) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         player.wasTouchingWater = updateFluidHeightAndDoFluidPushing(player, FluidTag.WATER, 0.014) && !(riding != null && riding.isBoat());
-        if (player.wasTouchingWater)
+        if (player.wasTouchingWater) {
+            player.liquidLenienceTicks = 4; // current tick + 3 extra
             player.fallDistance = 0;
+        }
     }
 
     private static boolean updateFluidHeightAndDoFluidPushing(GrimPlayer player, FluidTag tag, double multiplier) {
