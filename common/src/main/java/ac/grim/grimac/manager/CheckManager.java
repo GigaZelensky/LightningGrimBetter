@@ -103,6 +103,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
+import ac.grim.grimac.checks.impl.custom.fastplace.FastPlaceA;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -173,7 +174,8 @@ public class CheckManager {
                 .put(VehicleD.class, new VehicleD(player))
                 .put(CrashI.class, new CrashI(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
-                .build();
+                                .put(FastPlaceA.class, new FastPlaceA(player))
+.build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
                 .put(PredictionRunner.class, new PredictionRunner(player))
                 .put(CompensatedCooldown.class, new CompensatedCooldown(player))
