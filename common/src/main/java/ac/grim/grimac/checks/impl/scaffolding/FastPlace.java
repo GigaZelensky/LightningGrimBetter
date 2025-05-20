@@ -15,16 +15,17 @@ import java.util.Deque;
 /**
  * FastPlace – detects abnormally quick and consistent block placement packets.
  * <p>
- * This version uses nano time for accuracy, ignores large gaps and evaluates
- * both average and variation of recent place intervals to minimize false flags.
+ * Uses nano-time for all math; thresholds converted to nanoseconds.
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
 
     private static final int WINDOW = 15;
+    private static final long MAX_GAP_NS   = 200_000_000L;   // 200 ms
+    private static final double MAX_AVG_NS = 60_000_000D;    // 60 ms
+
     private final Deque<Long> deltas = new ArrayDeque<>(WINDOW);
     private long lastTime = -1L;
-    private long lastDelta = -1L;
 
     public FastPlace(@NotNull GrimPlayer player) {
         super(player);
@@ -39,34 +40,30 @@ public class FastPlace extends Check implements PacketCheck {
 
         final long now = System.nanoTime();
         if (lastTime != -1L) {
-            long deltaMs = (now - lastTime) / 1_000_000L;
+            long deltaNs = now - lastTime;
             lastTime = now;
 
-            if (deltaMs <= 0L || deltaMs > 200L) {
-                deltas.clear();
+            if (deltaNs <= 0L || deltaNs > MAX_GAP_NS) {
                 return;
             }
 
-            if (deltaMs != lastDelta) {
-                if (deltas.size() == WINDOW) {
-                    deltas.removeFirst();
-                }
-                deltas.add(deltaMs);
-                lastDelta = deltaMs;
+            if (deltas.size() == WINDOW) {
+                deltas.removeFirst();
             }
+            deltas.add(deltaNs);
 
             if (deltas.size() == WINDOW) {
-                double avg = average(deltas);
-                double std = standardDeviation(deltas, avg);
-                double cov = std / avg;
+                double avgNs = average(deltas);
+                double stdNs = standardDeviation(deltas, avgNs);
+                double cov = stdNs / avgNs;
 
-                if (avg < 60D && cov < 0.35D) {
-                    if (flagAndAlert(String.format("\u03bc=%.2fms \u03c3=%.2fms cov=%.3f", avg, std, cov))
+                if (avgNs < MAX_AVG_NS && cov < 0.35D) {
+                    if (flagAndAlert(String.format("\u03bc=%.2fms \u03c3=%.2fms cov=%.3f",
+                                    avgNs / 1_000_000D, stdNs / 1_000_000D, cov))
                             && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }
-                    deltas.clear();
                 }
             }
         } else {
@@ -95,4 +92,3 @@ public class FastPlace extends Check implements PacketCheck {
         return count == 0 ? 0D : GrimMath.sqrt((float) (var / count));
     }
 }
-
