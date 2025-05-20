@@ -15,14 +15,15 @@ import java.util.Deque;
 /**
  * FastPlace – detects abnormally quick and consistent block placement packets.
  * <p>
- * Uses nano-time for all math; thresholds converted to nanoseconds.
+ * Uses nano-time for all math; dynamic covariance limit scales with average speed.
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
 
-    private static final int WINDOW = 15;
-    private static final long MAX_GAP_NS   = 200_000_000L;   // 200 ms
-    private static final double MAX_AVG_NS = 60_000_000D;    // 60 ms
+    private static final int  WINDOW          = 15;
+    private static final long MAX_GAP_NS      = 200_000_000L;   // 200 ms
+    private static final long MAX_FLAG_AVG_NS = 150_000_000L;   // 150 ms
+    private static final long P1_NS           = 60_000_000L;    //  60 ms
 
     private final Deque<Long> deltas = new ArrayDeque<>(WINDOW);
     private long lastTime = -1L;
@@ -55,14 +56,26 @@ public class FastPlace extends Check implements PacketCheck {
             if (deltas.size() == WINDOW) {
                 double avgNs = average(deltas);
                 double stdNs = standardDeviation(deltas, avgNs);
-                double cov = stdNs / avgNs;
+                double cov   = stdNs / avgNs;
 
-                if (avgNs < MAX_AVG_NS && cov < 0.35D) {
-                    if (flagAndAlert(String.format("\u03bc=%.2fms \u03c3=%.2fms cov=%.3f",
-                                    avgNs / 1_000_000D, stdNs / 1_000_000D, cov))
-                            && shouldModifyPackets()) {
-                        event.setCancelled(true);
-                        player.onPacketCancel();
+                if (avgNs <= MAX_FLAG_AVG_NS) {                         // ignore slow builders
+                    double covLimit;
+                    if (avgNs <= P1_NS) {
+                        // linear: (0,0.45) -> (60 ms,0.35)
+                        covLimit = 0.45D - 0.10D * (avgNs / (double) P1_NS);
+                    } else {
+                        // linear: (60 ms,0.35) -> (150 ms,0.15)
+                        covLimit = 0.35D - 0.20D * ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
+                    }
+                    covLimit = Math.max(covLimit, 0.15D);               // floor safeguard
+
+                    if (cov < covLimit) {
+                        if (flagAndAlert(String.format("\u03bc=%.2fms \u03c3=%.2fms cov=%.3f limit=%.3f",
+                                        avgNs / 1_000_000D, stdNs / 1_000_000D, cov, covLimit))
+                                && shouldModifyPackets()) {
+                            event.setCancelled(true);
+                            player.onPacketCancel();
+                        }
                     }
                 }
             }
