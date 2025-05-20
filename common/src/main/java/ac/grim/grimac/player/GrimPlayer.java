@@ -194,6 +194,8 @@ public class GrimPlayer implements GrimUser {
     // For jumping
     public boolean slightlyTouchingWater = false;
     public boolean wasEyeInWater = false;
+    // Number of ticks to give extra offset lenience due to recent liquid contact
+    public int liquidLenienceTicks = 0;
     public FluidTag fluidOnEyes;
     public boolean horizontalCollision;
     public boolean verticalCollision;

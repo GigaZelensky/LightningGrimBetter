@@ -43,7 +43,12 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
 
         if (completePredictionEvent.isCancelled()) return;
 
-        if ((offset >= threshold || offset >= immediateSetbackThreshold)) {
+        double effectiveThreshold = threshold;
+        if (player.liquidLenienceTicks > 0) {
+            effectiveThreshold += 0.001;
+        }
+
+        if ((offset >= effectiveThreshold || offset >= immediateSetbackThreshold)) {
             advantageGained += offset;
             giveOffsetLenienceNextTick(offset);
 
@@ -143,6 +148,10 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
     }
 
     public boolean doesOffsetFlag(double offset) {
-        return offset >= threshold;
+        double effectiveThreshold = threshold;
+        if (player.liquidLenienceTicks > 0) {
+            effectiveThreshold += 0.001;
+        }
+        return offset >= effectiveThreshold;
     }
 }
