@@ -16,33 +16,35 @@ import java.util.Deque;
 /**
  * FastPlace – detects abnormally quick and consistent block-placement packets.
  *
- * Strategy
- * • Independent timing windows (PLACEMENT / USE).  
- * • Adaptive outlier gate keeps noise realistic.  
- * • Dynamic CoV limit tightens as average interval drops.  
+ * Design
+ * • Separate timing windows for PLACEMENT / USE.  
+ * • Adaptive outlier gate prevents σ collapse.  
+ * • Dynamic CoV curve:  
+ *   ─ 0.40 @ 50 ms → 0.25 @ 60 ms → 0.15 @ 150 ms.  
  * • Physiological floor (<15 ms) flags impossible speeds.  
- * • Exhaustion ramp → auto-flag after prolonged high CPS.  
- * • Buffered verdict to avoid single-burst false positives.  
- * • Optional debug stream via "grim.debug.fastplace" permission.
+ * • Exhaustion auto-flag after ≥7 s around 19 CPS.  
+ * • Six-tick buffer reduces burst false-positives.  
+ * • Debug stream gated by “grim.debug.fastplace”.
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
 
     private static final int  WINDOW          = 15;
-    private static final long MIN_DELTA_NS    = 4_000_000L;      //   4 ms
-    private static final long MAX_GAP_NS      = 200_000_000L;    // 200 ms
-    private static final long MAX_FLAG_AVG_NS = 150_000_000L;    // 150 ms
-    private static final long P1_NS           = 60_000_000L;     //  60 ms
-    private static final long MIN_STD_NS      = 4_000_000L;      //   4 ms
+    private static final long MIN_DELTA_NS    = 4_000_000L;       //   4 ms
+    private static final long MAX_GAP_NS      = 200_000_000L;     // 200 ms
+    private static final long MAX_FLAG_AVG_NS = 150_000_000L;     // 150 ms
+    private static final long P0_NS           = 50_000_000L;      //  50 ms
+    private static final long P1_NS           = 60_000_000L;      //  60 ms
+    private static final long MIN_STD_NS      = 4_000_000L;       //   4 ms
 
     private static final double FAST_FACTOR   = 0.60D;
     private static final double SLOW_FACTOR   = 3.0D;
 
-    private static final long  FLOOR_NS       = 15_000_000L;     // 15 ms
+    private static final long  FLOOR_NS       = 15_000_000L;      // 15 ms
     private static final int   FLOOR_WINDOW   = 6;
     private static final int   FLOOR_HITS_MAX = 4;
 
-    private static final long   FAST_THRESHOLD_NS = 59_000_000L; // ≥17 cps
+    private static final long   FAST_THRESHOLD_NS = 59_000_000L;  // ≥17 cps
     private static final long   EXH_START_NS      = 1_000_000_000L;  // 1 s
     private static final long   EXH_FULL_NS       = 12_000_000_000L; // 12 s
     private static final long   EXH_FLAG_NS       = 7_000_000_000L;  // 7 s hard flag
@@ -123,11 +125,8 @@ public class FastPlace extends Check implements PacketCheck {
                 } else fastStart = -1L;
             }
 
-            if (debug) {
-                player.sendMessage(
-                        (isPlacement ? "[P] " : "[U] ") +
-                        "Δ=" + (deltaNs / 1_000_000D) + "ms");
-            }
+            if (debug) player.sendMessage((isPlacement ? "[P] " : "[U] ") +
+                    "Δ=" + (deltaNs / 1_000_000D) + "ms");
         }
 
         if (isPlacement) { lastPlaceTime = now; placeFastStart = fastStart; }
@@ -139,32 +138,35 @@ public class FastPlace extends Check implements PacketCheck {
             double cov   = stdNs / avgNs;
 
             long fs = fastStart;
-            boolean exhaustionAutoFlag = false;
-            if (fs != -1L) {
-                long runNs = now - fs;
-                if (runNs > EXH_FLAG_NS && avgNs <= CPS19_NS) exhaustionAutoFlag = true;
-            }
+            boolean exhaustionAutoFlag = fs != -1L &&
+                                         (now - fs) > EXH_FLAG_NS &&
+                                         avgNs <= CPS19_NS;
 
-            if (debug) {
-                player.sendMessage(
-                        (isPlacement ? "[P] " : "[U] ") +
-                        String.format("AVG=%.2fms, σ=%.2fms, cov=%.3f", 
-                                      avgNs/1_000_000D, stdNs/1_000_000D, cov));
-            }
+            if (debug) player.sendMessage((isPlacement ? "[P] " : "[U] ") +
+                    String.format("AVG=%.2fms, σ=%.2fms, cov=%.3f",
+                            avgNs/1_000_000D, stdNs/1_000_000D, cov));
 
             if (avgNs <= MAX_FLAG_AVG_NS || exhaustionAutoFlag) {
+                /* -------- new three-segment CoV curve -------- */
                 double baseLimit;
-                if (avgNs <= P1_NS) baseLimit = 0.45D - 0.10D * (avgNs / (double) P1_NS);
-                else                baseLimit = 0.30D - 0.20D *
-                                            ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
+                if (avgNs <= P0_NS) {
+                    baseLimit = 0.40D;                                            // fixed at ≤50 ms
+                } else if (avgNs <= P1_NS) {                                     // 50–60 ms
+                    baseLimit = 0.40D - 0.15D *
+                                ((avgNs - P0_NS) / (double) (P1_NS - P0_NS));    // 0.40 → 0.25
+                } else {                                                         // 60–150 ms
+                    baseLimit = 0.25D - 0.10D *
+                                ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS)); // 0.25 → 0.15
+                }
                 baseLimit = Math.max(baseLimit, 0.15D);
 
                 double effLimit = baseLimit;
                 if (fs != -1L) {
                     long runNs = now - fs;
                     if (runNs > EXH_START_NS) {
-                        double t = Math.min(1D, (double) (runNs - EXH_START_NS) /
-                                                 (double) (EXH_FULL_NS - EXH_START_NS));
+                        double t = Math.min(1D,
+                                (double) (runNs - EXH_START_NS) /
+                                (double) (EXH_FULL_NS - EXH_START_NS));
                         effLimit += (MAX_DEVIATION_LIM - effLimit) * t;
                     }
                 }
