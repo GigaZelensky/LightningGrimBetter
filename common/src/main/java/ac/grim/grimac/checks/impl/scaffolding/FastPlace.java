@@ -11,14 +11,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.stream.Collectors;
 
 /**
  * FastPlace – detects abnormally quick and consistent block placement packets.
  * <p>
  * Uses nano-time for all math; dynamic covariance limit scales with average speed.
+ * This variant adds verbose console debug without altering flag logic.
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
+
+    private static final boolean DEBUG = true;          // toggle verbose logging
 
     private static final int  WINDOW          = 15;
     private static final long MAX_GAP_NS      = 200_000_000L;   // 200 ms
@@ -44,6 +48,11 @@ public class FastPlace extends Check implements PacketCheck {
             long deltaNs = now - lastTime;
             lastTime = now;
 
+            if (DEBUG) {
+                System.out.printf("[FastPlace-DBG] %s delta=%.3fms (%d ns)%n",
+                        event.getPacketType(), deltaNs / 1_000_000D, deltaNs);
+            }
+
             if (deltaNs <= 0L || deltaNs > MAX_GAP_NS) {
                 return;
             }
@@ -58,24 +67,34 @@ public class FastPlace extends Check implements PacketCheck {
                 double stdNs = standardDeviation(deltas, avgNs);
                 double cov   = stdNs / avgNs;
 
-                if (avgNs <= MAX_FLAG_AVG_NS) {                         // ignore slow builders
-                    double covLimit;
-                    if (avgNs <= P1_NS) {
-                        // constant 0.35 for everything up to 60 ms (fast clicks)
-                        covLimit = 0.35D;
-                    } else {
-                        // linear 0.35 → 0.15 between 60 ms and 150 ms
-                        covLimit = 0.35D - 0.20D * ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
-                    }
-                    covLimit = Math.max(covLimit, 0.15D);               // floor safeguard
+                double covLimit;
+                if (avgNs <= P1_NS) {
+                    covLimit = 0.35D;                                           // flat limit for ≤60 ms
+                } else {
+                    covLimit = 0.35D - 0.20D * ((avgNs - P1_NS) /
+                              (double) (MAX_FLAG_AVG_NS - P1_NS));              // 0.35 → 0.15
+                }
+                covLimit = Math.max(covLimit, 0.15D);
 
-                    if (cov < covLimit) {
-                        if (flagAndAlert(String.format("\u03bc=%.2fms \u03c3=%.2fms cov=%.3f limit=%.3f",
-                                        avgNs / 1_000_000D, stdNs / 1_000_000D, cov, covLimit))
-                                && shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
-                        }
+                if (DEBUG) {
+                    System.out.printf(
+                            "[FastPlace-DBG] Window=%s avg=%.2fms std=%.2fms cov=%.3f lim=%.3f%n",
+                            deltas.stream()
+                                  .map(d -> String.format("%.2f", d / 1_000_000D))
+                                  .collect(Collectors.toList()),
+                            avgNs / 1_000_000D,
+                            stdNs / 1_000_000D,
+                            cov,
+                            covLimit
+                    );
+                }
+
+                if (avgNs <= MAX_FLAG_AVG_NS && cov < covLimit) {
+                    if (flagAndAlert(String.format("\u03bc=%.2fms \u03c3=%.2fms cov=%.3f limit=%.3f",
+                                    avgNs / 1_000_000D, stdNs / 1_000_000D, cov, covLimit))
+                            && shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
                     }
                 }
             }
