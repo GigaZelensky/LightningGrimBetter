@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 
 /**
@@ -17,25 +18,44 @@ import java.util.Deque;
  * <p>
  * Uses nano-time for all math; dynamic covariance limit scales with average speed.
  * <p>
- * 2025-05-21 tweaks #2  
- * • Two independent windows: one for PLAYER_BLOCK_PLACEMENT, one for USE_ITEM.  
- * • Sub-tick duplicates (< 4 ms) are ignored per stream.  
- * • Everything else (curve, alerts, formatting) unchanged.
+ * 2025-05-21 tweaks #4  
+ * • Adaptive one-sided outlier filter (fast/slow).  
+ * • Physiological floor check (< 15 ms).  
+ * • **Exhaustion logic** – continuous ≥ 17 cps ramps CoV limit toward 0.8 over 12 s.  
+ * • Two windows (placement / use) remain independent.
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
 
     private static final int  WINDOW          = 15;
-    private static final long MIN_DELTA_NS    = 4_000_000L;    // 4 ms – skip duplicates
-    private static final long MAX_GAP_NS      = 200_000_000L;  // 200 ms – hard reset
-    private static final long MAX_FLAG_AVG_NS = 150_000_000L;  // 150 ms
-    private static final long P1_NS           = 60_000_000L;   //  60 ms
+    private static final long MIN_DELTA_NS    = 4_000_000L;      // 4 ms – skip duplicates
+    private static final long MAX_GAP_NS      = 200_000_000L;    // 200 ms – hard reset
+    private static final long MAX_FLAG_AVG_NS = 150_000_000L;    // 150 ms
+    private static final long P1_NS           = 60_000_000L;     //  60 ms
+
+    /* adaptive outlier filter */
+    private static final double FAST_FACTOR   = 0.60D;           // < 60 % median = too fast
+    private static final double SLOW_FACTOR   = 3.0D;            // > 3× median  = too slow
+
+    /* physiological floor */
+    private static final long FLOOR_NS        = 15_000_000L;     // 15 ms  ≈ 66 cps
+    private static final int  FLOOR_WINDOW    = 6;               // look-back
+    private static final int  FLOOR_HITS_MAX  = 4;               // ≥ 4/6 → flag
+
+    /* exhaustion (continuous high-CPS) */
+    private static final long FAST_THRESHOLD_NS   = 59_000_000L; // 17 cps
+    private static final long EXHAUST_START_NS    = 1_000_000_000L;  // 1 s
+    private static final long EXHAUST_FULL_NS     = 12_000_000_000L; // 12 s
+    private static final double MAX_DEVIATION_LIM = 0.80D;       // cap
 
     /* independent streams */
     private final Deque<Long> placeDeltas = new ArrayDeque<>(WINDOW);
     private final Deque<Long>  useDeltas  = new ArrayDeque<>(WINDOW);
-    private long lastPlaceTime = -1L;
-    private long  lastUseTime  = -1L;
+    private final Deque<Boolean> placeFloor = new ArrayDeque<>(FLOOR_WINDOW);
+    private final Deque<Boolean>  useFloor  = new ArrayDeque<>(FLOOR_WINDOW);
+
+    private long lastPlaceTime = -1L, placeFastStart = -1L;
+    private long  lastUseTime  = -1L,  useFastStart  = -1L;
 
     public FastPlace(@NotNull GrimPlayer player) {
         super(player);
@@ -46,89 +66,139 @@ public class FastPlace extends Check implements PacketCheck {
         final long now = System.nanoTime();
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
-            handleStream(now, placeDeltas, true, event);
+            handleStream(now, placeDeltas, placeFloor, true, event);
         } else if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
-            handleStream(now, useDeltas, false, event);
+            handleStream(now, useDeltas, useFloor, false, event);
         }
     }
 
-    /* ---------- per-stream logic ---------- */
+    /* ---------- per-stream core ---------- */
     private void handleStream(long now,
                               Deque<Long> deltas,
+                              Deque<Boolean> floorTrack,
                               boolean isPlacement,
                               PacketReceiveEvent event) {
 
-        long lastTime = isPlacement ? lastPlaceTime : lastUseTime;
+        long lastTime   = isPlacement ? lastPlaceTime   : lastUseTime;
+        long fastStart  = isPlacement ? placeFastStart  : useFastStart;
 
+        /* --- delta calc / duplicate guard / gap reset --- */
         if (lastTime != -1L) {
             long deltaNs = now - lastTime;
 
-            if (deltaNs <= 0L) return;                 // clock anomaly
-            if (deltaNs < MIN_DELTA_NS) return;        // duplicate inside same tick
+            if (deltaNs <= 0L) return;
+            if (deltaNs < MIN_DELTA_NS) return;
 
-            if (deltaNs > MAX_GAP_NS) {                // long gap → reset
-                deltas.clear();
-                if (isPlacement) lastPlaceTime = now; else lastUseTime = now;
+            if (deltaNs > MAX_GAP_NS) {
+                deltas.clear(); floorTrack.clear();
+                if (isPlacement) { lastPlaceTime = now; placeFastStart = -1L; }
+                else             {  lastUseTime  = now;  useFastStart  = -1L; }
                 return;
             }
 
-            if (deltas.size() == WINDOW) {
-                deltas.removeFirst();
+            /* --- adaptive outlier gate --- */
+            if (deltas.size() >= 5) {
+                double med = medianNs(deltas);
+                if (deltaNs < med * FAST_FACTOR) return;   // too fast blip
+                if (deltaNs > med * SLOW_FACTOR) return;   // solo slow gap
             }
+
+            /* --- accept interval into window --- */
+            if (deltas.size() == WINDOW) deltas.removeFirst();
             deltas.add(deltaNs);
+
+            /* floor-hit bookkeeping */
+            boolean floorHit = deltaNs < FLOOR_NS;
+            if (floorTrack.size() == FLOOR_WINDOW) floorTrack.removeFirst();
+            floorTrack.add(floorHit);
+
+            if (countTrue(floorTrack) >= FLOOR_HITS_MAX) {
+                String tag = isPlacement ? "PLACEMENT" : "USE";
+                if (flagAndAlert(tag + " <15ms floor breach") && shouldModifyPackets()) {
+                    event.setCancelled(true); player.onPacketCancel();
+                }
+                floorTrack.clear();
+            }
+
+            /* exhaustion tracking */
+            if (deltaNs <= FAST_THRESHOLD_NS) {
+                if (fastStart == -1L) fastStart = now;          // begin run
+            } else {
+                fastStart = -1L;                                // reset run
+            }
         }
 
-        if (isPlacement) lastPlaceTime = now; else lastUseTime = now;
+        /* update lastTime / fastStart holder */
+        if (isPlacement) { lastPlaceTime = now; placeFastStart = fastStart; }
+        else             {  lastUseTime  = now;  useFastStart  = fastStart; }
 
+        /* --- stats-based flag when window full --- */
         if (deltas.size() == WINDOW) {
             double avgNs = average(deltas);
             double stdNs = standardDeviation(deltas, avgNs);
             double cov   = stdNs / avgNs;
 
             if (avgNs <= MAX_FLAG_AVG_NS) {
-                double covLimit;
+                double baseLimit;
                 if (avgNs <= P1_NS) {
-                    covLimit = 0.45D - 0.10D * (avgNs / (double) P1_NS);
+                    baseLimit = 0.45D - 0.10D * (avgNs / (double) P1_NS);
                 } else {
-                    covLimit = 0.35D - 0.20D *
-                               ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
+                    baseLimit = 0.35D - 0.20D *
+                                ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
                 }
-                covLimit = Math.max(covLimit, 0.15D);
+                baseLimit = Math.max(baseLimit, 0.15D);
 
-                if (cov < covLimit) {
+                /* exhaustion ramp */
+                long fs = fastStart;
+                double effLimit = baseLimit;
+                if (fs != -1L) {
+                    long runNs = now - fs;
+                    if (runNs > EXHAUST_START_NS) {
+                        double t = (double) (runNs - EXHAUST_START_NS) /
+                                   (double) (EXHAUST_FULL_NS - EXHAUST_START_NS);
+                        if (t > 1D) t = 1D;
+                        effLimit += (MAX_DEVIATION_LIM - effLimit) * t;
+                    }
+                }
+
+                if (cov < effLimit) {
                     String tag = isPlacement ? "PLACEMENT" : "USE";
                     if (flagAndAlert(String.format(
-                            "%s \u03bc=%.2fms \u03c3=%.2fms cov=%.3f limit=%.3f",
-                            tag, avgNs / 1_000_000D, stdNs / 1_000_000D, cov, covLimit))
+                            "%s μ=%.2fms σ=%.2fms cov=%.3f limit=%.3f",
+                            tag, avgNs / 1_000_000D, stdNs / 1_000_000D, cov, effLimit))
                             && shouldModifyPackets()) {
-                        event.setCancelled(true);
-                        player.onPacketCancel();
+                        event.setCancelled(true); player.onPacketCancel();
                     }
                 }
             }
         }
     }
 
-    /* ---------- simple stats helpers ---------- */
+    /* ---------- helpers ---------- */
 
-    private static double average(Iterable<Long> values) {
-        long sum = 0L;
-        int count = 0;
-        for (Long v : values) {
-            sum += v;
-            count++;
-        }
-        return count == 0 ? 0D : sum / (double) count;
+    private static double medianNs(Deque<Long> q) {
+        int n = q.size();
+        long[] a = new long[n]; int i = 0;
+        for (Long v : q) a[i++] = v;
+        Arrays.sort(a);
+        return n % 2 == 0 ? (a[n / 2 - 1] + a[n / 2]) / 2.0 : a[n / 2];
     }
 
-    private static double standardDeviation(Iterable<Long> values, double mean) {
-        double var = 0D;
-        int count = 0;
-        for (Long v : values) {
-            double diff = v - mean;
-            var += diff * diff;
-            count++;
-        }
-        return count == 0 ? 0D : GrimMath.sqrt((float) (var / count));
+    private static int countTrue(Deque<Boolean> q) {
+        int c = 0;
+        for (Boolean b : q) if (b) c++;
+        return c;
+    }
+
+    private static double average(Iterable<Long> v) {
+        long s = 0L; int n = 0;
+        for (Long x : v) { s += x; n++; }
+        return n == 0 ? 0D : s / (double) n;
+    }
+
+    private static double standardDeviation(Iterable<Long> v, double mean) {
+        double var = 0D; int n = 0;
+        for (Long x : v) { double d = x - mean; var += d * d; n++; }
+        return n == 0 ? 0D : GrimMath.sqrt((float) (var / n));
     }
 }
