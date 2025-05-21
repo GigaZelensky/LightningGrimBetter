@@ -16,13 +16,10 @@ import java.util.Deque;
 /**
  * FastPlace – detects abnormally quick and consistent block placement packets.
  * <p>
- * Uses nano-time for all math; dynamic covariance limit now becomes **stricter for
- * faster averages** and looser for slower ones.
- * <p>
- * 2025-05-21 tweaks #5  
- * • Cov-limit curve flipped (low avg ⇒ low limit).  
- * • Minor widen on slow-click leniency to drop edge false flags.  
- * • No other logic touched – formatting preserved.
+ * Uses nano-time for all math; dynamic covariance limit scales with average speed.
+ * 2025-05-22 quick patch:
+ * • Outlier gate no longer skips samples (keeps σ realistic).  
+ * • σ clamped to ≥ 4 ms before CoV calc to stop collapse toward zero.
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
@@ -32,10 +29,11 @@ public class FastPlace extends Check implements PacketCheck {
     private static final long MAX_GAP_NS      = 200_000_000L;    // 200 ms – hard reset
     private static final long MAX_FLAG_AVG_NS = 150_000_000L;    // 150 ms
     private static final long P1_NS           = 60_000_000L;     //  60 ms
+    private static final long MIN_STD_NS      = 4_000_000L;      //  4 ms – σ floor
 
     /* adaptive outlier filter */
-    private static final double FAST_FACTOR   = 0.60D;           // < 60 % median = too fast
-    private static final double SLOW_FACTOR   = 3.0D;            // > 3× median  = too slow
+    private static final double FAST_FACTOR   = 0.60D;           // < 60 % median = fast blip
+    private static final double SLOW_FACTOR   = 3.0D;            // > 3× median  = slow gap
 
     /* physiological floor */
     private static final long FLOOR_NS        = 15_000_000L;     // 15 ms  ≈ 66 cps
@@ -82,12 +80,10 @@ public class FastPlace extends Check implements PacketCheck {
         long lastTime   = isPlacement ? lastPlaceTime   : lastUseTime;
         long fastStart  = isPlacement ? placeFastStart  : useFastStart;
 
-        /* --- delta calc / duplicate guard / gap reset --- */
         if (lastTime != -1L) {
             long deltaNs = now - lastTime;
 
-            if (deltaNs <= 0L) return;
-            if (deltaNs < MIN_DELTA_NS) return;
+            if (deltaNs <= 0L || deltaNs < MIN_DELTA_NS) return;
 
             if (deltaNs > MAX_GAP_NS) {
                 deltas.clear(); floorTrack.clear();
@@ -96,60 +92,61 @@ public class FastPlace extends Check implements PacketCheck {
                 return;
             }
 
-            /* --- adaptive outlier gate --- */
-            if (deltas.size() >= 5) {
-                double med = medianNs(deltas);
-                if (deltaNs < med * FAST_FACTOR) return;   // too fast blip
-                if (deltaNs > med * SLOW_FACTOR) return;   // solo slow gap
-            }
-
-            /* --- accept interval into window --- */
+            /* add interval first (outliers kept for σ) */
             if (deltas.size() == WINDOW) deltas.removeFirst();
             deltas.add(deltaNs);
 
-            /* floor-hit bookkeeping */
-            boolean floorHit = deltaNs < FLOOR_NS;
-            if (floorTrack.size() == FLOOR_WINDOW) floorTrack.removeFirst();
-            floorTrack.add(floorHit);
-
-            if (countTrue(floorTrack) >= FLOOR_HITS_MAX) {
-                String tag = isPlacement ? "PLACEMENT" : "USE";
-                if (flagAndAlert(tag + " <15ms floor breach") && shouldModifyPackets()) {
-                    event.setCancelled(true); player.onPacketCancel();
-                }
-                floorTrack.clear();
+            /* --- adaptive outlier check – only affects floor/exhaust bookkeeping --- */
+            boolean outlier = false;
+            if (deltas.size() >= 5) {
+                double med = medianNs(deltas);
+                outlier = (deltaNs < med * FAST_FACTOR) || (deltaNs > med * SLOW_FACTOR);
             }
 
-            /* exhaustion tracking */
-            if (deltaNs <= FAST_THRESHOLD_NS) {
-                if (fastStart == -1L) fastStart = now;          // begin run
-            } else {
-                fastStart = -1L;                                // reset run
+            /* floor bookkeeping (ignore outliers) */
+            if (!outlier) {
+                boolean floorHit = deltaNs < FLOOR_NS;
+                if (floorTrack.size() == FLOOR_WINDOW) floorTrack.removeFirst();
+                floorTrack.add(floorHit);
+
+                if (countTrue(floorTrack) >= FLOOR_HITS_MAX) {
+                    String tag = isPlacement ? "PLACEMENT" : "USE";
+                    if (flagAndAlert(tag + " <15ms floor breach") && shouldModifyPackets()) {
+                        event.setCancelled(true); player.onPacketCancel();
+                    }
+                    floorTrack.clear();
+                }
+            }
+
+            /* exhaustion tracking (ignore outliers) */
+            if (!outlier) {
+                if (deltaNs <= FAST_THRESHOLD_NS) {
+                    if (fastStart == -1L) fastStart = now;
+                } else {
+                    fastStart = -1L;
+                }
             }
         }
 
-        /* update lastTime / fastStart holder */
         if (isPlacement) { lastPlaceTime = now; placeFastStart = fastStart; }
         else             {  lastUseTime  = now;  useFastStart  = fastStart; }
 
-        /* --- stats-based flag when window full --- */
         if (deltas.size() == WINDOW) {
             double avgNs = average(deltas);
             double stdNs = standardDeviation(deltas, avgNs);
+            if (stdNs < MIN_STD_NS) stdNs = MIN_STD_NS;          // σ floor
             double cov   = stdNs / avgNs;
 
             if (avgNs <= MAX_FLAG_AVG_NS) {
-                /* flipped curve: small avg → tight (low) limit, large avg → loose (high) */
                 double baseLimit;
                 if (avgNs <= P1_NS) {
-                    baseLimit = 0.15D + 0.20D * (avgNs / (double) P1_NS); // 0.15 → 0.35
+                    baseLimit = 0.45D - 0.10D * (avgNs / (double) P1_NS);
                 } else {
-                    baseLimit = 0.35D + 0.10D *
-                                ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS)); // 0.35 → 0.45
+                    baseLimit = 0.35D - 0.20D *
+                                ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
                 }
-                baseLimit = Math.min(baseLimit, 0.45D);
+                baseLimit = Math.max(baseLimit, 0.15D);
 
-                /* exhaustion ramp */
                 long fs = fastStart;
                 double effLimit = baseLimit;
                 if (fs != -1L) {
