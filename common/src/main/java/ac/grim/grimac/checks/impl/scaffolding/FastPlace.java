@@ -61,10 +61,10 @@ public class FastPlace extends Check implements PacketCheck {
                 if (avgNs <= MAX_FLAG_AVG_NS) {                         // ignore slow builders
                     double covLimit;
                     if (avgNs <= P1_NS) {
-                        // linear: (0,0.45) -> (60 ms,0.35)
-                        covLimit = 0.45D - 0.10D * (avgNs / (double) P1_NS);
+                        // constant 0.35 for everything up to 60 ms (fast clicks)
+                        covLimit = 0.35D;
                     } else {
-                        // linear: (60 ms,0.35) -> (150 ms,0.15)
+                        // linear 0.35 → 0.15 between 60 ms and 150 ms
                         covLimit = 0.35D - 0.20D * ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
                     }
                     covLimit = Math.max(covLimit, 0.15D);               // floor safeguard
