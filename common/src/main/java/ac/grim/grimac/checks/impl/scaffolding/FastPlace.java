@@ -12,30 +12,36 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 /**
- * FastPlace – detects abnormally quick and consistent block placement packets.
- * <p>
- * 2025-05-22: extra anti-macro layers
- * • Distinct-count / CPS-round / range sub-tests (ensemble).  
- * • Dual window (15 + 30) reuse; hard CPS gate ≥ 17.  
- * • Simple buffer (↑1 fail, ↓0.25 pass, trip at 5).
+ * FastPlace
+ * ────────────────────────────────────────────────────────────────────────────────
+ * An ensemble timing detector for block placement and use-item packets.
+ *
+ * • 15-sample core window – dynamic CoV curve with σ floor (4 ms).  
+ * • 30-sample auxiliary view – additional macro heuristics:
+ *   - distinct delay count, range spread, CPS-rounding, hard CPS + CoV gate.  
+ * • Physiological floor: <15 ms intervals flag after 4/6 hits.  
+ * • Exhaustion ramp: sustained ≥17 cps lowers allowed CoV toward 0.80.  
+ * • Outlier guard: side-effects ignored for Δ <0.6× median or >3×.  
+ * • Simple buffer: +1 on failure, −0.25 on pass, trip at 5 (packet cancelled).
+ * ────────────────────────────────────────────────────────────────────────────────
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
 
+    /* ---------- constants ---------- */
+
     private static final int  WINDOW          = 15;
-    private static final int  LONG_WINDOW     = 30;              // secondary view
-    private static final long MIN_DELTA_NS    = 4_000_000L;      // 4 ms
-    private static final long MAX_GAP_NS      = 200_000_000L;    // 200 ms
-    private static final long MAX_FLAG_AVG_NS = 150_000_000L;    // 150 ms
-    private static final long P1_NS           = 60_000_000L;     // 60 ms
-    private static final long MIN_STD_NS      = 4_000_000L;      // 4 ms
+    private static final int  LONG_WINDOW     = 30;
+    private static final long MIN_DELTA_NS    = 4_000_000L;
+    private static final long MAX_GAP_NS      = 200_000_000L;
+    private static final long MAX_FLAG_AVG_NS = 150_000_000L;
+    private static final long P1_NS           = 60_000_000L;
+    private static final long MIN_STD_NS      = 4_000_000L;
     private static final double BUFFER_DECAY  = 0.25D;
     private static final double BUFFER_HARD   = 5.0D;
 
-    /* adaptive outlier */
     private static final double FAST_FACTOR = 0.60D, SLOW_FACTOR = 3.0D;
 
-    /* floor / exhaustion */
     private static final long FLOOR_NS = 15_000_000L;
     private static final int  FLOOR_WINDOW = 6, FLOOR_HITS_MAX = 4;
     private static final long FAST_THRESHOLD_NS = 59_000_000L;
@@ -43,13 +49,13 @@ public class FastPlace extends Check implements PacketCheck {
     private static final long EXHAUST_FULL_NS   = 12_000_000_000L;
     private static final double MAX_DEVIATION_LIM = 0.80D;
 
-    /* ensemble thresholds */
-    private static final int   DISTINCT_MIN  = 6;       // need ≥ 6 distinct
-    private static final long  RANGE_MIN_NS  = 50_000_000L; // 50 ms
+    private static final int   DISTINCT_MIN   = 6;
+    private static final long  RANGE_MIN_NS   = 50_000_000L;
     private static final double CPS_ROUND_EPS = 0.08D;
     private static final double HARD_CPS      = 17.0D;
 
-    /* state */
+    /* ---------- state ---------- */
+
     private final Deque<Long> placeDeltas = new ArrayDeque<>(LONG_WINDOW);
     private final Deque<Long>  useDeltas  = new ArrayDeque<>(LONG_WINDOW);
     private final Deque<Boolean> placeFloor = new ArrayDeque<>(FLOOR_WINDOW);
@@ -71,6 +77,8 @@ public class FastPlace extends Check implements PacketCheck {
         }
     }
 
+    /* ---------- per-stream core ---------- */
+
     private void handleStream(long now, Deque<Long> deltas,
                               Deque<Boolean> floorTrack,
                               boolean isPlacement,
@@ -79,10 +87,11 @@ public class FastPlace extends Check implements PacketCheck {
         long lastTime  = isPlacement ? lastPlaceTime  : lastUseTime;
         long fastStart = isPlacement ? placeFastStart : useFastStart;
 
-        /* -------- sample intake -------- */
+        /* sample intake, gap reset, outlier tagging */
         if (lastTime != -1L) {
             long deltaNs = now - lastTime;
             if (deltaNs <= 0L || deltaNs < MIN_DELTA_NS) return;
+
             if (deltaNs > MAX_GAP_NS) { deltas.clear(); floorTrack.clear(); fastStart = -1L; }
             else {
                 if (deltas.size() == LONG_WINDOW) deltas.removeFirst();
@@ -112,7 +121,7 @@ public class FastPlace extends Check implements PacketCheck {
         if (isPlacement) { lastPlaceTime = now; placeFastStart = fastStart; }
         else             {  lastUseTime = now;  useFastStart  = fastStart; }
 
-        /* -------- main tests when we have 15 samples -------- */
+        /* main statistics */
         if (deltas.size() >= WINDOW) {
             List<Long> view15 = lastN(deltas, WINDOW);
             double avgNs = average(view15);
@@ -120,7 +129,6 @@ public class FastPlace extends Check implements PacketCheck {
             if (stdNs < MIN_STD_NS) stdNs = MIN_STD_NS;
             double cov = stdNs / avgNs;
 
-            /* base limit curve */
             double baseLimit = (avgNs <= P1_NS)
                     ? 0.45D - 0.10D * (avgNs / (double) P1_NS)
                     : 0.30D - 0.20D * ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
@@ -131,39 +139,38 @@ public class FastPlace extends Check implements PacketCheck {
             if (fs != -1L) {
                 long runNs = now - fs;
                 if (runNs > EXHAUST_START_NS) {
-                    double t = (double) (runNs - EXHAUST_START_NS) / (EXHAUST_FULL_NS - EXHAUST_START_NS);
+                    double t = (double) (runNs - EXHAUST_START_NS) /
+                               (double) (EXHAUST_FULL_NS - EXHAUST_START_NS);
                     if (t > 1D) t = 1D;
                     effLimit += (MAX_DEVIATION_LIM - effLimit) * t;
                 }
             }
 
-            /* ---- ensemble sub-tests (use LONG_WINDOW view) ---- */
+            /* ensemble tests */
             List<Long> view30 = deltas.size() >= LONG_WINDOW ? lastN(deltas, LONG_WINDOW) : view15;
             boolean distinctFail  = distinct(view30) < DISTINCT_MIN;
             boolean rangeFail     = (Collections.max(view30) - Collections.min(view30)) < RANGE_MIN_NS;
-            double cps15          = 1_000_000_000D / avgNs * WINDOW / view15.size();
+            double cps15          = 1_000_000_000D / avgNs;
             boolean cpsRoundFail  = Math.abs(Math.round(cps15) - cps15) < CPS_ROUND_EPS;
             boolean hardCpsFail   = cps15 >= HARD_CPS && cov < effLimit;
 
-            /* ---- buffer logic ---- */
             boolean mainFail = cov < effLimit;
             boolean subFail  = distinctFail || rangeFail || cpsRoundFail || hardCpsFail;
 
-            if (mainFail || subFail) buffer += 1D; else buffer = Math.max(0D, buffer - BUFFER_DECAY);
+            buffer = mainFail || subFail ? buffer + 1D : Math.max(0D, buffer - BUFFER_DECAY);
 
             if (buffer >= BUFFER_HARD) {
                 tagAndCancel(isPlacement,
-                        String.format(" μ=%.2fms σ=%.2fms cov=%.3f buffer=%.1f", avgNs/1e6, stdNs/1e6, cov, buffer),
-                        event);
+                        String.format(" μ=%.2fms σ=%.2fms cov=%.3f buf=%.1f", avgNs/1e6, stdNs/1e6, cov, buffer), event);
                 buffer = 0D;
             }
         }
     }
 
-    /* -------- helpers -------- */
+    /* ---------- helpers ---------- */
 
     private void tagAndCancel(boolean placement, String msg, PacketReceiveEvent e) {
-        if (flagAndAlert((placement ? "PLACEMENT" : "USE")+msg) && shouldModifyPackets()) {
+        if (flagAndAlert((placement ? "PLACEMENT" : "USE") + msg) && shouldModifyPackets()) {
             e.setCancelled(true); player.onPacketCancel();
         }
     }
@@ -178,7 +185,7 @@ public class FastPlace extends Check implements PacketCheck {
     private static double medianNs(Collection<Long> c) {
         long[] a = c.stream().mapToLong(Long::longValue).toArray();
         Arrays.sort(a); int n = a.length;
-        return n % 2 == 0 ? (a[n/2-1]+a[n/2])/2.0 : a[n/2];
+        return n % 2 == 0 ? (a[n / 2 - 1] + a[n / 2]) / 2.0 : a[n / 2];
     }
 
     private static int distinct(Collection<Long> c) { return new HashSet<>(c).size(); }
