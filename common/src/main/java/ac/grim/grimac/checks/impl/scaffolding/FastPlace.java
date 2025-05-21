@@ -17,12 +17,12 @@ import java.util.Deque;
  * FastPlace – detects abnormally quick and consistent block-placement packets.
  *
  * Design
- * • Separate timing windows for PLACEMENT / USE.  
- * • Adaptive outlier gate prevents σ collapse.  
+ * • Independent timing windows for PLACEMENT / USE.  
  * • Dynamic CoV curve:  
  *   ─ 0.40 @ 50 ms → 0.25 @ 60 ms → 0.15 @ 150 ms.  
  * • Physiological floor (<15 ms) flags impossible speeds.  
- * • Exhaustion auto-flag after ≥7 s around 19 CPS.  
+ * • Exhaustion auto-flag – linear 5 s (≤55 ms) to 7 s (75 ms), disabled ≥95 ms.  
+ * • σ-stability: if σ stays within ±3 % of μ for 150 packets, flag.  
  * • Six-tick buffer reduces burst false-positives.  
  * • Debug stream gated by “grim.debug.fastplace”.
  */
@@ -30,15 +30,11 @@ import java.util.Deque;
 public class FastPlace extends Check implements PacketCheck {
 
     private static final int  WINDOW          = 15;
-    private static final long MIN_DELTA_NS    = 4_000_000L;       //   4 ms
     private static final long MAX_GAP_NS      = 200_000_000L;     // 200 ms
     private static final long MAX_FLAG_AVG_NS = 150_000_000L;     // 150 ms
     private static final long P0_NS           = 50_000_000L;      //  50 ms
     private static final long P1_NS           = 60_000_000L;      //  60 ms
     private static final long MIN_STD_NS      = 4_000_000L;       //   4 ms
-
-    private static final double FAST_FACTOR   = 0.60D;
-    private static final double SLOW_FACTOR   = 3.0D;
 
     private static final long  FLOOR_NS       = 15_000_000L;      // 15 ms
     private static final int   FLOOR_WINDOW   = 6;
@@ -47,11 +43,12 @@ public class FastPlace extends Check implements PacketCheck {
     private static final long   FAST_THRESHOLD_NS = 59_000_000L;  // ≥17 cps
     private static final long   EXH_START_NS      = 1_000_000_000L;  // 1 s
     private static final long   EXH_FULL_NS       = 12_000_000_000L; // 12 s
-    private static final long   EXH_FLAG_NS       = 7_000_000_000L;  // 7 s hard flag
     private static final long   CPS19_NS          = 53_000_000L;     // ≈19 cps
     private static final double MAX_DEVIATION_LIM = 0.80D;
 
     private static final int BUFFER_MAX = 6;
+    private static final int SIGMA_STABLE_TARGET = 150;
+    private static final double SIGMA_STABLE_BAND = 0.03D;          // ±3 %
 
     private final Deque<Long>    placeDeltas = new ArrayDeque<>(WINDOW);
     private final Deque<Long>     useDeltas  = new ArrayDeque<>(WINDOW);
@@ -61,6 +58,7 @@ public class FastPlace extends Check implements PacketCheck {
     private long lastPlaceTime = -1L, placeFastStart = -1L;
     private long  lastUseTime  = -1L,  useFastStart  = -1L;
     private int   placeBuf     = 0,    useBuf        = 0;
+    private int   placeSigmaStable = 0, useSigmaStable = 0;
 
     public FastPlace(@NotNull GrimPlayer player) {
         super(player);
@@ -87,10 +85,12 @@ public class FastPlace extends Check implements PacketCheck {
 
         long lastTime  = isPlacement ? lastPlaceTime  : lastUseTime;
         long fastStart = isPlacement ? placeFastStart : useFastStart;
+        int  sigmaStable = isPlacement ? placeSigmaStable : useSigmaStable;
 
+        /* ---------- delta intake ---------- */
         if (lastTime != -1L) {
             long deltaNs = now - lastTime;
-            if (deltaNs <= 0L || deltaNs < MIN_DELTA_NS) return;
+            if (deltaNs <= 0L) return;
             if (deltaNs > MAX_GAP_NS) {
                 deltas.clear(); floorTrack.clear();
                 if (isPlacement) { lastPlaceTime = now; placeFastStart = -1L; }
@@ -101,29 +101,23 @@ public class FastPlace extends Check implements PacketCheck {
             if (deltas.size() == WINDOW) deltas.removeFirst();
             deltas.add(deltaNs);
 
-            boolean outlier = false;
-            if (deltas.size() >= 5) {
-                double med = medianNs(deltas);
-                outlier = (deltaNs < med * FAST_FACTOR) || (deltaNs > med * SLOW_FACTOR);
-            }
+            /* floor check */
+            boolean floorHit = deltaNs < FLOOR_NS;
+            if (floorTrack.size() == FLOOR_WINDOW) floorTrack.removeFirst();
+            floorTrack.add(floorHit);
 
-            if (!outlier) {
-                boolean floorHit = deltaNs < FLOOR_NS;
-                if (floorTrack.size() == FLOOR_WINDOW) floorTrack.removeFirst();
-                floorTrack.add(floorHit);
-
-                if (countTrue(floorTrack) >= FLOOR_HITS_MAX) {
-                    String tag = isPlacement ? "PLACEMENT" : "USE";
-                    if (flagAndAlert(tag + " <15 ms floor breach") && shouldModifyPackets()) {
-                        event.setCancelled(true); player.onPacketCancel();
-                    }
-                    floorTrack.clear();
+            if (countTrue(floorTrack) >= FLOOR_HITS_MAX) {
+                String tag = isPlacement ? "PLACEMENT" : "USE";
+                if (flagAndAlert(tag + " <15 ms floor breach") && shouldModifyPackets()) {
+                    event.setCancelled(true); player.onPacketCancel();
                 }
-
-                if (deltaNs <= FAST_THRESHOLD_NS) {
-                    if (fastStart == -1L) fastStart = now;
-                } else fastStart = -1L;
+                floorTrack.clear();
             }
+
+            /* exhaustion start tracking */
+            if (deltaNs <= FAST_THRESHOLD_NS) {
+                if (fastStart == -1L) fastStart = now;
+            } else fastStart = -1L;
 
             if (debug) player.sendMessage((isPlacement ? "[P] " : "[U] ") +
                     "Δ=" + (deltaNs / 1_000_000D) + "ms");
@@ -132,37 +126,63 @@ public class FastPlace extends Check implements PacketCheck {
         if (isPlacement) { lastPlaceTime = now; placeFastStart = fastStart; }
         else             {  lastUseTime  = now;  useFastStart  = fastStart; }
 
+        /* ---------- window evaluation ---------- */
         if (deltas.size() == WINDOW) {
             double avgNs = average(deltas);
             double stdNs = Math.max(MIN_STD_NS, standardDeviation(deltas, avgNs));
             double cov   = stdNs / avgNs;
 
-            long fs = fastStart;
-            boolean exhaustionAutoFlag = fs != -1L &&
-                                         (now - fs) > EXH_FLAG_NS &&
-                                         avgNs <= CPS19_NS;
+            /* σ-stability tracker */
+            if (Math.abs(stdNs - (avgNs * SIGMA_STABLE_BAND)) <= avgNs * SIGMA_STABLE_BAND)
+                sigmaStable++;
+            else sigmaStable = 0;
+
+            if (sigmaStable >= SIGMA_STABLE_TARGET) {
+                String tag = isPlacement ? "PLACEMENT" : "USE";
+                if (flagAndAlert(tag + " σ stable ±3 % for 150 packets") && shouldModifyPackets()) {
+                    event.setCancelled(true); player.onPacketCancel();
+                }
+                sigmaStable = 0;
+            }
+
+            if (isPlacement) placeSigmaStable = sigmaStable; else useSigmaStable = sigmaStable;
+
+            /* dynamic exhaustion */
+            double xMs = avgNs / 1_000_000.0;
+            double tfFlag;
+            if (xMs <= 55.0) tfFlag = 5.0;
+            else if (xMs <= 75.0) tfFlag = 0.10 * xMs - 0.5; // 55→5 s, 75→7 s
+            else if (xMs <= 95.0) tfFlag = 7.0 + (xMs - 75.0) * 0.5; // slow stretch
+            else tfFlag = Double.MAX_VALUE;
+
+            boolean exhaustionAutoFlag = false;
+            if (fastStart != -1L && avgNs <= CPS19_NS) {
+                double runSec = (now - fastStart) / 1_000_000_000.0;
+                exhaustionAutoFlag = runSec >= tfFlag;
+            }
 
             if (debug) player.sendMessage((isPlacement ? "[P] " : "[U] ") +
                     String.format("AVG=%.2fms, σ=%.2fms, cov=%.3f",
-                            avgNs/1_000_000D, stdNs/1_000_000D, cov));
+                            avgNs / 1_000_000D, stdNs / 1_000_000D, cov));
 
             if (avgNs <= MAX_FLAG_AVG_NS || exhaustionAutoFlag) {
-                /* -------- new three-segment CoV curve -------- */
+
+                /* CoV curve */
                 double baseLimit;
                 if (avgNs <= P0_NS) {
-                    baseLimit = 0.40D;                                            // fixed at ≤50 ms
-                } else if (avgNs <= P1_NS) {                                     // 50–60 ms
-                    baseLimit = 0.40D - 0.15D *
-                                ((avgNs - P0_NS) / (double) (P1_NS - P0_NS));    // 0.40 → 0.25
-                } else {                                                         // 60–150 ms
+                    baseLimit = 0.40D;
+                } else if (avgNs <= P1_NS) {
+                    baseLimit = 0.45D - 0.15D *
+                            ((avgNs - P0_NS) / (double) (P1_NS - P0_NS));
+                } else {
                     baseLimit = 0.25D - 0.10D *
-                                ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS)); // 0.25 → 0.15
+                            ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
                 }
                 baseLimit = Math.max(baseLimit, 0.15D);
 
                 double effLimit = baseLimit;
-                if (fs != -1L) {
-                    long runNs = now - fs;
+                if (fastStart != -1L) {
+                    long runNs = now - fastStart;
                     if (runNs > EXH_START_NS) {
                         double t = Math.min(1D,
                                 (double) (runNs - EXH_START_NS) /
@@ -195,13 +215,6 @@ public class FastPlace extends Check implements PacketCheck {
     }
 
     /* ---------------- helpers ---------------- */
-
-    private static double medianNs(Deque<Long> q) {
-        int n = q.size(); long[] a = new long[n]; int i = 0;
-        for (Long v : q) a[i++] = v;
-        Arrays.sort(a);
-        return n % 2 == 0 ? (a[n/2-1] + a[n/2]) / 2.0 : a[n/2];
-    }
 
     private static int countTrue(Deque<Boolean> q) {
         int c = 0; for (Boolean b : q) if (b) c++; return c;
