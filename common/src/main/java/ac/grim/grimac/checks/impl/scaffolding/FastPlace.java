@@ -16,17 +16,26 @@ import java.util.Deque;
  * FastPlace – detects abnormally quick and consistent block placement packets.
  * <p>
  * Uses nano-time for all math; dynamic covariance limit scales with average speed.
+ * <p>
+ * 2025-05-21 tweaks #2  
+ * • Two independent windows: one for PLAYER_BLOCK_PLACEMENT, one for USE_ITEM.  
+ * • Sub-tick duplicates (< 4 ms) are ignored per stream.  
+ * • Everything else (curve, alerts, formatting) unchanged.
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
 
     private static final int  WINDOW          = 15;
-    private static final long MAX_GAP_NS      = 200_000_000L;   // 200 ms
-    private static final long MAX_FLAG_AVG_NS = 150_000_000L;   // 150 ms
-    private static final long P1_NS           = 60_000_000L;    //  60 ms
+    private static final long MIN_DELTA_NS    = 4_000_000L;    // 4 ms – skip duplicates
+    private static final long MAX_GAP_NS      = 200_000_000L;  // 200 ms – hard reset
+    private static final long MAX_FLAG_AVG_NS = 150_000_000L;  // 150 ms
+    private static final long P1_NS           = 60_000_000L;   //  60 ms
 
-    private final Deque<Long> deltas = new ArrayDeque<>(WINDOW);
-    private long lastTime = -1L;
+    /* independent streams */
+    private final Deque<Long> placeDeltas = new ArrayDeque<>(WINDOW);
+    private final Deque<Long>  useDeltas  = new ArrayDeque<>(WINDOW);
+    private long lastPlaceTime = -1L;
+    private long  lastUseTime  = -1L;
 
     public FastPlace(@NotNull GrimPlayer player) {
         super(player);
@@ -34,17 +43,32 @@ public class FastPlace extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() != PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT
-                && event.getPacketType() != PacketType.Play.Client.USE_ITEM) {
-            return;
-        }
-
         final long now = System.nanoTime();
+
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+            handleStream(now, placeDeltas, true, event);
+        } else if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
+            handleStream(now, useDeltas, false, event);
+        }
+    }
+
+    /* ---------- per-stream logic ---------- */
+    private void handleStream(long now,
+                              Deque<Long> deltas,
+                              boolean isPlacement,
+                              PacketReceiveEvent event) {
+
+        long lastTime = isPlacement ? lastPlaceTime : lastUseTime;
+
         if (lastTime != -1L) {
             long deltaNs = now - lastTime;
-            lastTime = now;
 
-            if (deltaNs <= 0L || deltaNs > MAX_GAP_NS) {
+            if (deltaNs <= 0L) return;                 // clock anomaly
+            if (deltaNs < MIN_DELTA_NS) return;        // duplicate inside same tick
+
+            if (deltaNs > MAX_GAP_NS) {                // long gap → reset
+                deltas.clear();
+                if (isPlacement) lastPlaceTime = now; else lastUseTime = now;
                 return;
             }
 
@@ -52,37 +76,40 @@ public class FastPlace extends Check implements PacketCheck {
                 deltas.removeFirst();
             }
             deltas.add(deltaNs);
+        }
 
-            if (deltas.size() == WINDOW) {
-                double avgNs = average(deltas);
-                double stdNs = standardDeviation(deltas, avgNs);
-                double cov   = stdNs / avgNs;
+        if (isPlacement) lastPlaceTime = now; else lastUseTime = now;
 
-                if (avgNs <= MAX_FLAG_AVG_NS) {                         // ignore slow builders
-                    double covLimit;
-                    if (avgNs <= P1_NS) {
-                        // linear: (0,0.45) -> (60 ms,0.35)
-                        covLimit = 0.45D - 0.10D * (avgNs / (double) P1_NS);
-                    } else {
-                        // linear: (60 ms,0.35) -> (150 ms,0.15)
-                        covLimit = 0.35D - 0.20D * ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
-                    }
-                    covLimit = Math.max(covLimit, 0.15D);               // floor safeguard
+        if (deltas.size() == WINDOW) {
+            double avgNs = average(deltas);
+            double stdNs = standardDeviation(deltas, avgNs);
+            double cov   = stdNs / avgNs;
 
-                    if (cov < covLimit) {
-                        if (flagAndAlert(String.format("\u03bc=%.2fms \u03c3=%.2fms cov=%.3f limit=%.3f",
-                                        avgNs / 1_000_000D, stdNs / 1_000_000D, cov, covLimit))
-                                && shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
-                        }
+            if (avgNs <= MAX_FLAG_AVG_NS) {
+                double covLimit;
+                if (avgNs <= P1_NS) {
+                    covLimit = 0.45D - 0.10D * (avgNs / (double) P1_NS);
+                } else {
+                    covLimit = 0.35D - 0.20D *
+                               ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
+                }
+                covLimit = Math.max(covLimit, 0.15D);
+
+                if (cov < covLimit) {
+                    String tag = isPlacement ? "PLACEMENT" : "USE";
+                    if (flagAndAlert(String.format(
+                            "%s \u03bc=%.2fms \u03c3=%.2fms cov=%.3f limit=%.3f",
+                            tag, avgNs / 1_000_000D, stdNs / 1_000_000D, cov, covLimit))
+                            && shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
                     }
                 }
             }
-        } else {
-            lastTime = now;
         }
     }
+
+    /* ---------- simple stats helpers ---------- */
 
     private static double average(Iterable<Long> values) {
         long sum = 0L;
