@@ -142,10 +142,10 @@ public class FastPlace extends Check implements PacketCheck {
                 if (avgNs <= P1_NS) {
                     baseLimit = 0.45D - 0.10D * (avgNs / (double) P1_NS);
                 } else {
-                    baseLimit = 0.35D - 0.25D *
+                    baseLimit = 0.35D - 0.20D *
                                 ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
                 }
-                baseLimit = Math.max(baseLimit, 0.15D);
+                baseLimit = Math.max(baseLimit, 0.25D);
 
                 long fs = fastStart;
                 double effLimit = baseLimit;
