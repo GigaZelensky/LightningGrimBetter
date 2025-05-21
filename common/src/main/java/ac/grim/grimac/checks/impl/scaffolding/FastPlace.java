@@ -16,13 +16,13 @@ import java.util.Deque;
 /**
  * FastPlace – detects abnormally quick and consistent block placement packets.
  * <p>
- * Uses nano-time for all math; dynamic covariance limit scales with average speed.
+ * Uses nano-time for all math; dynamic covariance limit now becomes **stricter for
+ * faster averages** and looser for slower ones.
  * <p>
- * 2025-05-21 tweaks #4  
- * • Adaptive one-sided outlier filter (fast/slow).  
- * • Physiological floor check (< 15 ms).  
- * • **Exhaustion logic** – continuous ≥ 17 cps ramps CoV limit toward 0.8 over 12 s.  
- * • Two windows (placement / use) remain independent.
+ * 2025-05-21 tweaks #5  
+ * • Cov-limit curve flipped (low avg ⇒ low limit).  
+ * • Minor widen on slow-click leniency to drop edge false flags.  
+ * • No other logic touched – formatting preserved.
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
@@ -139,14 +139,15 @@ public class FastPlace extends Check implements PacketCheck {
             double cov   = stdNs / avgNs;
 
             if (avgNs <= MAX_FLAG_AVG_NS) {
+                /* flipped curve: small avg → tight (low) limit, large avg → loose (high) */
                 double baseLimit;
                 if (avgNs <= P1_NS) {
-                    baseLimit = 0.45D - 0.10D * (avgNs / (double) P1_NS);
+                    baseLimit = 0.15D + 0.20D * (avgNs / (double) P1_NS); // 0.15 → 0.35
                 } else {
-                    baseLimit = 0.35D - 0.20D *
-                                ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
+                    baseLimit = 0.35D + 0.10D *
+                                ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS)); // 0.35 → 0.45
                 }
-                baseLimit = Math.max(baseLimit, 0.15D);
+                baseLimit = Math.min(baseLimit, 0.45D);
 
                 /* exhaustion ramp */
                 long fs = fastStart;
