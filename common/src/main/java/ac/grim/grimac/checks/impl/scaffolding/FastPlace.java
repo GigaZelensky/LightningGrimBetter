@@ -11,18 +11,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.stream.Collectors;
 
 /**
  * FastPlace – detects abnormally quick and consistent block placement packets.
  * <p>
  * Uses nano-time for all math; dynamic covariance limit scales with average speed.
- * Verbose debug goes to stdout to keep the code Bukkit-free.
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
-
-    private static final boolean DEBUG = true;          // toggle console spam
 
     private static final int  WINDOW          = 15;
     private static final long MAX_GAP_NS      = 200_000_000L;   // 200 ms
@@ -48,13 +44,6 @@ public class FastPlace extends Check implements PacketCheck {
             long deltaNs = now - lastTime;
             lastTime = now;
 
-            if (DEBUG) {
-                debug(String.format("[FP-Δ] %s %.2fms (%d ns)",
-                        event.getPacketType().toString(),
-                        deltaNs / 1_000_000D,
-                        deltaNs));
-            }
-
             if (deltaNs <= 0L || deltaNs > MAX_GAP_NS) {
                 return;
             }
@@ -69,32 +58,24 @@ public class FastPlace extends Check implements PacketCheck {
                 double stdNs = standardDeviation(deltas, avgNs);
                 double cov   = stdNs / avgNs;
 
-                double covLimit;
-                if (avgNs <= P1_NS) {
-                    covLimit = 0.35D;                                           // flat limit for ≤60 ms
-                } else {
-                    covLimit = 0.35D - 0.20D * ((avgNs - P1_NS) /
-                              (double) (MAX_FLAG_AVG_NS - P1_NS));              // 0.35 → 0.15
-                }
-                covLimit = Math.max(covLimit, 0.15D);
+                if (avgNs <= MAX_FLAG_AVG_NS) {                         // ignore slow builders
+                    double covLimit;
+                    if (avgNs <= P1_NS) {
+                        // linear: (0,0.45) -> (60 ms,0.35)
+                        covLimit = 0.45D - 0.10D * (avgNs / (double) P1_NS);
+                    } else {
+                        // linear: (60 ms,0.35) -> (150 ms,0.15)
+                        covLimit = 0.35D - 0.20D * ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
+                    }
+                    covLimit = Math.max(covLimit, 0.15D);               // floor safeguard
 
-                if (DEBUG) {
-                    debug(String.format("[FP-WIN] %s | μ=%.2fms σ=%.2fms cov=%.3f lim=%.3f",
-                            deltas.stream()
-                                  .map(d -> String.format("%.2f", d / 1_000_000D))
-                                  .collect(Collectors.joining(", ")),
-                            avgNs / 1_000_000D,
-                            stdNs / 1_000_000D,
-                            cov,
-                            covLimit));
-                }
-
-                if (avgNs <= MAX_FLAG_AVG_NS && cov < covLimit) {
-                    if (flagAndAlert(String.format("\u03bc=%.2fms \u03c3=%.2fms cov=%.3f limit=%.3f",
-                                    avgNs / 1_000_000D, stdNs / 1_000_000D, cov, covLimit))
-                            && shouldModifyPackets()) {
-                        event.setCancelled(true);
-                        player.onPacketCancel();
+                    if (cov < covLimit) {
+                        if (flagAndAlert(String.format("\u03bc=%.2fms \u03c3=%.2fms cov=%.3f limit=%.3f",
+                                        avgNs / 1_000_000D, stdNs / 1_000_000D, cov, covLimit))
+                                && shouldModifyPackets()) {
+                            event.setCancelled(true);
+                            player.onPacketCancel();
+                        }
                     }
                 }
             }
@@ -102,8 +83,6 @@ public class FastPlace extends Check implements PacketCheck {
             lastTime = now;
         }
     }
-
-    /* ------------------------------------------------------------ */
 
     private static double average(Iterable<Long> values) {
         long sum = 0L;
@@ -124,14 +103,5 @@ public class FastPlace extends Check implements PacketCheck {
             count++;
         }
         return count == 0 ? 0D : GrimMath.sqrt((float) (var / count));
-    }
-
-    /* ------------------------------------------------------------ */
-
-    /** Local stdout helper – avoids Bukkit or Grim-internal hooks. */
-    private void debug(String msg) {
-        if (DEBUG) {
-            System.out.println("[FastPlace] [" + getPlayer().getName() + "] " + msg);
-        }
     }
 }
