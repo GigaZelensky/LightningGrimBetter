@@ -260,20 +260,25 @@ public class FastPlace extends Check implements PacketCheck {
         return 0.15D;
     }
 
-    /* σ(Cov) limit – **50 % looser** (×1.5) */
+    /* σ(Cov) limit – 0.040 @ 1 ms  →  0.010 @ 65 ms  →  0.005 @ 150 ms */
     private static double covVarLimit(double avgNs) {
-        double raw;
-        if (avgNs >= P1_NS) {
-            if (avgNs >= MAX_FLAG_AVG_NS) raw = 0.05D;
-            else {
-                double ratio = (avgNs - P1_NS) / (double)(MAX_FLAG_AVG_NS - P1_NS);
-                raw = 0.10D - ratio * 0.05D;               // 0.10 → 0.05
-            }
-        } else {
-            double ratio = (P1_NS - Math.max(avgNs, MIN_COV_NS))
-                         / (double)(P1_NS - MIN_COV_NS);
-            raw = 0.10D + ratio * 0.40D;                   // 0.10 → 0.50
+
+        final long T0_NS = MIN_COV_NS;        //   1 ms
+        final long T1_NS = 65_000_000L;       //  65 ms
+        final long T2_NS = 150_000_000L;      // 150 ms
+
+        if (avgNs <= T1_NS) {
+            /* quadratic drop 0.040 → 0.010 */
+            double t = (avgNs - T0_NS) / (double)(T1_NS - T0_NS);
+            return 0.040D - 0.030D * t * t;   // 0.04 – 0.03 t²
         }
-        return raw * 1.50;    // ← 50 % more leeway
+
+        if (avgNs <= T2_NS) {
+            /* quadratic drop 0.010 → 0.005 */
+            double t = (avgNs - T1_NS) / (double)(T2_NS - T1_NS);
+            return 0.010D - 0.005D * t * t;   // 0.01 – 0.005 t²
+        }
+
+        return 0.005D;                        // floor beyond 150 ms
     }
 }
