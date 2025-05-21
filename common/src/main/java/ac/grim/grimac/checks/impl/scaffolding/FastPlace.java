@@ -4,6 +4,7 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -27,6 +28,7 @@ public class FastPlace extends Check implements PacketCheck {
 
     private final Deque<Long> deltas = new ArrayDeque<>(WINDOW);
     private long lastTime = -1L;
+    private boolean debug = false;
 
     public FastPlace(@NotNull GrimPlayer player) {
         super(player);
@@ -39,10 +41,15 @@ public class FastPlace extends Check implements PacketCheck {
             return;
         }
 
+        debug = player.hasPermission("grim.debug.fastplace");
+
         final long now = System.nanoTime();
         if (lastTime != -1L) {
             long deltaNs = now - lastTime;
             lastTime = now;
+            if (debug) {
+                LogUtil.info(String.format("[FastPlaceDebug] \u0394=%.2fms", deltaNs / 1_000_000D));
+            }
 
             if (deltaNs <= 0L || deltaNs > MAX_GAP_NS) {
                 return;
@@ -68,6 +75,9 @@ public class FastPlace extends Check implements PacketCheck {
                         covLimit = 0.35D - 0.20D * ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
                     }
                     covLimit = Math.max(covLimit, 0.15D);               // floor safeguard
+                    if (debug) {
+                        LogUtil.info(String.format("[FastPlaceDebug] avg=%.2fms \u03c3=%.2fms cov=%.3f limit=%.3f", avgNs / 1_000_000D, stdNs / 1_000_000D, cov, covLimit));
+                    }
 
                     if (cov < covLimit) {
                         if (flagAndAlert(String.format("\u03bc=%.2fms \u03c3=%.2fms cov=%.3f limit=%.3f",
