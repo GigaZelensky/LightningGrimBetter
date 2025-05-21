@@ -19,7 +19,7 @@ import java.util.Deque;
  * Design
  * • Independent timing windows for PLACEMENT / USE.  
  * • Dynamic CoV curve:  
- *   ─ 0.40 @ 50 ms → 0.25 @ 60 ms → 0.15 @ 150 ms.  
+ *   ─ 0.50 @   1 ms → 0.35 @  60 ms → 0.15 @ 150 ms.  
  * • Physiological floor (<15 ms) flags impossible speeds.  
  * • Exhaustion auto-flag – linear 5 s (≤55 ms) to 7 s (75 ms), disabled ≥95 ms.  
  * • σ-stability: if σ stays within ±3 % of μ for 150 packets, flag.  
@@ -32,7 +32,7 @@ public class FastPlace extends Check implements PacketCheck {
     private static final int  WINDOW          = 15;
     private static final long MAX_GAP_NS      = 200_000_000L;     // 200 ms
     private static final long MAX_FLAG_AVG_NS = 150_000_000L;     // 150 ms
-    private static final long P0_NS           = 50_000_000L;      //  50 ms
+    private static final long P0_NS           = 50_000_000L;      //  50 ms (legacy, still used elsewhere)
     private static final long P1_NS           = 60_000_000L;      //  60 ms
     private static final long MIN_STD_NS      = 4_000_000L;       //   4 ms
 
@@ -50,10 +50,17 @@ public class FastPlace extends Check implements PacketCheck {
     private static final int SIGMA_STABLE_TARGET = 150;
     private static final double SIGMA_STABLE_BAND = 0.03D;          // ±3 %
 
+    /* -------- new average-CoV support -------- */
+    private static final int  AVG_COV_WINDOW = 20;
+    private static final long MIN_COV_NS     = 1_000_000L;        //   1 ms – lower bound for curve
+
     private final Deque<Long>    placeDeltas = new ArrayDeque<>(WINDOW);
     private final Deque<Long>     useDeltas  = new ArrayDeque<>(WINDOW);
     private final Deque<Boolean> placeFloor  = new ArrayDeque<>(FLOOR_WINDOW);
     private final Deque<Boolean>  useFloor   = new ArrayDeque<>(FLOOR_WINDOW);
+
+    private final Deque<Double> placeAvgSeries = new ArrayDeque<>(AVG_COV_WINDOW);
+    private final Deque<Double>  useAvgSeries  = new ArrayDeque<>(AVG_COV_WINDOW);
 
     private long lastPlaceTime = -1L, placeFastStart = -1L;
     private long  lastUseTime  = -1L,  useFastStart  = -1L;
@@ -69,15 +76,16 @@ public class FastPlace extends Check implements PacketCheck {
         long now = System.nanoTime();
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
-            handleStream(now, placeDeltas, placeFloor, true,  event);
+            handleStream(now, placeDeltas, placeFloor, placeAvgSeries, true,  event);
         } else if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
-            handleStream(now, useDeltas,  useFloor,  false, event);
+            handleStream(now, useDeltas,  useFloor,  useAvgSeries,  false, event);
         }
     }
 
     private void handleStream(long now,
                               Deque<Long> deltas,
                               Deque<Boolean> floorTrack,
+                              Deque<Double> avgSeries,
                               boolean isPlacement,
                               PacketReceiveEvent event) {
 
@@ -92,7 +100,7 @@ public class FastPlace extends Check implements PacketCheck {
             long deltaNs = now - lastTime;
             if (deltaNs <= 0L) return;
             if (deltaNs > MAX_GAP_NS) {
-                deltas.clear(); floorTrack.clear();
+                deltas.clear(); floorTrack.clear(); avgSeries.clear();
                 if (isPlacement) { lastPlaceTime = now; placeFastStart = -1L; }
                 else             {  lastUseTime  = now;  useFastStart  = -1L; }
                 return;
@@ -130,9 +138,20 @@ public class FastPlace extends Check implements PacketCheck {
         if (deltas.size() == WINDOW) {
             double avgNs = average(deltas);
             double stdNs = Math.max(MIN_STD_NS, standardDeviation(deltas, avgNs));
-            double cov   = stdNs / avgNs;
+            double cov   = stdNs / avgNs;           // CoV on individual deltas
 
-            /* σ-stability tracker */
+            /* build average-series & its CoV */
+            if (avgSeries.size() == AVG_COV_WINDOW) avgSeries.removeFirst();
+            avgSeries.add(avgNs);
+
+            double covAvg = Double.POSITIVE_INFINITY;
+            if (avgSeries.size() >= 2) {
+                double muAvg  = average(avgSeries);
+                double sdAvg  = standardDeviation(avgSeries, muAvg);
+                covAvg = sdAvg / muAvg;              // CoV on window averages
+            }
+
+            /* σ-stability tracker (delta domain) */
             if (Math.abs(stdNs - (avgNs * SIGMA_STABLE_BAND)) <= avgNs * SIGMA_STABLE_BAND)
                 sigmaStable++;
             else sigmaStable = 0;
@@ -162,23 +181,13 @@ public class FastPlace extends Check implements PacketCheck {
             }
 
             if (debug) player.sendMessage((isPlacement ? "[P] " : "[U] ") +
-                    String.format("AVG=%.2fms, σ=%.2fms, cov=%.3f",
-                            avgNs / 1_000_000D, stdNs / 1_000_000D, cov));
+                    String.format("AVG=%.2fms, σ=%.2fms, covΔ=%.3f, covμ=%.3f",
+                            avgNs / 1_000_000D, stdNs / 1_000_000D, cov, covAvg));
 
             if (avgNs <= MAX_FLAG_AVG_NS || exhaustionAutoFlag) {
 
-                /* CoV curve */
-                double baseLimit;
-                if (avgNs <= P0_NS) {
-                    baseLimit = 0.40D;
-                } else if (avgNs <= P1_NS) {
-                    baseLimit = 0.45D - 0.15D *
-                            ((avgNs - P0_NS) / (double) (P1_NS - P0_NS));
-                } else {
-                    baseLimit = 0.25D - 0.10D *
-                            ((avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS));
-                }
-                baseLimit = Math.max(baseLimit, 0.15D);
+                /* CoV curve (shared for Δ-domain and μ-domain) */
+                double baseLimit = covBaseLimit(avgNs);
 
                 double effLimit = baseLimit;
                 if (fastStart != -1L) {
@@ -191,7 +200,7 @@ public class FastPlace extends Check implements PacketCheck {
                     }
                 }
 
-                boolean breach = cov < effLimit || exhaustionAutoFlag;
+                boolean breach = (cov < effLimit) || (covAvg < effLimit) || exhaustionAutoFlag;
                 int buf = isPlacement ? placeBuf : useBuf;
 
                 if (breach) {
@@ -199,9 +208,9 @@ public class FastPlace extends Check implements PacketCheck {
                     if (buf >= BUFFER_MAX) {
                         String tag = isPlacement ? "PLACEMENT" : "USE";
                         if (flagAndAlert(String.format(
-                                "%s μ=%.2fms σ=%.2fms cov=%.3f limit=%.3f EXH=%s",
+                                "%s μ=%.2fms σ=%.2fms covΔ=%.3f covμ=%.3f limit=%.3f EXH=%s",
                                 tag, avgNs / 1_000_000D, stdNs / 1_000_000D,
-                                cov, effLimit, exhaustionAutoFlag))
+                                cov, covAvg, effLimit, exhaustionAutoFlag))
                                 && shouldModifyPackets()) {
                             event.setCancelled(true); player.onPacketCancel();
                         }
@@ -220,14 +229,31 @@ public class FastPlace extends Check implements PacketCheck {
         int c = 0; for (Boolean b : q) if (b) c++; return c;
     }
 
-    private static double average(Iterable<Long> v) {
-        long s = 0L; int n = 0; for (Long x : v) { s += x; n++; }
-        return n == 0 ? 0D : s / (double) n;
+    private static double average(Iterable<? extends Number> v) {
+        double s = 0D; int n = 0;
+        for (Number x : v) { s += x.doubleValue(); n++; }
+        return n == 0 ? 0D : s / n;
     }
 
-    private static double standardDeviation(Iterable<Long> v, double mean) {
+    private static double standardDeviation(Iterable<? extends Number> v, double mean) {
         double var = 0D; int n = 0;
-        for (Long x : v) { double d = x - mean; var += d * d; n++; }
+        for (Number x : v) { double d = x.doubleValue() - mean; var += d * d; n++; }
         return n == 0 ? 0D : GrimMath.sqrt((float) (var / n));
+    }
+
+    /* new dynamic CoV base-limit – 0.50 @1 ms → 0.35 @60 ms → 0.15 @150 ms */
+    private static double covBaseLimit(double avgNs) {
+        if (avgNs <= P1_NS) {
+            // 1 ms – 60 ms: 0.50 → 0.35
+            double clamped = Math.max(avgNs, MIN_COV_NS);
+            double ratio = (P1_NS - clamped) / (double) (P1_NS - MIN_COV_NS);
+            return 0.35D + ratio * 0.15D;
+        } else if (avgNs <= MAX_FLAG_AVG_NS) {
+            // 60 ms – 150 ms: 0.35 → 0.15
+            double ratio = (avgNs - P1_NS) / (double) (MAX_FLAG_AVG_NS - P1_NS);
+            return 0.35D - ratio * 0.20D;
+        } else {
+            return 0.15D;
+        }
     }
 }
