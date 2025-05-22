@@ -71,10 +71,6 @@ public class FastPlace extends Check implements PacketCheck {
     private static final int ROT_CPS_THRESHOLD = 8;
     private static final int ROT_CPS_CAP = 20;
 
-    /* ───── no-swing addition ───── */
-    private static final long NOSWING_MAX_DELAY_NS = 300_000_000L;  // 300 ms
-    private static final int  NOSWING_BUF_MAX      = 3;
-
     /* ───── impossible-interact addition ───── */
     private static final int    IMP_BUF_MAX          = 3;
     private static final long   IMP_DELAY_THRESHOLD  = 300L;      // 300 ms
@@ -111,35 +107,19 @@ public class FastPlace extends Check implements PacketCheck {
     private int  placeBuf = 0, useBuf = 0;
     private int  placeSigmaStable = 0, useSigmaStable = 0;
 
-    /* no-swing state */
-    private long lastSwingTime = -1L;
-    private int  placeNoSwingBuf = 0, useNoSwingBuf = 0;
-
     public FastPlace(@NotNull GrimPlayer player) { super(player); }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         long now = System.nanoTime();
 
-        /* ---- arm-swing tracking ---- */
-        if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
-            lastSwingTime = now;
-            return;
-        }
-
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
             /* ---- impossible-interact logic ---- */
             impossibleInteractCheck(event);
 
-            /* ---- no-swing logic ---- */
-            noSwingCheck(now, true, event);
-
             handle(now, placeDeltas, placeFloor, placeCovSeries,
                    placeFastWindow, true, event);
         } else if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
-            /* ---- no-swing logic ---- */
-            noSwingCheck(now, false, event);
-
             handle(now, useDeltas,  useFloor,  useCovSeries,
                    useFastWindow,  false, event);
         }
@@ -175,31 +155,6 @@ public class FastPlace extends Check implements PacketCheck {
         }
 
         lastImpPlaceMs = nowMs;
-    }
-
-    /* ---------------- no-swing helper ---------------- */
-    private void noSwingCheck(long now,
-                              boolean isPlacement,
-                              PacketReceiveEvent event) {
-
-        long delta = lastSwingTime == -1L ? Long.MAX_VALUE : now - lastSwingTime;
-        int buf = isPlacement ? placeNoSwingBuf : useNoSwingBuf;
-
-        if (delta > NOSWING_MAX_DELAY_NS) {
-            if (++buf > NOSWING_BUF_MAX) {
-                String tag = isPlacement ? "PLACEMENT" : "USE";
-                if (flagAndAlert("NOSWING " + tag + " ΔSwing=" + delta / 1_000_000L + "ms")
-                        && shouldModifyPackets()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
-                buf = 0;
-            }
-        } else {
-            buf = Math.max(0, buf - 1);
-        }
-
-        if (isPlacement) placeNoSwingBuf = buf; else useNoSwingBuf = buf;
     }
 
     /* ---------------- core ---------------- */
