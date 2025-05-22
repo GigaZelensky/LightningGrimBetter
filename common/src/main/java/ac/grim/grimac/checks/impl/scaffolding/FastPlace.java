@@ -21,7 +21,7 @@ import java.util.Deque;
  *
  * Behaviour
  * ─────────
- * • Two independent 20-sample timing windows (PLACEMENT / USE).
+ * • Two independent 15-sample timing windows (PLACEMENT / USE).
  * • Δ-domain CoV limit: 0.50 @ 1 ms → 0.35 @ 60 ms → 0.15 @ 150 ms.
  * • σ(Cov) "cov-stability" starts after 15 samples:
  *     0.50 @ 1 ms → 0.050 @ 65 ms → 0.005 @ 150 ms (quadratic).
@@ -39,8 +39,8 @@ import java.util.Deque;
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
 
-    private static final int  WINDOW          = 20;
-    private static final long MAX_GAP_NS      = 500_000_000L;   // 500 ms
+    private static final int  WINDOW          = 15;
+    private static final long MAX_GAP_NS      = 300_000_000L;   // 300 ms
     private static final long MAX_FLAG_AVG_NS = 150_000_000L;   // 150 ms
     private static final long P1_NS           = 60_000_000L;    //  60 ms
     private static final long MIN_STD_NS      = 4_000_000L;     //   4 ms
