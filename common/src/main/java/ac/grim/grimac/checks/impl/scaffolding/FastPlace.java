@@ -9,6 +9,8 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
@@ -69,6 +71,12 @@ public class FastPlace extends Check implements PacketCheck {
     private static final int ROT_CPS_THRESHOLD = 8;
     private static final int ROT_CPS_CAP = 20;
 
+    /* ───── impossible-interact addition ───── */
+    private static final int    IMP_BUF_MAX          = 3;
+    private static final long   IMP_DELAY_THRESHOLD  = 300L;      // 300 ms
+    private long lastImpPlaceMs = -1L;
+    private int  impBuf         = 0;
+
     private final Deque<Long>    placeDeltas = new ArrayDeque<>(WINDOW);
     private final Deque<Long>     useDeltas  = new ArrayDeque<>(WINDOW);
     private final Deque<Boolean> placeFloor  = new ArrayDeque<>(FLOOR_WINDOW);
@@ -106,12 +114,47 @@ public class FastPlace extends Check implements PacketCheck {
         long now = System.nanoTime();
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+            /* ---- impossible-interact logic ---- */
+            impossibleInteractCheck(event);
+
             handle(now, placeDeltas, placeFloor, placeCovSeries,
                    placeFastWindow, true, event);
         } else if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             handle(now, useDeltas,  useFloor,  useCovSeries,
                    useFastWindow,  false, event);
         }
+    }
+
+    /* ---------------- impossible-interact helper ---------------- */
+    private void impossibleInteractCheck(PacketReceiveEvent event) {
+        long nowMs = System.currentTimeMillis();
+
+        WrapperPlayClientPlayerBlockPlacement wrapper =
+                new WrapperPlayClientPlayerBlockPlacement(event);
+
+        /* "bridging" approximation – insideBlock flag is true when the hand is inside */
+        boolean bridging = wrapper.getInsideBlock().orElse(false);
+
+        BlockFace face = wrapper.getFace();
+        boolean selfFace = face == BlockFace.OTHER;          // 255 protocol value
+
+        long delay = lastImpPlaceMs == -1L ? Long.MAX_VALUE : nowMs - lastImpPlaceMs;
+        boolean invalid = bridging && selfFace && delay < IMP_DELAY_THRESHOLD;
+
+        if (invalid) {
+            if (++impBuf > IMP_BUF_MAX) {
+                if (flagAndAlert("IMPOSSIBLE INTERACT delay=" + delay + "ms face=self")
+                        && shouldModifyPackets()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
+                }
+                impBuf = 0;
+            }
+        } else {
+            impBuf = Math.max(0, impBuf - 1);
+        }
+
+        lastImpPlaceMs = nowMs;
     }
 
     /* ---------------- core ---------------- */
