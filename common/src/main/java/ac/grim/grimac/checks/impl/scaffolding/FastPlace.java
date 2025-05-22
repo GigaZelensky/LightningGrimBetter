@@ -13,13 +13,21 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 /**
- * FastPlace – detects abnormally quick and consistent block-placement packets.
+ * FastPlace – production build
  *
- * Core points (unchanged):
- * • Δ-domain CoV curve 0.50 @ 1 ms → 0.35 @ 60 ms → 0.15 @ 150 ms.
- * • σ(Cov) (“cov-stability”) activates only after 15 samples; limits 1.5 × looser.
- * • Exhaustion uses average CPS over the whole ≤95 ms streak.
- * • Floor (<30 ms, but ignores <1 ms), σ-stability, 6-tick buffer all untouched.
+ * Behaviour
+ * ─────────
+ * • Two independent 15-sample timing windows (PLACEMENT / USE).
+ * • Δ-domain CoV limit: 0.50 @ 1 ms → 0.35 @ 60 ms → 0.15 @ 150 ms.
+ * • σ(Cov) “cov-stability” starts after 15 samples:
+ *     0.50 @ 1 ms → 0.050 @ 65 ms → 0.005 @ 150 ms (quadratic).
+ * • Floor protection: window-average <35 ms (but ≥1 ms) for 4 of 6
+ *   consecutive windows → instant flag.
+ * • Exhaustion: linear 5 s (≤55 ms) to 7 s (75 ms), disabled >95 ms,
+ *   based on streak average while ≤95 ms.
+ * • σ-stability on raw deltas (±3 %) flags after 150 packets.
+ * • Six-tick buffer before any cancellation.
+ * • Debug stream gated by “grim.debug.fastplace”.
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
@@ -31,12 +39,12 @@ public class FastPlace extends Check implements PacketCheck {
     private static final long MIN_STD_NS      = 4_000_000L;     //   4 ms
     private static final long MIN_COV_NS      = 1_000_000L;     //   1 ms
 
-    /* floor changed from 15 ms to 30 ms */
-    private static final long FLOOR_NS       = 30_000_000L;     // 30 ms
+    /* floor uses window-average */
+    private static final long FLOOR_NS       = 35_000_000L;     // 35 ms
     private static final int  FLOOR_WINDOW   = 6;
     private static final int  FLOOR_HITS_MAX = 4;
 
-    private static final long FAST_STREAK_NS = 95_000_000L;     // ≤95 ms (≥10.5 CPS)
+    private static final long FAST_STREAK_NS = 95_000_000L;     // ≤95 ms
     private static final long CPS19_NS       = 53_000_000L;     // ≈19 CPS
 
     private static final long   EXH_START_NS = 1_000_000_000L;  // 1 s
@@ -94,8 +102,8 @@ public class FastPlace extends Check implements PacketCheck {
             long deltaNs = now - lastTime;
             if (deltaNs <= 0L) return;
 
-            if (deltaNs > MAX_GAP_NS) {          // gap reset
-                deltas.clear(); floorTrack.clear(); covSeries.clear();
+            if (deltaNs > MAX_GAP_NS) {          // window reset
+                deltas.clear(); covSeries.clear(); floorTrack.clear();
                 fastStart = -1L; fastCount = 0L;
                 updateState(isPlacement, now, fastStart, fastCount);
                 return;
@@ -104,18 +112,7 @@ public class FastPlace extends Check implements PacketCheck {
             if (deltas.size() == WINDOW) deltas.removeFirst();
             deltas.add(deltaNs);
 
-            /* floor (<30 ms) but ignore <1 ms */
-            boolean floorHit = deltaNs >= MIN_COV_NS && deltaNs < FLOOR_NS;
-            if (floorTrack.size() == FLOOR_WINDOW) floorTrack.removeFirst();
-            floorTrack.add(floorHit);
-            if (countTrue(floorTrack) >= FLOOR_HITS_MAX &&
-                flagAndAlert((isPlacement ? "PLACEMENT" : "USE") + " <30 ms floor breach") &&
-                shouldModifyPackets()) {
-                event.setCancelled(true);
-                player.onPacketCancel();
-            }
-
-            /* fast-streak ≤95 ms */
+            /* fast-streak tracking (≤95 ms) */
             if (deltaNs <= FAST_STREAK_NS) {
                 if (fastStart == -1L) { fastStart = now; fastCount = 1; }
                 else fastCount++;
@@ -133,7 +130,19 @@ public class FastPlace extends Check implements PacketCheck {
             double stdNs = Math.max(MIN_STD_NS, standardDeviation(deltas, avgNs));
             double cov   = stdNs / avgNs;
 
-            /* CoV-stability */
+            /* ---- floor by window-average (<35 ms, but ≥1 ms) ---- */
+            boolean floorHit = avgNs >= MIN_COV_NS && avgNs < FLOOR_NS;
+            if (floorTrack.size() == FLOOR_WINDOW) floorTrack.removeFirst();
+            floorTrack.add(floorHit);
+            if (countTrue(floorTrack) >= FLOOR_HITS_MAX &&
+                flagAndAlert((isPlacement ? "PLACEMENT" : "USE") +
+                             " window-μ <35 ms (4/6)") &&
+                shouldModifyPackets()) {
+                event.setCancelled(true);
+                player.onPacketCancel();
+            }
+
+            /* ---- CoV-series for σ(Cov) ---- */
             if (covSeries.size() == WINDOW) covSeries.removeFirst();
             covSeries.add(cov);
 
@@ -143,7 +152,7 @@ public class FastPlace extends Check implements PacketCheck {
             double covLimit  = covReady ? covVarLimit(avgNs) : Double.NaN;
             boolean covStable = covReady && covSigma < covLimit;
 
-            /* σ-stability on raw deltas */
+            /* ---- σ-stability on raw deltas (±3 %) ---- */
             if (Math.abs(stdNs - (avgNs * SIGMA_STABLE_BAND)) <= avgNs * SIGMA_STABLE_BAND)
                 sigmaStable++;
             else sigmaStable = 0;
@@ -156,7 +165,7 @@ public class FastPlace extends Check implements PacketCheck {
             }
             if (isPlacement) placeSigmaStable = sigmaStable; else useSigmaStable = sigmaStable;
 
-            /* -------- exhaustion: streak average -------- */
+            /* ---- exhaustion (streak average) ---- */
             boolean exhaustionAutoFlag = false;
             double streakAvgNs = Double.MAX_VALUE;
             if (fastStart != -1L && fastCount > 0) {
@@ -178,7 +187,7 @@ public class FastPlace extends Check implements PacketCheck {
                                   covReady ? String.format("%.3f", covLimit) : "--",
                                   fastCount > 0 ? streakAvgNs / 1_000_000D : 0.0));
 
-            /* --- primary decision path --- */
+            /* ---- main decision ---- */
             if (avgNs <= MAX_FLAG_AVG_NS || exhaustionAutoFlag) {
                 double baseLimit = covBaseLimit(avgNs);
 
@@ -248,7 +257,7 @@ public class FastPlace extends Check implements PacketCheck {
         return n == 0 ? 0D : GrimMath.sqrt((float) (var / n));
     }
 
-    /* Δ-domain CoV limit – 0.50 → 0.35 → 0.15 */
+    /* Δ-domain CoV limit */
     private static double covBaseLimit(double avgNs) {
         if (avgNs <= P1_NS) {
             double ratio = (P1_NS - Math.max(avgNs, MIN_COV_NS))
@@ -263,7 +272,7 @@ public class FastPlace extends Check implements PacketCheck {
         return 0.15D;
     }
 
-    /* σ(Cov) limit – 0.040 @ 1 ms → 0.010 @ 65 ms → 0.005 @ 150 ms */
+    /* σ(Cov) quadratic limit */
     private static double covVarLimit(double avgNs) {
 
         final long T0_NS = MIN_COV_NS;        //   1 ms
@@ -271,13 +280,13 @@ public class FastPlace extends Check implements PacketCheck {
         final long T2_NS = 150_000_000L;      // 150 ms
 
         if (avgNs <= T1_NS) {
-            double t = (avgNs - T0_NS) / (double)(T1_NS - T0_NS);
-            return 0.040D - 0.030D * t * t;   // quadratic
+            double t = (avgNs - T0_NS) / (double) (T1_NS - T0_NS);
+            return 0.50D - 0.45D * t * t;     // 0.50 → 0.050
         }
 
         if (avgNs <= T2_NS) {
-            double t = (avgNs - T1_NS) / (double)(T2_NS - T1_NS);
-            return 0.010D - 0.005D * t * t;   // quadratic
+            double t = (avgNs - T1_NS) / (double) (T2_NS - T1_NS);
+            return 0.050D - 0.045D * t * t;   // 0.050 → 0.005
         }
 
         return 0.005D;
