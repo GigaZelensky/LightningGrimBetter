@@ -323,13 +323,14 @@ public class FastPlace extends Check implements PacketCheck {
                     buf = Math.min(BUFFER_MAX, buf + 1);
                     if (buf >= BUFFER_MAX) {
                         String tag = isPlacement ? "PLACEMENT" : "USE";
+                        String exhTag = exhaustionAutoFlag ? " EXH" : ""; // show only when true
                         if (flagAndAlert(String.format(
-                                "%s μ=%.2f ms σ=%.2f ms cov=%.3f lim=%.3f σ(cov)=%s<%s EXH=%s",
+                                "%s μ=%.2f ms σ=%.2f ms cov=%.3f lim=%.3f σ(cov)=%s<%s%s",
                                 tag, avgNs / 1_000_000D, stdNs / 1_000_000D,
                                 cov, effLimit,
                                 covReady ? String.format("%.3f", covSigma) : "--",
                                 covReady ? String.format("%.3f", covLimit) : "--",
-                                exhaustionAutoFlag))
+                                exhTag))
                                 && shouldModifyPackets()) {
                             event.setCancelled(true);
                             player.onPacketCancel();
