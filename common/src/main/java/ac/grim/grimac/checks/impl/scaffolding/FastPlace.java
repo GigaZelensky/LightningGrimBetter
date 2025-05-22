@@ -9,8 +9,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
@@ -29,7 +27,6 @@ import java.util.Deque;
  *   consecutive windows → instant flag.
  * • Exhaustion: dynamic – ≥12 CPS flags after ≤10 s,
  *   16 CPS ≈ 6.5 s, 20 CPS ≈ 3 s (resets if 4 / 6 packets are slow).
- * • Rotation-stagnation: buffer increments every stagnant window.
  * • **Dynamic buffer** – the stricter (lower) the CoV and σ(Cov),
  *   the faster the buffer fills (up to +4 per window).
  * • σ-stability on raw deltas (±3 %) flags after 150 packets.
@@ -64,19 +61,6 @@ public class FastPlace extends Check implements PacketCheck {
     private static final int SIGMA_STABLE_TARGET = 150;
     private static final double SIGMA_STABLE_BAND = 0.03D;      // ±3 %
 
-    // Rotation stagnation thresholds
-    private static final double ROT_BASE_LIMIT = 0.15D;   // 0.15° @ ≤8 CPS
-    private static final double ROT_SLOPE = 0.005D;        // −0.005° per CPS>8
-    private static final double ROT_PITCH_LIMIT = 0.06D;   // 0.06° pitch gate
-    private static final int ROT_CPS_THRESHOLD = 8;
-    private static final int ROT_CPS_CAP = 20;
-
-    /* ───── impossible-interact addition ───── */
-    private static final int    IMP_BUF_MAX          = 3;
-    private static final long   IMP_DELAY_THRESHOLD  = 300L;      // 300 ms
-    private long lastImpPlaceMs = -1L;
-    private int  impBuf         = 0;
-
     private final Deque<Long>    placeDeltas = new ArrayDeque<>(WINDOW);
     private final Deque<Long>     useDeltas  = new ArrayDeque<>(WINDOW);
     private final Deque<Boolean> placeFloor  = new ArrayDeque<>(FLOOR_WINDOW);
@@ -84,21 +68,9 @@ public class FastPlace extends Check implements PacketCheck {
     private final Deque<Double>  placeCovSeries = new ArrayDeque<>(WINDOW);
     private final Deque<Double>   useCovSeries  = new ArrayDeque<>(WINDOW);
 
-    // rotation deltas per window
-    private final Deque<Double>  placeYawDeltas   = new ArrayDeque<>(WINDOW);
-    private final Deque<Double>   useYawDeltas    = new ArrayDeque<>(WINDOW);
-    private final Deque<Double>  placePitchDeltas = new ArrayDeque<>(WINDOW);
-    private final Deque<Double>   usePitchDeltas  = new ArrayDeque<>(WINDOW);
-
     // fast-packet history for exhaustion resets
     private final Deque<Boolean> placeFastWindow = new ArrayDeque<>(FAST_WINDOW_SIZE);
     private final Deque<Boolean>   useFastWindow = new ArrayDeque<>(FAST_WINDOW_SIZE);
-
-    private float lastPlaceYaw = Float.NaN, lastPlacePitch = Float.NaN;
-    private float lastUseYaw   = Float.NaN, lastUsePitch   = Float.NaN;
-
-    private int  placeRotBuf = 0, useRotBuf = 0;
-    private boolean prevRotStagnantPlace = false, prevRotStagnantUse = false;
 
     private long placeFastStart = -1L, useFastStart = -1L;
     private long placeFastCount = 0L,  useFastCount = 0L;
@@ -114,47 +86,12 @@ public class FastPlace extends Check implements PacketCheck {
         long now = System.nanoTime();
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
-            /* ---- impossible-interact logic ---- */
-            impossibleInteractCheck(event);
-
             handle(now, placeDeltas, placeFloor, placeCovSeries,
                    placeFastWindow, true, event);
         } else if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             handle(now, useDeltas,  useFloor,  useCovSeries,
                    useFastWindow,  false, event);
         }
-    }
-
-    /* ---------------- impossible-interact helper ---------------- */
-    private void impossibleInteractCheck(PacketReceiveEvent event) {
-        long nowMs = System.currentTimeMillis();
-
-        WrapperPlayClientPlayerBlockPlacement wrapper =
-                new WrapperPlayClientPlayerBlockPlacement(event);
-
-        /* "bridging" approximation – insideBlock flag is true when the hand is inside */
-        boolean bridging = wrapper.getInsideBlock().orElse(false);
-
-        BlockFace face = wrapper.getFace();
-        boolean selfFace = face == BlockFace.OTHER;          // 255 protocol value
-
-        long delay = lastImpPlaceMs == -1L ? Long.MAX_VALUE : nowMs - lastImpPlaceMs;
-        boolean invalid = bridging && selfFace && delay < IMP_DELAY_THRESHOLD;
-
-        if (invalid) {
-            if (++impBuf > IMP_BUF_MAX) {
-                if (flagAndAlert("IMPOSSIBLE INTERACT delay=" + delay + "ms face=self")
-                        && shouldModifyPackets()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
-                impBuf = 0;
-            }
-        } else {
-            impBuf = Math.max(0, impBuf - 1);
-        }
-
-        lastImpPlaceMs = nowMs;
     }
 
     /* ---------------- core ---------------- */
@@ -181,11 +118,6 @@ public class FastPlace extends Check implements PacketCheck {
             if (deltaNs > MAX_GAP_NS) {          // window reset
                 deltas.clear(); covSeries.clear(); floorTrack.clear();
                 fastWindow.clear();
-                if (isPlacement) {
-                    placeYawDeltas.clear(); placePitchDeltas.clear();
-                } else {
-                    useYawDeltas.clear();  usePitchDeltas.clear();
-                }
                 fastStart = -1L; fastCount = 0L;
                 updateState(isPlacement, now, fastStart, fastCount);
                 return;
@@ -193,24 +125,6 @@ public class FastPlace extends Check implements PacketCheck {
 
             if (deltas.size() == WINDOW) deltas.removeFirst();
             deltas.add(deltaNs);
-
-            /* rotation delta intake */
-            float curYaw = player.getLocation().getYaw();
-            float curPitch = player.getLocation().getPitch();
-            float prevYaw = isPlacement ? lastPlaceYaw : lastUseYaw;
-            float prevPitch = isPlacement ? lastPlacePitch : lastUsePitch;
-            if (!Float.isNaN(prevYaw)) {
-                double dy = rotDiff(curYaw, prevYaw);
-                double dp = Math.abs(curPitch - prevPitch);
-                Deque<Double> yDeque = isPlacement ? placeYawDeltas : useYawDeltas;
-                Deque<Double> pDeque = isPlacement ? placePitchDeltas : usePitchDeltas;
-                if (yDeque.size() == WINDOW) yDeque.removeFirst();
-                yDeque.add(dy);
-                if (pDeque.size() == WINDOW) pDeque.removeFirst();
-                pDeque.add(dp);
-            }
-            if (isPlacement) { lastPlaceYaw = curYaw; lastPlacePitch = curPitch; }
-            else { lastUseYaw = curYaw; lastUsePitch = curPitch; }
 
             /* fast-streak tracking (≤12 CPS threshold) */
             boolean isFast = deltaNs <= THRESHOLD_NS_12CPS;
@@ -288,38 +202,6 @@ public class FastPlace extends Check implements PacketCheck {
             }
             if (isPlacement) placeSigmaStable = sigmaStable; else useSigmaStable = sigmaStable;
 
-            /* ---- rotation stagnation ---- */
-            Deque<Double> yDeque = isPlacement ? placeYawDeltas : useYawDeltas;
-            Deque<Double> pDeque = isPlacement ? placePitchDeltas : usePitchDeltas;
-            boolean rotReady = yDeque.size() == WINDOW && pDeque.size() == WINDOW;
-            double muYaw = rotReady ? average(yDeque) : Double.MAX_VALUE;
-            double muPitch = rotReady ? average(pDeque) : Double.MAX_VALUE;
-            double cps = WINDOW * 1_000_000_000.0D / avgNs;
-            double cpsExcess = Math.max(0D, Math.min(ROT_CPS_CAP, cps - ROT_CPS_THRESHOLD));
-            double rotLimit = ROT_BASE_LIMIT - ROT_SLOPE * cpsExcess;
-            boolean rotStagnant = rotReady && muYaw < rotLimit && muPitch < ROT_PITCH_LIMIT;
-
-            int rbuf = isPlacement ? placeRotBuf : useRotBuf;
-
-            if (rotStagnant) {
-                rbuf = Math.min(BUFFER_MAX, rbuf + 1); // increment every stagnant window
-                if (rbuf >= BUFFER_MAX) {
-                    String tag = isPlacement ? "PLACEMENT" : "USE";
-                    if (flagAndAlert(String.format("ROT-STATIC %s %d CPS μYaw=%.3f° μPitch=%.3f° lim=%.3f",
-                            tag, (int) Math.round(cps), muYaw, muPitch, rotLimit))
-                            && shouldModifyPackets()) {
-                        event.setCancelled(true);
-                        player.onPacketCancel();
-                    }
-                    rbuf = 0;
-                }
-            } else {
-                rbuf = Math.max(0, rbuf - 1);
-            }
-
-            if (isPlacement) placeRotBuf = rbuf; else useRotBuf = rbuf;
-
-            /* ---- exhaustion (dynamic by CPS) ---- */
             boolean exhaustionAutoFlag = false;
             double streakAvgNs = Double.MAX_VALUE;
             if (fastStart != -1L && fastCount > 0) {
@@ -335,11 +217,10 @@ public class FastPlace extends Check implements PacketCheck {
             }
 
             if (debug) player.sendMessage((isPlacement ? "[P] " : "[U] ") +
-                    String.format("AVG=%.2f ms σ=%.2f ms cov=%.3f σ(cov)=%s<%s μYaw=%.3f μPitch=%.3f rotLim=%.3f streak-μ=%.2f ms",
+                    String.format("AVG=%.2f ms σ=%.2f ms cov=%.3f σ(cov)=%s<%s streak-μ=%.2f ms",
                                   avgNs / 1_000_000D, stdNs / 1_000_000D, cov,
                                   covReady ? String.format("%.3f", covSigma) : "--",
                                   covReady ? String.format("%.3f", covLimit) : "--",
-                                  muYaw, muPitch, rotLimit,
                                   fastCount > 0 ? streakAvgNs / 1_000_000D : 0.0));
 
             /* ---- main decision ---- */
@@ -459,11 +340,5 @@ public class FastPlace extends Check implements PacketCheck {
         }
 
         return 0.005D;
-    }
-
-    /* rotation absolute difference (yaw wrap) */
-    private static double rotDiff(float a, float b) {
-        double d = Math.abs(a - b);
-        return d > 180.0D ? 360.0D - d : d;
     }
 }
