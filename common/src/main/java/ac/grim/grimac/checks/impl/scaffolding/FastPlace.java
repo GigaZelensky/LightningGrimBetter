@@ -57,12 +57,31 @@ public class FastPlace extends Check implements PacketCheck {
     private static final int SIGMA_STABLE_TARGET = 150;
     private static final double SIGMA_STABLE_BAND = 0.03D;      // ±3 %
 
+    // Rotation stagnation thresholds
+    private static final double ROT_BASE_LIMIT = 0.15D;   // 0.15° @ ≤8 CPS
+    private static final double ROT_SLOPE = 0.005D;        // −0.005° per CPS>8
+    private static final double ROT_PITCH_LIMIT = 0.06D;   // 0.06° pitch gate
+    private static final int ROT_CPS_THRESHOLD = 8;
+    private static final int ROT_CPS_CAP = 20;
+
     private final Deque<Long>    placeDeltas = new ArrayDeque<>(WINDOW);
     private final Deque<Long>     useDeltas  = new ArrayDeque<>(WINDOW);
     private final Deque<Boolean> placeFloor  = new ArrayDeque<>(FLOOR_WINDOW);
     private final Deque<Boolean>  useFloor   = new ArrayDeque<>(FLOOR_WINDOW);
     private final Deque<Double>  placeCovSeries = new ArrayDeque<>(WINDOW);
     private final Deque<Double>   useCovSeries  = new ArrayDeque<>(WINDOW);
+
+    // rotation deltas per window
+    private final Deque<Double>  placeYawDeltas   = new ArrayDeque<>(WINDOW);
+    private final Deque<Double>   useYawDeltas    = new ArrayDeque<>(WINDOW);
+    private final Deque<Double>  placePitchDeltas = new ArrayDeque<>(WINDOW);
+    private final Deque<Double>   usePitchDeltas  = new ArrayDeque<>(WINDOW);
+
+    private float lastPlaceYaw = Float.NaN, lastPlacePitch = Float.NaN;
+    private float lastUseYaw   = Float.NaN, lastUsePitch   = Float.NaN;
+
+    private int  placeRotBuf = 0, useRotBuf = 0;
+    private boolean prevRotStagnantPlace = false, prevRotStagnantUse = false;
 
     private long placeFastStart = -1L, useFastStart = -1L;
     private long placeFastCount = 0L,  useFastCount = 0L;
@@ -106,6 +125,11 @@ public class FastPlace extends Check implements PacketCheck {
 
             if (deltaNs > MAX_GAP_NS) {          // window reset
                 deltas.clear(); covSeries.clear(); floorTrack.clear();
+                if (isPlacement) {
+                    placeYawDeltas.clear(); placePitchDeltas.clear();
+                } else {
+                    useYawDeltas.clear();  usePitchDeltas.clear();
+                }
                 fastStart = -1L; fastCount = 0L;
                 updateState(isPlacement, now, fastStart, fastCount);
                 return;
@@ -113,6 +137,24 @@ public class FastPlace extends Check implements PacketCheck {
 
             if (deltas.size() == WINDOW) deltas.removeFirst();
             deltas.add(deltaNs);
+
+            /* rotation delta intake */
+            float curYaw = player.getLocation().getYaw();
+            float curPitch = player.getLocation().getPitch();
+            float prevYaw = isPlacement ? lastPlaceYaw : lastUseYaw;
+            float prevPitch = isPlacement ? lastPlacePitch : lastUsePitch;
+            if (!Float.isNaN(prevYaw)) {
+                double dy = rotDiff(curYaw, prevYaw);
+                double dp = Math.abs(curPitch - prevPitch);
+                Deque<Double> yDeque = isPlacement ? placeYawDeltas : useYawDeltas;
+                Deque<Double> pDeque = isPlacement ? placePitchDeltas : usePitchDeltas;
+                if (yDeque.size() == WINDOW) yDeque.removeFirst();
+                yDeque.add(dy);
+                if (pDeque.size() == WINDOW) pDeque.removeFirst();
+                pDeque.add(dp);
+            }
+            if (isPlacement) { lastPlaceYaw = curYaw; lastPlacePitch = curPitch; }
+            else { lastUseYaw = curYaw; lastUsePitch = curPitch; }
 
             /* fast-streak tracking (≤95 ms) */
             if (deltaNs <= FAST_STREAK_NS) {
@@ -178,6 +220,41 @@ public class FastPlace extends Check implements PacketCheck {
             }
             if (isPlacement) placeSigmaStable = sigmaStable; else useSigmaStable = sigmaStable;
 
+            /* ---- rotation stagnation ---- */
+            Deque<Double> yDeque = isPlacement ? placeYawDeltas : useYawDeltas;
+            Deque<Double> pDeque = isPlacement ? placePitchDeltas : usePitchDeltas;
+            boolean rotReady = yDeque.size() == WINDOW && pDeque.size() == WINDOW;
+            double muYaw = rotReady ? average(yDeque) : Double.MAX_VALUE;
+            double muPitch = rotReady ? average(pDeque) : Double.MAX_VALUE;
+            double cps = WINDOW * 1_000_000_000.0D / avgNs;
+            double cpsExcess = Math.max(0D, Math.min(ROT_CPS_CAP, cps - ROT_CPS_THRESHOLD));
+            double rotLimit = ROT_BASE_LIMIT - ROT_SLOPE * cpsExcess;
+            boolean rotStagnant = rotReady && muYaw < rotLimit && muPitch < ROT_PITCH_LIMIT;
+
+            boolean prevRot = isPlacement ? prevRotStagnantPlace : prevRotStagnantUse;
+            int rbuf = isPlacement ? placeRotBuf : useRotBuf;
+
+            if (rotStagnant) {
+                if (!prevRot) {
+                    rbuf = Math.min(BUFFER_MAX, rbuf + 1);
+                    if (rbuf >= BUFFER_MAX) {
+                        String tag = isPlacement ? "PLACEMENT" : "USE";
+                        if (flagAndAlert(String.format("ROT-STATIC %s %d CPS μYaw=%.3f° μPitch=%.3f° lim=%.3f",
+                                tag, (int) Math.round(cps), muYaw, muPitch, rotLimit))
+                                && shouldModifyPackets()) {
+                            event.setCancelled(true);
+                            player.onPacketCancel();
+                        }
+                        rbuf = 0;
+                    }
+                }
+            } else {
+                rbuf = Math.max(0, rbuf - 1);
+            }
+
+            if (isPlacement) { placeRotBuf = rbuf; prevRotStagnantPlace = rotStagnant; }
+            else { useRotBuf = rbuf; prevRotStagnantUse = rotStagnant; }
+
             /* ---- exhaustion (streak average) ---- */
             boolean exhaustionAutoFlag = false;
             double streakAvgNs = Double.MAX_VALUE;
@@ -194,10 +271,11 @@ public class FastPlace extends Check implements PacketCheck {
             }
 
             if (debug) player.sendMessage((isPlacement ? "[P] " : "[U] ") +
-                    String.format("AVG=%.2f ms σ=%.2f ms cov=%.3f σ(cov)=%s<%s streak-μ=%.2f ms",
+                    String.format("AVG=%.2f ms σ=%.2f ms cov=%.3f σ(cov)=%s<%s μYaw=%.3f μPitch=%.3f rotLim=%.3f streak-μ=%.2f ms",
                                   avgNs / 1_000_000D, stdNs / 1_000_000D, cov,
                                   covReady ? String.format("%.3f", covSigma) : "--",
                                   covReady ? String.format("%.3f", covLimit) : "--",
+                                  muYaw, muPitch, rotLimit,
                                   fastCount > 0 ? streakAvgNs / 1_000_000D : 0.0));
 
             /* ---- main decision ---- */
@@ -306,5 +384,11 @@ public class FastPlace extends Check implements PacketCheck {
         }
 
         return 0.005D;
+    }
+
+    /* rotation absolute difference (yaw wrap) */
+    private static double rotDiff(float a, float b) {
+        double d = Math.abs(a - b);
+        return d > 180.0D ? 360.0D - d : d;
     }
 }
