@@ -287,18 +287,21 @@ public class FastPlace extends Check implements PacketCheck {
     /* σ(Cov) quadratic limit */
     private static double covVarLimit(double avgNs) {
 
-        final long T0_NS = MIN_COV_NS;        //   1 ms
+        final long T0_NS = 35_000_000L;       //  35 ms
         final long T1_NS = 65_000_000L;       //  65 ms
         final long T2_NS = 150_000_000L;      // 150 ms
 
+        /* flat cap below 35 ms – floor-check handles those */
+        if (avgNs <= T0_NS) return 0.08D;     // 0 – 35 ms → 0.08
+
         if (avgNs <= T1_NS) {
             double t = (avgNs - T0_NS) / (double) (T1_NS - T0_NS);
-            return 0.50D - 0.45D * t * t;     // 0.50 → 0.050
+            return 0.08D - 0.04D * t * t;     // 35 ms → 0.08 ▼ 65 ms → 0.04
         }
 
         if (avgNs <= T2_NS) {
             double t = (avgNs - T1_NS) / (double) (T2_NS - T1_NS);
-            return 0.050D - 0.045D * t * t;   // 0.050 → 0.005
+            return 0.04D - 0.035D * t * t;    // 65 ms → 0.04 ▼ 150 ms → 0.005
         }
 
         return 0.005D;
