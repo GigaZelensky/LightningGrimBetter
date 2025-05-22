@@ -25,8 +25,11 @@ import java.util.Deque;
  *     0.50 @ 1 ms → 0.050 @ 65 ms → 0.005 @ 150 ms (quadratic).
  * • Floor protection: window-average <35 ms (but ≥1 ms) for 4 of 6
  *   consecutive windows → instant flag.
- * • Exhaustion: linear 5 s (≤55 ms) to 7 s (75 ms), disabled >95 ms,
- *   based on streak average while ≤95 ms.
+ * • **Exhaustion: dynamic – ≥12 CPS flags after ≤10 s,
+ *   16 CPS ≈6.5 s, 20 CPS ≈3 s. The timer resets only if at least
+ *   4 of the last 6 packets are slower than 12 CPS.**
+ * • **Rotation-stagnation: buffer increments every stagnant window,
+ *   so holding exact 0° now trips the check.**
  * • σ-stability on raw deltas (±3 %) flags after 150 packets.
  * • Six-tick buffer before any cancellation.
  * • Debug stream gated by "grim.debug.fastplace".
@@ -46,12 +49,14 @@ public class FastPlace extends Check implements PacketCheck {
     private static final int  FLOOR_WINDOW   = 6;
     private static final int  FLOOR_HITS_MAX = 4;
 
-    private static final long FAST_STREAK_NS = 95_000_000L;     // ≤95 ms
-    private static final long CPS19_NS       = 53_000_000L;     // ≈19 CPS
-
-    private static final long   EXH_START_NS = 1_000_000_000L;  // 1 s
-    private static final long   EXH_FULL_NS  = 12_000_000_000L; // 12 s
-    private static final double MAX_DEVIATION_LIM = 0.80D;
+    /* dynamic exhaustion */
+    private static final long   THRESHOLD_NS_12CPS = 83_000_000L;  // ≈12 CPS
+    private static final double EXH_CPS_MIN        = 12.0D;
+    private static final double EXH_TIME_INTERCEPT = 20.5D;        // seconds
+    private static final double EXH_TIME_SLOPE     = -0.875D;      // sec·CPS⁻¹
+    private static final double EXH_TIME_MIN       = 3.0D;         // seconds
+    private static final int    FAST_WINDOW_SIZE   = 6;
+    private static final int    FAST_WINDOW_SLOW_RESET = 4;
 
     private static final int BUFFER_MAX = 6;
     private static final int SIGMA_STABLE_TARGET = 150;
@@ -77,6 +82,10 @@ public class FastPlace extends Check implements PacketCheck {
     private final Deque<Double>  placePitchDeltas = new ArrayDeque<>(WINDOW);
     private final Deque<Double>   usePitchDeltas  = new ArrayDeque<>(WINDOW);
 
+    // fast-packet history for exhaustion resets
+    private final Deque<Boolean> placeFastWindow = new ArrayDeque<>(FAST_WINDOW_SIZE);
+    private final Deque<Boolean>   useFastWindow = new ArrayDeque<>(FAST_WINDOW_SIZE);
+
     private float lastPlaceYaw = Float.NaN, lastPlacePitch = Float.NaN;
     private float lastUseYaw   = Float.NaN, lastUsePitch   = Float.NaN;
 
@@ -97,9 +106,11 @@ public class FastPlace extends Check implements PacketCheck {
         long now = System.nanoTime();
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
-            handle(now, placeDeltas, placeFloor, placeCovSeries, true, event);
+            handle(now, placeDeltas, placeFloor, placeCovSeries,
+                   placeFastWindow, true, event);
         } else if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
-            handle(now, useDeltas,  useFloor,  useCovSeries,  false, event);
+            handle(now, useDeltas,  useFloor,  useCovSeries,
+                   useFastWindow,  false, event);
         }
     }
 
@@ -108,6 +119,7 @@ public class FastPlace extends Check implements PacketCheck {
                         Deque<Long> deltas,
                         Deque<Boolean> floorTrack,
                         Deque<Double> covSeries,
+                        Deque<Boolean> fastWindow,
                         boolean isPlacement,
                         PacketReceiveEvent event) {
 
@@ -125,6 +137,7 @@ public class FastPlace extends Check implements PacketCheck {
 
             if (deltaNs > MAX_GAP_NS) {          // window reset
                 deltas.clear(); covSeries.clear(); floorTrack.clear();
+                fastWindow.clear();
                 if (isPlacement) {
                     placeYawDeltas.clear(); placePitchDeltas.clear();
                 } else {
@@ -156,11 +169,23 @@ public class FastPlace extends Check implements PacketCheck {
             if (isPlacement) { lastPlaceYaw = curYaw; lastPlacePitch = curPitch; }
             else { lastUseYaw = curYaw; lastUsePitch = curPitch; }
 
-            /* fast-streak tracking (≤95 ms) */
-            if (deltaNs <= FAST_STREAK_NS) {
+            /* fast-streak tracking (≤12 CPS threshold) */
+            boolean isFast = deltaNs <= THRESHOLD_NS_12CPS;
+            if (fastWindow.size() == FAST_WINDOW_SIZE) fastWindow.removeFirst();
+            fastWindow.add(isFast);
+
+            if (isFast) {
                 if (fastStart == -1L) { fastStart = now; fastCount = 1; }
                 else fastCount++;
-            } else { fastStart = -1L; fastCount = 0L; }
+            }
+
+            /* reset if 4/6 slow packets */
+            if (fastWindow.size() == FAST_WINDOW_SIZE) {
+                int slow = FAST_WINDOW_SIZE - countTrue(fastWindow);
+                if (slow >= FAST_WINDOW_SLOW_RESET) {
+                    fastStart = -1L; fastCount = 0L; fastWindow.clear();
+                }
+            }
 
             if (debug) player.sendMessage((isPlacement ? "[P] " : "[U] ") +
                                           "Δ=" + deltaNs / 1_000_000D + " ms");
@@ -231,42 +256,38 @@ public class FastPlace extends Check implements PacketCheck {
             double rotLimit = ROT_BASE_LIMIT - ROT_SLOPE * cpsExcess;
             boolean rotStagnant = rotReady && muYaw < rotLimit && muPitch < ROT_PITCH_LIMIT;
 
-            boolean prevRot = isPlacement ? prevRotStagnantPlace : prevRotStagnantUse;
             int rbuf = isPlacement ? placeRotBuf : useRotBuf;
 
             if (rotStagnant) {
-                if (!prevRot) {
-                    rbuf = Math.min(BUFFER_MAX, rbuf + 1);
-                    if (rbuf >= BUFFER_MAX) {
-                        String tag = isPlacement ? "PLACEMENT" : "USE";
-                        if (flagAndAlert(String.format("ROT-STATIC %s %d CPS μYaw=%.3f° μPitch=%.3f° lim=%.3f",
-                                tag, (int) Math.round(cps), muYaw, muPitch, rotLimit))
-                                && shouldModifyPackets()) {
-                            event.setCancelled(true);
-                            player.onPacketCancel();
-                        }
-                        rbuf = 0;
+                rbuf = Math.min(BUFFER_MAX, rbuf + 1); // increment every stagnant window
+                if (rbuf >= BUFFER_MAX) {
+                    String tag = isPlacement ? "PLACEMENT" : "USE";
+                    if (flagAndAlert(String.format("ROT-STATIC %s %d CPS μYaw=%.3f° μPitch=%.3f° lim=%.3f",
+                            tag, (int) Math.round(cps), muYaw, muPitch, rotLimit))
+                            && shouldModifyPackets()) {
+                        event.setCancelled(true);
+                        player.onPacketCancel();
                     }
+                    rbuf = 0;
                 }
             } else {
                 rbuf = Math.max(0, rbuf - 1);
             }
 
-            if (isPlacement) { placeRotBuf = rbuf; prevRotStagnantPlace = rotStagnant; }
-            else { useRotBuf = rbuf; prevRotStagnantUse = rotStagnant; }
+            if (isPlacement) placeRotBuf = rbuf; else useRotBuf = rbuf;
 
-            /* ---- exhaustion (streak average) ---- */
+            /* ---- exhaustion (dynamic by CPS) ---- */
             boolean exhaustionAutoFlag = false;
             double streakAvgNs = Double.MAX_VALUE;
             if (fastStart != -1L && fastCount > 0) {
                 streakAvgNs = (now - fastStart) / (double) fastCount;
-                if (streakAvgNs <= CPS19_NS) {
-                    double xMs = streakAvgNs / 1_000_000.0;
-                    double tfFlag = xMs <= 55 ? 5 :
-                                    xMs <= 75 ? 0.10 * xMs - 0.5 :
-                                    xMs <= 95 ? 7.0 + (xMs - 75) * 0.5 :
-                                    Double.MAX_VALUE;
-                    exhaustionAutoFlag = (now - fastStart) / 1_000_000_000.0 >= tfFlag;
+                double streakCps = 1_000_000_000.0D / streakAvgNs;
+
+                if (streakCps >= EXH_CPS_MIN) {
+                    double tfFlag = Math.max(EXH_TIME_MIN,
+                                             EXH_TIME_INTERCEPT + EXH_TIME_SLOPE * streakCps);
+                    exhaustionAutoFlag =
+                            (now - fastStart) / 1_000_000_000.0D >= tfFlag;
                 }
             }
 
@@ -285,11 +306,13 @@ public class FastPlace extends Check implements PacketCheck {
                 /* exhaustion widens limit */
                 double effLimit = baseLimit;
                 if (fastStart != -1L) {
-                    long runNs = now - fastStart;
-                    if (runNs > EXH_START_NS) {
+                    double streakCps = 1_000_000_000.0D / streakAvgNs;
+                    if (streakCps >= EXH_CPS_MIN) {
+                        double tfFlag = Math.max(EXH_TIME_MIN,
+                                                 EXH_TIME_INTERCEPT + EXH_TIME_SLOPE * streakCps);
                         double t = Math.min(1D,
-                           (double) (runNs - EXH_START_NS) / (EXH_FULL_NS - EXH_START_NS));
-                        effLimit += (MAX_DEVIATION_LIM - effLimit) * t;
+                           (now - fastStart) / 1_000_000_000.0D / tfFlag);
+                        effLimit += (1.0D - effLimit) * t; // widen smoothly to 1.0
                     }
                 }
 
