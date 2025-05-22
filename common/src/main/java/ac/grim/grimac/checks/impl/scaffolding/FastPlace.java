@@ -54,8 +54,8 @@ public class FastPlace extends Check implements PacketCheck {
     private static final double EXH_TIME_INTERCEPT = 20.5D;        // seconds
     private static final double EXH_TIME_SLOPE     = -0.875D;      // sec·CPS⁻¹
     private static final double EXH_TIME_MIN       = 3.0D;         // seconds
-    private static final int    FAST_WINDOW_SIZE   = 6;
-    private static final int    FAST_WINDOW_SLOW_RESET = 4;
+    private static final int    FAST_WINDOW_SIZE   = 8;
+    private static final int    FAST_WINDOW_SLOW_RESET = 7;
 
     private static final int BUFFER_MAX = 6;
     private static final int SIGMA_STABLE_TARGET = 150;
@@ -136,7 +136,7 @@ public class FastPlace extends Check implements PacketCheck {
                 else fastCount++;
             }
 
-            /* reset if 4/6 slow packets */
+            /* reset if 7/8 slow packets */
             if (fastWindow.size() == FAST_WINDOW_SIZE) {
                 int slow = FAST_WINDOW_SIZE - countTrue(fastWindow);
                 if (slow >= FAST_WINDOW_SLOW_RESET) {
