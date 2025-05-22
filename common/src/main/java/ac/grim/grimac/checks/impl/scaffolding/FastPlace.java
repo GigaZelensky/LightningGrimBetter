@@ -7,6 +7,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.ItemTags;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
@@ -130,16 +133,32 @@ public class FastPlace extends Check implements PacketCheck {
             double stdNs = Math.max(MIN_STD_NS, standardDeviation(deltas, avgNs));
             double cov   = stdNs / avgNs;
 
+            /* ---- item-in-hand inspection (placeable-block gate) ---- */
+            ItemStack inHand = player.getInventory().getItemInHand();
+            boolean holdingBlock = false;
+            if (inHand != null && !inHand.isEmpty()) {
+                try {
+                    holdingBlock = inHand.getType().isBlock();            // PE ≥ 2.7
+                } catch (Throwable ignored) {
+                    holdingBlock = ItemTags.PLACEABLE.contains(inHand.getType()); // PE ≤ 2.6
+                }
+            }
+
             /* ---- floor by window-average (<35 ms, but ≥1 ms) ---- */
-            boolean floorHit = avgNs >= MIN_COV_NS && avgNs < FLOOR_NS;
-            if (floorTrack.size() == FLOOR_WINDOW) floorTrack.removeFirst();
-            floorTrack.add(floorHit);
-            if (countTrue(floorTrack) >= FLOOR_HITS_MAX &&
-                flagAndAlert((isPlacement ? "PLACEMENT" : "USE") +
-                             " window-μ <35 ms (4/6)") &&
-                shouldModifyPackets()) {
-                event.setCancelled(true);
-                player.onPacketCancel();
+            boolean floorHit = false;
+            if (holdingBlock) {
+                floorHit = avgNs >= MIN_COV_NS && avgNs < FLOOR_NS;
+                if (floorTrack.size() == FLOOR_WINDOW) floorTrack.removeFirst();
+                floorTrack.add(floorHit);
+                if (countTrue(floorTrack) >= FLOOR_HITS_MAX &&
+                    flagAndAlert((isPlacement ? "PLACEMENT" : "USE") +
+                                 " window-μ <35 ms (4/6)") &&
+                    shouldModifyPackets()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
+                }
+            } else {
+                floorTrack.clear();
             }
 
             /* ---- CoV-series for σ(Cov) ---- */
