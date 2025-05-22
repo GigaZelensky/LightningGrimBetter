@@ -8,8 +8,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.world.states.defaulttags.ItemTags;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
@@ -22,7 +21,7 @@ import java.util.Deque;
  * ─────────
  * • Two independent 15-sample timing windows (PLACEMENT / USE).
  * • Δ-domain CoV limit: 0.50 @ 1 ms → 0.35 @ 60 ms → 0.15 @ 150 ms.
- * • σ(Cov) “cov-stability” starts after 15 samples:
+ * • σ(Cov) "cov-stability" starts after 15 samples:
  *     0.50 @ 1 ms → 0.050 @ 65 ms → 0.005 @ 150 ms (quadratic).
  * • Floor protection: window-average <35 ms (but ≥1 ms) for 4 of 6
  *   consecutive windows → instant flag.
@@ -30,7 +29,7 @@ import java.util.Deque;
  *   based on streak average while ≤95 ms.
  * • σ-stability on raw deltas (±3 %) flags after 150 packets.
  * • Six-tick buffer before any cancellation.
- * • Debug stream gated by “grim.debug.fastplace”.
+ * • Debug stream gated by "grim.debug.fastplace".
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
@@ -133,20 +132,14 @@ public class FastPlace extends Check implements PacketCheck {
             double stdNs = Math.max(MIN_STD_NS, standardDeviation(deltas, avgNs));
             double cov   = stdNs / avgNs;
 
-            /* ---- item-in-hand inspection (placeable-block gate) ---- */
-            ItemStack inHand = player.getInventory().getItemInHand();
-            boolean holdingBlock = false;
-            if (inHand != null && !inHand.isEmpty()) {
-                try {
-                    holdingBlock = inHand.getType().isBlock();            // PE ≥ 2.7
-                } catch (Throwable ignored) {
-                    holdingBlock = ItemTags.PLACEABLE.contains(inHand.getType()); // PE ≤ 2.6
-                }
-            }
+            /* ---- item-in-hand inspection ---- */
+            ItemStack inHand =
+                    player.getInventory().getItemInHand(InteractionHand.MAIN_HAND);
+            boolean holdingItem = inHand != null && !inHand.isEmpty();
 
             /* ---- floor by window-average (<35 ms, but ≥1 ms) ---- */
             boolean floorHit = false;
-            if (holdingBlock) {
+            if (holdingItem) {
                 floorHit = avgNs >= MIN_COV_NS && avgNs < FLOOR_NS;
                 if (floorTrack.size() == FLOOR_WINDOW) floorTrack.removeFirst();
                 floorTrack.add(floorHit);
