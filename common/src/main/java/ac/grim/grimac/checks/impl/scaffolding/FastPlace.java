@@ -25,11 +25,11 @@ import java.util.Deque;
  *     0.50 @ 1 ms → 0.050 @ 65 ms → 0.005 @ 150 ms (quadratic).
  * • Floor protection: window-average <35 ms (but ≥1 ms) for 4 of 6
  *   consecutive windows → instant flag.
- * • **Exhaustion: dynamic – ≥12 CPS flags after ≤10 s,
- *   16 CPS ≈6.5 s, 20 CPS ≈3 s. The timer resets only if at least
- *   4 of the last 6 packets are slower than 12 CPS.**
- * • **Rotation-stagnation: buffer increments every stagnant window,
- *   so holding exact 0° now trips the check.**
+ * • Exhaustion: dynamic – ≥12 CPS flags after ≤10 s,
+ *   16 CPS ≈ 6.5 s, 20 CPS ≈ 3 s (resets if 4 / 6 packets are slow).
+ * • Rotation-stagnation: buffer increments every stagnant window.
+ * • **Dynamic buffer** – the stricter (lower) the CoV and σ(Cov),
+ *   the faster the buffer fills (up to +4 per window).
  * • σ-stability on raw deltas (±3 %) flags after 150 packets.
  * • Six-tick buffer before any cancellation.
  * • Debug stream gated by "grim.debug.fastplace".
@@ -320,10 +320,18 @@ public class FastPlace extends Check implements PacketCheck {
                 int buf = isPlacement ? placeBuf : useBuf;
 
                 if (breach) {
-                    buf = Math.min(BUFFER_MAX, buf + 1);
+                    /* ---- dynamic buffer aggressiveness ---- */
+                    int incr = 1;
+                    if (cov < effLimit * 0.75) incr++;      // far below limit
+                    if (cov < effLimit * 0.50) incr++;      // very far
+                    if (covStable) incr++;                 // σ(Cov) stable
+                    if (covReady && covSigma < covLimit * 0.5) incr++; // ultra-stable
+                    incr = Math.min(incr, BUFFER_MAX);
+
+                    buf = Math.min(BUFFER_MAX, buf + incr);
                     if (buf >= BUFFER_MAX) {
                         String tag = isPlacement ? "PLACEMENT" : "USE";
-                        String exhTag = exhaustionAutoFlag ? " EXH" : ""; // show only when true
+                        String exhTag = exhaustionAutoFlag ? " EXH" : "";
                         if (flagAndAlert(String.format(
                                 "%s μ=%.2f ms σ=%.2f ms cov=%.3f lim=%.3f σ(cov)=%s<%s%s",
                                 tag, avgNs / 1_000_000D, stdNs / 1_000_000D,
