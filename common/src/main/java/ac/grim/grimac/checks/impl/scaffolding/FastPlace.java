@@ -135,11 +135,12 @@ public class FastPlace extends Check implements PacketCheck {
             /* ---- item-in-hand inspection ---- */
             ItemStack inHand =
                     player.getInventory().getItemInHand(InteractionHand.MAIN_HAND);
-            boolean holdingItem = inHand != null && !inHand.isEmpty();
+            boolean placeable = inHand != null && !inHand.isEmpty() &&
+                                inHand.getType().getPlacedType() != null;
 
             /* ---- floor by window-average (<35 ms, but ≥1 ms) ---- */
             boolean floorHit = false;
-            if (holdingItem) {
+            if (placeable) {
                 floorHit = avgNs >= MIN_COV_NS && avgNs < FLOOR_NS;
                 if (floorTrack.size() == FLOOR_WINDOW) floorTrack.removeFirst();
                 floorTrack.add(floorHit);
