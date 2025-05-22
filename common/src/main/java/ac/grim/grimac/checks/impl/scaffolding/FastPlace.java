@@ -309,12 +309,12 @@ public class FastPlace extends Check implements PacketCheck {
         if (avgNs <= P1_NS) {
             double ratio = (P1_NS - Math.max(avgNs, MIN_COV_NS))
                          / (double)(P1_NS - MIN_COV_NS);
-            return 0.35D + ratio * 0.15D;
+            return 0.30D + ratio * 0.20D;
         }
         if (avgNs <= MAX_FLAG_AVG_NS) {
             double ratio = (avgNs - P1_NS)
                          / (double)(MAX_FLAG_AVG_NS - P1_NS);
-            return 0.35D - ratio * 0.20D;
+            return 0.30D - ratio * 0.20D;
         }
         return 0.15D;
     }
