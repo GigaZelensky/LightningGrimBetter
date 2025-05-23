@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.List;
 
 /**
  * FastPlace – production build
@@ -116,13 +115,15 @@ public class FastPlace extends Check implements PacketCheck {
             long deltaNs = now - lastTime;
             if (deltaNs <= 0L) return;
 
-            long dynamicGapNs = Math.max(MAX_GAP_NS,
-                    (long)(average(deltas.isEmpty() ? List.of(deltaNs) : deltas) * 6));
+            double meanNs = deltas.isEmpty() ? deltaNs : average(deltas);
+            long dynamicGapNs = Math.max(MAX_GAP_NS, (long) (meanNs * 6));
 
             if (deltaNs > dynamicGapNs) {
+                if (debug) player.sendMessage(String.format("%s gap %.2f ms (clamped)",
+                        isPlacement ? "[P]" : "[U]", deltaNs / 1_000_000D));
+                deltaNs = dynamicGapNs;
                 fastWindow.clear();
                 fastStart = -1L; fastCount = 0L;
-                deltaNs = dynamicGapNs;
             }
 
             if (deltas.size() == WINDOW) deltas.removeFirst();
