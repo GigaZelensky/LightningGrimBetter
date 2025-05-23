@@ -73,7 +73,7 @@ public class FastPlace extends Check implements PacketCheck {
     private final Deque<Long>    combinedDeltas     = new ArrayDeque<>(WINDOW);
     private final Deque<Boolean> combinedFloor      = new ArrayDeque<>(FLOOR_WINDOW);
     private final Deque<Double>  combinedCovSeries  = new ArrayDeque<>(WINDOW);
-    private final Deque<Double>  combinedAvgSeries  = new ArrayDeque<>(WINDOW);   // new series for μ variation
+    private final Deque<Double>  combinedAvgSeries  = new ArrayDeque<>(WINDOW);
     private final Deque<Boolean> combinedFastWindow = new ArrayDeque<>(FAST_WINDOW_SIZE);
 
     // fast-packet history for exhaustion resets
@@ -210,18 +210,20 @@ public class FastPlace extends Check implements PacketCheck {
         double covLimit  = covReady ? covVarLimit(avgNs) : Double.NaN;
         boolean covStable = covReady && covSigma < covLimit;
 
-        /* ---- CoV of μ-series ---- */
+        /* ---- μ-series CoV & stability ---- */
         if (combinedAvgSeries.size() > windowSize)
             while (combinedAvgSeries.size() > windowSize) combinedAvgSeries.removeFirst();
         if (combinedAvgSeries.size() == windowSize) combinedAvgSeries.removeFirst();
         combinedAvgSeries.add(avgNs);
 
-        boolean muReady = combinedAvgSeries.size() == windowSize;
-        double muMean   = muReady ? average(combinedAvgSeries) : Double.NaN;
-        double muSigma  = muReady ? standardDeviation(combinedAvgSeries, muMean) : Double.NaN;
-        double muCov    = muReady ? muSigma / muMean : Double.NaN;
-        double muLimit  = muReady ? covVarLimit(avgNs) : Double.NaN;
-        boolean muStable = muReady && muCov < muLimit;
+        boolean muReady  = combinedAvgSeries.size() == windowSize;
+        double  muMean   = muReady ? average(combinedAvgSeries) : Double.NaN;
+        double  muSigma  = muReady ? standardDeviation(combinedAvgSeries, muMean) : Double.NaN;
+        double  muCov    = muReady ? muSigma / muMean : Double.NaN;
+        double  muLimit  = muReady ? covBaseLimit(avgNs) : Double.NaN;
+        double  muVarLim = muReady ? covVarLimit(avgNs) : Double.NaN;
+        boolean muMagOK  = muReady && muCov < muLimit;
+        boolean muStable = muReady && muSigma < muVarLim;
 
         /* ---- σ-stability on raw deltas (±3 %) ---- */
         if (Math.abs(stdNs - (avgNs * SIGMA_STABLE_BAND)) <= avgNs * SIGMA_STABLE_BAND)
@@ -236,11 +238,13 @@ public class FastPlace extends Check implements PacketCheck {
 
         /* ---- detailed debug line ---- */
         if (debug) player.sendMessage((isPlacement ? "[P] " : "[U] ") +
-                String.format("AVG=%.2f ms σ=%.2f ms cov=%.3f σ(cov)=%.3f cov(μ)=%.3f<%.3f",
+                String.format("AVG=%.2f σ=%.2f cov=%.3f σ(cov)=%.3f μcov=%.3f<%.3f μσ=%.3f<%.3f",
                               avgNs / 1_000_000D, stdNs / 1_000_000D, cov,
                               covReady ? covSigma : Double.NaN,
-                              muReady  ? muCov   : Double.NaN,
-                              muReady  ? muLimit : Double.NaN));
+                              muReady  ? muCov    : Double.NaN,
+                              muReady  ? muLimit  : Double.NaN,
+                              muReady  ? muSigma  : Double.NaN,
+                              muReady  ? muVarLim : Double.NaN));
 
         /* ---- main decision ---- */
         if (avgNs <= MAX_FLAG_AVG_NS) {
@@ -266,25 +270,26 @@ public class FastPlace extends Check implements PacketCheck {
                 }
             }
 
-            boolean breach = (cov < effLimit) || covStable || muStable;
+            boolean breach = (cov < effLimit) || covStable ||
+                             (muMagOK && muCov < effLimit) || muStable;
             int buf = combinedBuf;
 
             if (breach) {
                 /* ---- dynamic buffer aggressiveness ---- */
                 int incr = 1;
-                if (cov < effLimit * 0.75) incr++;      // far below limit
-                if (cov < effLimit * 0.50) incr++;      // very far
-                if (covStable) incr++;                 // σ(Cov) stable
-                if (muStable) incr++;                  // cov(μ) stable
-                if (covReady && covSigma < covLimit * 0.5) incr++; // ultra-stable
+                if (cov < effLimit * 0.75 || (muMagOK && muCov < effLimit * 0.75)) incr++;
+                if (cov < effLimit * 0.50 || (muMagOK && muCov < effLimit * 0.50)) incr++;
+                if (covStable || muStable) incr++;
+                if (covReady && covSigma < covLimit * 0.5) incr++;
+                if (muReady && muSigma < muVarLim * 0.5) incr++;
                 incr = Math.min(incr, BUFFER_MAX);
 
                 buf = Math.min(BUFFER_MAX, buf + incr);
                 if (buf >= BUFFER_MAX) {
                     if (flagAndAlert(String.format(
-                            "μ=%.2f ms σ=%.2f ms cov=%.3f lim=%.3f σ(cov)=%.3f cov(μ)=%.3f<%.3f",
+                            "μ=%.2f σ=%.2f cov=%.3f lim=%.3f μcov=%.3f lim=%.3f",
                             avgNs / 1_000_000D, stdNs / 1_000_000D,
-                            cov, effLimit, covSigma, muCov, muLimit))
+                            cov, effLimit, muCov, effLimit))
                             && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
