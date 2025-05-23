@@ -310,14 +310,18 @@ public class FastPlace extends Check implements PacketCheck {
         return n == 0 ? 0D : GrimMath.sqrt((float) (var / n));
     }
 
-    /* weighted average (triangular) over last n elements */
+    /* weighted average: last 3 samples weight×2, older weight×1 */
     private static double variableAverage(Deque<Long> v, int n) {
         if (n == 0) return 0D;
         Long[] tmp = new Long[n];
         Iterator<Long> it = v.descendingIterator();
         for (int i = n - 1; i >= 0; i--) tmp[i] = it.hasNext() ? it.next() : 0L;
-        double sum = 0D; int w = 1, total = 0;
-        for (Long x : tmp) { sum += x.doubleValue() * w; total += w; w++; }
+        double sum = 0D; int total = 0;
+        for (int i = 0; i < n; i++) {
+            int w = (i >= n - 3) ? 2 : 1;
+            sum += tmp[i] * w;
+            total += w;
+        }
         return sum / total;
     }
 
