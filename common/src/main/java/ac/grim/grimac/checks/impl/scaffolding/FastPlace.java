@@ -69,9 +69,6 @@ public class FastPlace extends Check implements PacketCheck {
     private final Deque<Boolean> placeFloor  = new ArrayDeque<>(FLOOR_WINDOW);
     private final Deque<Boolean>  useFloor   = new ArrayDeque<>(FLOOR_WINDOW);
 
-    private final Deque<Double>  placeCovSeries = new ArrayDeque<>(WINDOW);
-    private final Deque<Double>   useCovSeries  = new ArrayDeque<>(WINDOW);
-
     /* combined streams (PLACE + USE) */
     private final Deque<Long>    combinedDeltas     = new ArrayDeque<>(WINDOW);
     private final Deque<Boolean> combinedFloor      = new ArrayDeque<>(FLOOR_WINDOW);
@@ -86,7 +83,6 @@ public class FastPlace extends Check implements PacketCheck {
     private long combinedFastCount = 0L;
 
     private long lastPacketTime = -1L;
-    private long lastPlaceTime  = -1L, lastUseTime = -1L;
 
     private int  combinedBuf = 0;
     private int  combinedSigmaStable = 0;
@@ -172,7 +168,6 @@ public class FastPlace extends Check implements PacketCheck {
         }
 
         lastPacketTime = now;
-        if (isPlacement) lastPlaceTime = now; else lastUseTime = now;
 
         /* ---------- window evaluation ---------- */
         int windowSize = Math.min(WINDOW, combinedDeltas.size());
@@ -194,7 +189,7 @@ public class FastPlace extends Check implements PacketCheck {
             if (combinedFloor.size() == FLOOR_WINDOW) combinedFloor.removeFirst();
             combinedFloor.add(floorHit);
             if (countTrue(combinedFloor) >= FLOOR_HITS_MAX &&
-                flagAndAlert("TOTAL window-μ <35 ms (4/6)") &&
+                flagAndAlert("window-μ <35 ms (4/6)") &&
                 shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
@@ -219,7 +214,7 @@ public class FastPlace extends Check implements PacketCheck {
             combinedSigmaStable++;
         else combinedSigmaStable = 0;
         if (combinedSigmaStable >= SIGMA_STABLE_TARGET &&
-            flagAndAlert("TOTAL σ stable ±3 % for 150 packets") &&
+            flagAndAlert("σ stable ±3 % for 150 packets") &&
             shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
@@ -274,7 +269,7 @@ public class FastPlace extends Check implements PacketCheck {
                 buf = Math.min(BUFFER_MAX, buf + incr);
                 if (buf >= BUFFER_MAX) {
                     if (flagAndAlert(String.format(
-                            "TOTAL μ=%.2f ms σ=%.2f ms cov=%.3f lim=%.3f σ(cov)=%s<%s",
+                            "μ=%.2f ms σ=%.2f ms cov=%.3f lim=%.3f σ(cov)=%s<%s",
                             avgNs / 1_000_000D, stdNs / 1_000_000D,
                             cov, effLimit,
                             covReady ? String.format("%.3f", covSigma) : "--",
@@ -305,17 +300,6 @@ public class FastPlace extends Check implements PacketCheck {
         double var = 0; int n = 0;
         for (Number x : v) { double d = x.doubleValue() - mean; var += d * d; n++; }
         return n == 0 ? 0D : GrimMath.sqrt((float) (var / n));
-    }
-
-    /* weighted average (triangular) over last n elements */
-    private static double variableAverage(Deque<Long> v, int n) {
-        if (n == 0) return 0D;
-        Long[] tmp = new Long[n];
-        Iterator<Long> it = v.descendingIterator();
-        for (int i = n - 1; i >= 0; i--) tmp[i] = it.hasNext() ? it.next() : 0L;
-        double sum = 0D; int total = 0;
-        for (Long x : tmp) { sum += x.doubleValue(); total++; }
-        return sum / total;
     }
 
     private static double standardDeviation(Deque<Long> v, int n, double mean) {
