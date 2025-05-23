@@ -22,17 +22,17 @@ import java.util.Iterator;
  * ─────────
  * • Variable timing-window: begins at 5 samples and grows to 15.
  * • Δ-domain CoV limit: 0.50 @ 1 ms → 0.35 @ 60 ms → 0.15 @ 150 ms.
- * • σ(Cov) “cov-stability” starts after the current window length:
+ * • σ(Cov) "cov-stability" starts after the current window length:
  *     0.50 @ 1 ms → 0.050 @ 65 ms → 0.005 @ 150 ms (quadratic).
  * • Floor protection: window-average <35 ms (but ≥1 ms) for 4 of 6
  *   consecutive windows → instant flag.
- * • Exhaustion: dynamic – ≥12 CPS flags after ≤10 s,
- *   16 CPS ≈ 6.5 s, 20 CPS ≈ 3 s (resets if 4 / 6 packets are slow).
+ * • Exhaustion: dynamic – ≥12 CPS begins widening limits after ≤10 s,
+ *   stretching them to max after +5 s (resets if 4 / 6 packets are slow).
  * • **Dynamic buffer** – the stricter (lower) the CoV and σ(Cov),
  *   the faster the buffer fills (up to +4 per window).
  * • σ-stability on raw deltas (±3 %) flags after 150 packets.
  * • Six-tick buffer before any cancellation.
- * • Debug stream gated by “grim.debug.fastplace”.
+ * • Debug stream gated by "grim.debug.fastplace".
  */
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
@@ -53,9 +53,9 @@ public class FastPlace extends Check implements PacketCheck {
     /* dynamic exhaustion */
     private static final long   THRESHOLD_NS_12CPS = 83_000_000L;  // ≈12 CPS
     private static final double EXH_CPS_MIN        = 12.0D;
-    private static final double EXH_TIME_INTERCEPT = 20.5D;        // seconds
+    private static final double EXH_TIME_INTERCEPT = 23.5D;        // seconds
     private static final double EXH_TIME_SLOPE     = -0.875D;      // sec·CPS⁻¹
-    private static final double EXH_TIME_MIN       = 3.0D;         // seconds
+    private static final double EXH_TIME_MIN       = 6.0D;         // seconds
     private static final int    FAST_WINDOW_SIZE   = 8;
     private static final int    FAST_WINDOW_SLOW_RESET = 7;
 
@@ -228,45 +228,31 @@ public class FastPlace extends Check implements PacketCheck {
             player.onPacketCancel();
         }
 
-        boolean exhaustionAutoFlag = false;
-        double streakAvgNs = Double.MAX_VALUE;
-        if (combinedFastStart != -1L && combinedFastCount > 0) {
-            streakAvgNs = (now - combinedFastStart) / (double) combinedFastCount;
-            double streakCps = 1_000_000_000.0D / streakAvgNs;
-
-            if (streakCps >= EXH_CPS_MIN) {
-                double tfFlag = Math.max(EXH_TIME_MIN,
-                                         EXH_TIME_INTERCEPT + EXH_TIME_SLOPE * streakCps);
-                exhaustionAutoFlag =
-                        (now - combinedFastStart) / 1_000_000_000.0D >= tfFlag;
-            }
-        }
-
-        if (debug) player.sendMessage((isPlacement ? "[P] " : "[U] ") +
-                String.format("AVG=%.2f ms σ=%.2f ms cov=%.3f σ(cov)=%s<%s streak-μ=%.2f ms",
-                              avgNs / 1_000_000D, stdNs / 1_000_000D, cov,
-                              covReady ? String.format("%.3f", covSigma) : "--",
-                              covReady ? String.format("%.3f", covLimit) : "--",
-                              combinedFastCount > 0 ? streakAvgNs / 1_000_000D : 0.0));
-
         /* ---- main decision ---- */
-        if (avgNs <= MAX_FLAG_AVG_NS || exhaustionAutoFlag) {
-            double baseLimit = covBaseLimit(avgNs);
+        if (avgNs <= MAX_FLAG_AVG_NS) {
 
-            /* exhaustion widens limit */
-            double effLimit = baseLimit;
-            if (combinedFastStart != -1L) {
-                double streakCps = 1_000_000_000.0D / streakAvgNs;
+            double baseLimit = covBaseLimit(avgNs);
+            double effLimit  = baseLimit;
+
+            /* ramp CoV/σ(Cov) limits after prolonged fast-spam */
+            if (combinedFastStart != -1L && combinedFastCount > 0) {
+
+                double streakAvgNs = (now - combinedFastStart) / (double) combinedFastCount;
+                double streakCps   = 1_000_000_000.0D / streakAvgNs;
+
                 if (streakCps >= EXH_CPS_MIN) {
-                    double tfFlag = Math.max(EXH_TIME_MIN,
-                                             EXH_TIME_INTERCEPT + EXH_TIME_SLOPE * streakCps);
-                    double t = Math.min(1D,
-                       (now - combinedFastStart) / 1_000_000_000.0D / tfFlag);
-                    effLimit += (1.0D - effLimit) * t; // widen smoothly to 1.0
+                    double tfFlag  = Math.max(EXH_TIME_MIN,
+                                              EXH_TIME_INTERCEPT + EXH_TIME_SLOPE * streakCps);
+                    double elapsed = (now - combinedFastStart) / 1_000_000_000.0D;
+
+                    if (elapsed >= tfFlag) {
+                        double ramp = Math.min(1.0D, (elapsed - tfFlag) / 5.0D); // 0 → 1 over 5 s
+                        effLimit += (1.0D - effLimit) * ramp;                   // stretch to 1.0
+                    }
                 }
             }
 
-            boolean breach = (cov < effLimit) || covStable || exhaustionAutoFlag;
+            boolean breach = (cov < effLimit) || covStable;
             int buf = combinedBuf;
 
             if (breach) {
@@ -280,14 +266,12 @@ public class FastPlace extends Check implements PacketCheck {
 
                 buf = Math.min(BUFFER_MAX, buf + incr);
                 if (buf >= BUFFER_MAX) {
-                    String exhTag = exhaustionAutoFlag ? " EXH" : "";
                     if (flagAndAlert(String.format(
-                            "TOTAL μ=%.2f ms σ=%.2f ms cov=%.3f lim=%.3f σ(cov)=%s<%s%s",
+                            "TOTAL μ=%.2f ms σ=%.2f ms cov=%.3f lim=%.3f σ(cov)=%s<%s",
                             avgNs / 1_000_000D, stdNs / 1_000_000D,
                             cov, effLimit,
                             covReady ? String.format("%.3f", covSigma) : "--",
-                            covReady ? String.format("%.3f", covLimit) : "--",
-                            exhTag))
+                            covReady ? String.format("%.3f", covLimit) : "--"))
                             && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
