@@ -20,7 +20,7 @@ import java.util.Iterator;
  *
  * Behaviour
  * ─────────
- * • Variable timing-window: begins at 5 samples and grows to 15.
+ * • Variable timing-window: begins at 5 samples and grows to 12.
  * • Δ-domain CoV limit: 0.50 @ 1 ms → 0.35 @ 60 ms → 0.15 @ 150 ms.
  * • σ(Cov) "cov-stability" starts after the current window length:
  *     0.50 @ 1 ms → 0.050 @ 65 ms → 0.005 @ 150 ms (quadratic).
@@ -37,7 +37,7 @@ import java.util.Iterator;
 @CheckData(name = "FastPlace", experimental = true)
 public class FastPlace extends Check implements PacketCheck {
 
-    private static final int  WINDOW          = 15;             // max window
+    private static final int  WINDOW          = 12;             // max window
     private static final int  WINDOW_MIN      = 5;              // starting window
     private static final long MAX_GAP_NS      = 300_000_000L;   // 300 ms
     private static final long MAX_FLAG_AVG_NS = 150_000_000L;   // 150 ms
@@ -123,7 +123,7 @@ public class FastPlace extends Check implements PacketCheck {
 
             double meanNs = combinedDeltas.isEmpty()
                     ? deltaNs
-                    : variableAverage(combinedDeltas, Math.min(WINDOW, combinedDeltas.size()));
+                    : average(combinedDeltas);
 
             long dynamicGapNs = Math.max(MAX_GAP_NS, (long) (meanNs * 6));
 
@@ -178,7 +178,7 @@ public class FastPlace extends Check implements PacketCheck {
         int windowSize = Math.min(WINDOW, combinedDeltas.size());
         if (windowSize < WINDOW_MIN) return;
 
-        double avgNs = variableAverage(combinedDeltas, windowSize);
+        double avgNs = average(combinedDeltas);
         double stdNs = Math.max(MIN_STD_NS, standardDeviation(combinedDeltas, windowSize, avgNs));
         double cov   = stdNs / avgNs;
 
@@ -310,18 +310,14 @@ public class FastPlace extends Check implements PacketCheck {
         return n == 0 ? 0D : GrimMath.sqrt((float) (var / n));
     }
 
-    /* weighted average: last 3 samples weight×2, older weight×1 */
+    /* weighted average (triangular) over last n elements */
     private static double variableAverage(Deque<Long> v, int n) {
         if (n == 0) return 0D;
         Long[] tmp = new Long[n];
         Iterator<Long> it = v.descendingIterator();
         for (int i = n - 1; i >= 0; i--) tmp[i] = it.hasNext() ? it.next() : 0L;
         double sum = 0D; int total = 0;
-        for (int i = 0; i < n; i++) {
-            int w = (i >= n - 3) ? 2 : 1;
-            sum += tmp[i] * w;
-            total += w;
-        }
+        for (Long x : tmp) { sum += x.doubleValue(); total++; }
         return sum / total;
     }
 
