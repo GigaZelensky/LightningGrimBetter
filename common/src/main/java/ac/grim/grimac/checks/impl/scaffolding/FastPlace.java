@@ -182,14 +182,11 @@ public class FastPlace extends Check implements PacketCheck {
         double stdNs = Math.max(MIN_STD_NS, standardDeviation(combinedDeltas, windowSize, avgNs));
         double cov   = stdNs / avgNs;
 
-        /* ---- item-in-hand inspection (only on placement) ---- */
-        boolean placeable = false;
-        if (isPlacement) {
-            ItemStack inHand =
-                    player.getInventory().getItemInHand(InteractionHand.MAIN_HAND);
-            placeable = inHand != null && !inHand.isEmpty() &&
-                        inHand.getType().getPlacedType() != null;
-        }
+        /* ---- item-in-hand inspection (both packet types) ---- */
+        ItemStack inHand =
+                player.getInventory().getItemInHand(InteractionHand.MAIN_HAND);
+        boolean placeable = inHand != null && !inHand.isEmpty() &&
+                            inHand.getType().getPlacedType() != null;
 
         /* ---- floor by window-average (<35 ms, but ≥1 ms) ---- */
         if (placeable) {
