@@ -228,6 +228,16 @@ public class FastPlace extends Check implements PacketCheck {
             player.onPacketCancel();
         }
 
+        /* ---- detailed debug line ---- */
+        if (debug) player.sendMessage((isPlacement ? "[P] " : "[U] ") +
+                String.format("AVG=%.2f ms σ=%.2f ms cov=%.3f σ(cov)=%s<%s streak-μ=%.2f ms",
+                              avgNs / 1_000_000D, stdNs / 1_000_000D, cov,
+                              covReady ? String.format("%.3f", covSigma) : "--",
+                              covReady ? String.format("%.3f", covLimit) : "--",
+                              combinedFastCount > 0
+                                  ? ((now - combinedFastStart) / (double) combinedFastCount) / 1_000_000D
+                                  : 0.0));
+
         /* ---- main decision ---- */
         if (avgNs <= MAX_FLAG_AVG_NS) {
 
