@@ -73,6 +73,7 @@ public class FastPlace extends Check implements PacketCheck {
     private final Deque<Long>    combinedDeltas     = new ArrayDeque<>(WINDOW);
     private final Deque<Boolean> combinedFloor      = new ArrayDeque<>(FLOOR_WINDOW);
     private final Deque<Double>  combinedCovSeries  = new ArrayDeque<>(WINDOW);
+    private final Deque<Double>  combinedAvgSeries  = new ArrayDeque<>(WINDOW);   // new series for μ variation
     private final Deque<Boolean> combinedFastWindow = new ArrayDeque<>(FAST_WINDOW_SIZE);
 
     // fast-packet history for exhaustion resets
@@ -209,6 +210,19 @@ public class FastPlace extends Check implements PacketCheck {
         double covLimit  = covReady ? covVarLimit(avgNs) : Double.NaN;
         boolean covStable = covReady && covSigma < covLimit;
 
+        /* ---- CoV of μ-series ---- */
+        if (combinedAvgSeries.size() > windowSize)
+            while (combinedAvgSeries.size() > windowSize) combinedAvgSeries.removeFirst();
+        if (combinedAvgSeries.size() == windowSize) combinedAvgSeries.removeFirst();
+        combinedAvgSeries.add(avgNs);
+
+        boolean muReady = combinedAvgSeries.size() == windowSize;
+        double muMean   = muReady ? average(combinedAvgSeries) : Double.NaN;
+        double muSigma  = muReady ? standardDeviation(combinedAvgSeries, muMean) : Double.NaN;
+        double muCov    = muReady ? muSigma / muMean : Double.NaN;
+        double muLimit  = muReady ? covVarLimit(avgNs) : Double.NaN;
+        boolean muStable = muReady && muCov < muLimit;
+
         /* ---- σ-stability on raw deltas (±3 %) ---- */
         if (Math.abs(stdNs - (avgNs * SIGMA_STABLE_BAND)) <= avgNs * SIGMA_STABLE_BAND)
             combinedSigmaStable++;
@@ -222,13 +236,11 @@ public class FastPlace extends Check implements PacketCheck {
 
         /* ---- detailed debug line ---- */
         if (debug) player.sendMessage((isPlacement ? "[P] " : "[U] ") +
-                String.format("AVG=%.2f ms σ=%.2f ms cov=%.3f σ(cov)=%s<%s streak-μ=%.2f ms",
+                String.format("AVG=%.2f ms σ=%.2f ms cov=%.3f σ(cov)=%.3f cov(μ)=%.3f<%.3f",
                               avgNs / 1_000_000D, stdNs / 1_000_000D, cov,
-                              covReady ? String.format("%.3f", covSigma) : "--",
-                              covReady ? String.format("%.3f", covLimit) : "--",
-                              combinedFastCount > 0
-                                  ? ((now - combinedFastStart) / (double) combinedFastCount) / 1_000_000D
-                                  : 0.0));
+                              covReady ? covSigma : Double.NaN,
+                              muReady  ? muCov   : Double.NaN,
+                              muReady  ? muLimit : Double.NaN));
 
         /* ---- main decision ---- */
         if (avgNs <= MAX_FLAG_AVG_NS) {
@@ -254,7 +266,7 @@ public class FastPlace extends Check implements PacketCheck {
                 }
             }
 
-            boolean breach = (cov < effLimit) || covStable;
+            boolean breach = (cov < effLimit) || covStable || muStable;
             int buf = combinedBuf;
 
             if (breach) {
@@ -263,17 +275,16 @@ public class FastPlace extends Check implements PacketCheck {
                 if (cov < effLimit * 0.75) incr++;      // far below limit
                 if (cov < effLimit * 0.50) incr++;      // very far
                 if (covStable) incr++;                 // σ(Cov) stable
+                if (muStable) incr++;                  // cov(μ) stable
                 if (covReady && covSigma < covLimit * 0.5) incr++; // ultra-stable
                 incr = Math.min(incr, BUFFER_MAX);
 
                 buf = Math.min(BUFFER_MAX, buf + incr);
                 if (buf >= BUFFER_MAX) {
                     if (flagAndAlert(String.format(
-                            "μ=%.2f ms σ=%.2f ms cov=%.3f lim=%.3f σ(cov)=%s<%s",
+                            "μ=%.2f ms σ=%.2f ms cov=%.3f lim=%.3f σ(cov)=%.3f cov(μ)=%.3f<%.3f",
                             avgNs / 1_000_000D, stdNs / 1_000_000D,
-                            cov, effLimit,
-                            covReady ? String.format("%.3f", covSigma) : "--",
-                            covReady ? String.format("%.3f", covLimit) : "--"))
+                            cov, effLimit, covSigma, muCov, muLimit))
                             && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
