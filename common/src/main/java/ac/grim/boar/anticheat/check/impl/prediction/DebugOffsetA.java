@@ -1,0 +1,37 @@
+package ac.grim.boar.anticheat.check.impl.prediction;
+
+import ac.grim.boar.anticheat.check.api.annotations.CheckInfo;
+import ac.grim.boar.anticheat.check.api.impl.OffsetHandlerCheck;
+import ac.grim.boar.anticheat.player.BoarPlayer;
+import ac.grim.boar.anticheat.util.math.Vec3;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+
+@CheckInfo(name = "DebugOffset")
+public class DebugOffsetA extends OffsetHandlerCheck {
+    public DebugOffsetA(BoarPlayer player) {
+        super(player);
+    }
+
+    @Override
+    public void onPredictionComplete(double offset) {
+        if (!player.isDebugMode()) {
+            return;
+        }
+
+        final double maxOffset = player.getMaxOffset();
+        double eotOffset = player.unvalidatedTickEnd.distanceTo(player.velocity);
+
+        Vec3 predicted = player.position.subtract(player.prevUnvalidatedPosition);
+        Vec3 actual = player.unvalidatedPosition.subtract(player.prevUnvalidatedPosition);
+        if (actual.length() > 1e-5 || offset > maxOffset || eotOffset > maxOffset) {
+            String colorOffset = offset > maxOffset ? "§c" : offset > 1.0E-5 ? "§6" : "§a";
+
+            player.getSession().sendMessage(colorOffset + "O:" + offset + ", T: " + player.bestPossibility.getType() + ", P: " + predicted.x + "," + predicted.y + "," + predicted.z + ", MO=" + maxOffset);
+
+            player.getSession().sendMessage("§7A: " + actual.x + "," + actual.y + "," + actual.z + ", " + "SPRINTING=" + player.getFlagTracker().has(EntityFlag.SPRINTING) + ", SNEAKING=" + player.getFlagTracker().has(EntityFlag.SNEAKING) + ", sinceTeleport=" + player.sinceTeleport);
+
+            player.getSession().sendMessage("A EOT: " + player.velocity.toVector3f().toString());
+            player.getSession().sendMessage("EOT O: " + (eotOffset > 1e-4 ? "§b" : "§a") + eotOffset + "," + player.unvalidatedTickEnd.toVector3f().toString());
+        }
+    }
+}
