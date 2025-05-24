@@ -15,21 +15,21 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 /**
- * FastPlace – production build (combined‑window fork)
+ * FastPlace – production build (combined-window fork)
  *
  * Behaviour
  * ─────────
  * • **Single** timing window – begins at 5 packets and grows to 12.
- * • Δ‑domain CoV limit: 0.50 @ 1 ms → 0.35 @ 60 ms → 0.15 @ 150 ms.
- * • σ(Cov) "cov‑stability" starts after 12 samples:
- *     0.50 @ 1 ms → 0.050 @ 65 ms → 0.005 @ 150 ms (quadratic).
- * • Floor protection: window‑μ <35 ms (but ≥1 ms) for 4 of 6 consecutive
- *   windows → instant flag (combined).
- * • Exhaustion: ≥12 CPS widens limits after ≤23.5 s (CPS‑dependent),
- *   ramping to max over +5 s (resets if 7/8 packets are slow).
+ * • Δ-domain CoV limit: 0.50 @ 1 ms → 0.35 @ 60 ms → 0.15 @ 150 ms.
+ * • σ(Cov) "cov-stability" starts after 12 samples:
+ *     0.50 @ 1 ms → 0.050 @ 65 ms → 0.005 @ 150 ms (quadratic).
+ * • Floor protection: window-μ <35 ms (but ≥1 ms) for 4 of 6 consecutive
+ *   windows → instant flag (combined).
+ * • Exhaustion: ≥12 CPS widens limits after ≤23.5 s (CPS-dependent),
+ *   ramping to max over +5 s (resets if 7/8 packets are slow).
  * • **Dynamic buffer** – the stricter the CoV/σ(Cov), the faster it fills.
- * • σ‑stability on raw deltas (±3 %) flags after 150 packets.
- * • Six‑tick buffer before any cancellation.
+ * • σ-stability on raw deltas (±3 %) flags after 150 packets.
+ * • Six-tick buffer before any cancellation.
  * • Debug stream gated by "grim.debug.fastplace".
  */
 @CheckData(name = "FastPlace", experimental = true)
@@ -39,19 +39,19 @@ public class FastPlace extends Check implements PacketCheck {
     private static final int  WINDOW          = 12;             // max window
     private static final int  WINDOW_MIN      = 5;              // starting window
 
-    private static final long MAX_GAP_NS      = 300_000_000L;   // 300 ms (min)
-    private static final long MAX_FLAG_AVG_NS = 150_000_000L;   // 150 ms
-    private static final long P1_NS           = 60_000_000L;    //  60 ms
-    private static final long MIN_STD_NS      = 4_000_000L;     //   4 ms
-    private static final long MIN_COV_NS      = 1_000_000L;     //   1 ms
+    private static final long MAX_GAP_NS      = 300_000_000L;   // 300 ms (min)
+    private static final long MAX_FLAG_AVG_NS = 150_000_000L;   // 150 ms
+    private static final long P1_NS           = 60_000_000L;    //  60 ms
+    private static final long MIN_STD_NS      = 4_000_000L;     //   4 ms
+    private static final long MIN_COV_NS      = 1_000_000L;     //   1 ms
 
-    /* floor uses window‑average */
-    private static final long FLOOR_NS       = 35_000_000L;     // 35 ms
+    /* floor uses window-average */
+    private static final long FLOOR_NS       = 35_000_000L;     // 35 ms
     private static final int  FLOOR_WINDOW   = 6;
     private static final int  FLOOR_HITS_MAX = 4;
 
     /* dynamic exhaustion */
-    private static final long   THRESHOLD_NS_12CPS = 83_000_000L;  // ≈12 CPS
+    private static final long   THRESHOLD_NS_12CPS = 83_000_000L;  // ≈12 CPS
     private static final double EXH_CPS_MIN        = 12.0D;
     private static final double EXH_TIME_INTERCEPT = 23.5D;        // seconds
     private static final double EXH_TIME_SLOPE     = -0.875D;      // sec·CPS⁻¹
@@ -61,15 +61,15 @@ public class FastPlace extends Check implements PacketCheck {
 
     private static final int BUFFER_MAX = 6;
     private static final int SIGMA_STABLE_TARGET = 150;
-    private static final double SIGMA_STABLE_BAND = 0.03D;      // ±3 %
+    private static final double SIGMA_STABLE_BAND = 0.03D;      // ±3 %
 
-    /* combined streams (PLACEMENT + USE) */
+    /* combined streams (PLACEMENT + USE) */
     private final Deque<Long>    combinedDeltas     = new ArrayDeque<>(WINDOW);
     private final Deque<Boolean> combinedFloor      = new ArrayDeque<>(FLOOR_WINDOW);
     private final Deque<Double>  combinedCovSeries  = new ArrayDeque<>(WINDOW);
     private final Deque<Boolean> combinedFastWindow = new ArrayDeque<>(FAST_WINDOW_SIZE);
 
-    /* per‑type fast window – still tracked for reset heuristics */
+    /* per-type fast window – still tracked for reset heuristics */
     private final Deque<Boolean> placeFastWindow = new ArrayDeque<>(FAST_WINDOW_SIZE);
     private final Deque<Boolean>   useFastWindow = new ArrayDeque<>(FAST_WINDOW_SIZE);
 
@@ -107,7 +107,7 @@ public class FastPlace extends Check implements PacketCheck {
             long deltaNs = now - lastPacketTime;
             if (deltaNs <= 0L) return;
 
-            // dynamic gap: max(300 ms, μ * 6)
+            // dynamic gap: max(300 ms, μ * 6)
             double meanNs = combinedDeltas.isEmpty() ? deltaNs : average(combinedDeltas);
             long   gapNs  = Math.max(MAX_GAP_NS, (long)(meanNs * 6));
 
@@ -164,12 +164,18 @@ public class FastPlace extends Check implements PacketCheck {
         double stdNs = Math.max(MIN_STD_NS, standardDeviation(combinedDeltas, avgNs));
         double cov   = stdNs / avgNs;
 
-        /* ---- item‑in‑hand inspection ---- */
+        /* ---- item-in-hand inspection ---- */
         ItemStack inHand = player.getInventory().getItemInHand(InteractionHand.MAIN_HAND);
         boolean placeable = inHand != null && !inHand.isEmpty() &&
                             inHand.getType().getPlacedType() != null;
 
-        /* ---- floor by window‑μ (<35 ms, but ≥1 ms) ---- */
+        /* bail out if the player isn’t holding a placeable block */
+        if (!placeable) {
+            combinedFloor.clear();
+            return;
+        }
+
+        /* ---- floor by window-μ (<35 ms, but ≥1 ms) ---- */
         if (placeable) {
             boolean floorHit = avgNs >= MIN_COV_NS && avgNs < FLOOR_NS;
             if (combinedFloor.size() == FLOOR_WINDOW) combinedFloor.removeFirst();
@@ -182,7 +188,7 @@ public class FastPlace extends Check implements PacketCheck {
             }
         } else combinedFloor.clear();
 
-        /* ---- CoV‑series for σ(Cov) ---- */
+        /* ---- CoV-series for σ(Cov) ---- */
         if (combinedCovSeries.size() == WINDOW) combinedCovSeries.removeFirst();
         combinedCovSeries.add(cov);
 
@@ -192,7 +198,7 @@ public class FastPlace extends Check implements PacketCheck {
         double  covLimit = covReady ? covVarLimit(avgNs) : Double.NaN;
         boolean covStable = covReady && covSigma < covLimit;
 
-        /* ---- σ‑stability on raw deltas (±3 %) ---- */
+        /* ---- σ-stability on raw deltas (±3 %) ---- */
         if (Math.abs(stdNs - (avgNs * SIGMA_STABLE_BAND)) <= avgNs * SIGMA_STABLE_BAND)
             combinedSigmaStable++;
         else combinedSigmaStable = 0;
@@ -203,7 +209,7 @@ public class FastPlace extends Check implements PacketCheck {
             player.onPacketCancel();
         }
 
-        /* ---- exhaustion‑driven limit widening ---- */
+        /* ---- exhaustion-driven limit widening ---- */
         double effLimit = covBaseLimit(avgNs);
         if (combinedFastStart != -1L && combinedFastCount > 0) {
             double streakAvgNs = (now - combinedFastStart) / (double) combinedFastCount;
@@ -215,7 +221,7 @@ public class FastPlace extends Check implements PacketCheck {
                 double elapsed = (now - combinedFastStart) / 1_000_000_000.0D;
 
                 if (elapsed >= tfFlag) {
-                    double ramp = Math.min(1.0D, (elapsed - tfFlag) / 5.0D); // 0 → 1 over 5 s
+                    double ramp = Math.min(1.0D, (elapsed - tfFlag) / 5.0D); // 0 → 1 over 5 s
                     effLimit += (1.0D - effLimit) * ramp;                   // stretch to 1.0
                 }
             }
@@ -231,7 +237,7 @@ public class FastPlace extends Check implements PacketCheck {
                 if (cov < effLimit * 0.75) incr++;      // far below limit
                 if (cov < effLimit * 0.50) incr++;      // very far
                 if (covStable) incr++;                 // σ(Cov) stable
-                if (covReady && covSigma < covLimit * 0.5) incr++; // ultra‑stable
+                if (covReady && covSigma < covLimit * 0.5) incr++; // ultra-stable
                 incr = Math.min(incr, BUFFER_MAX);
 
                 buf = Math.min(BUFFER_MAX, buf + incr);
@@ -277,7 +283,7 @@ public class FastPlace extends Check implements PacketCheck {
         return n == 0 ? 0D : GrimMath.sqrt((float) (var / n));
     }
 
-    /* Δ‑domain CoV limit – untouched */
+    /* Δ-domain CoV limit – untouched */
     private static double covBaseLimit(double avgNs) {
         if (avgNs <= P1_NS) {
             double ratio = (P1_NS - Math.max(avgNs, MIN_COV_NS))
@@ -295,21 +301,21 @@ public class FastPlace extends Check implements PacketCheck {
     /* σ(Cov) quadratic limit – untouched */
     private static double covVarLimit(double avgNs) {
 
-        final long T0_NS = 35_000_000L;       //  35 ms
-        final long T1_NS = 65_000_000L;       //  65 ms
-        final long T2_NS = 150_000_000L;      // 150 ms
+        final long T0_NS = 35_000_000L;       //  35 ms
+        final long T1_NS = 65_000_000L;       //  65 ms
+        final long T2_NS = 150_000_000L;      // 150 ms
 
-        /* flat cap below 35 ms – floor‑check handles those */
-        if (avgNs <= T0_NS) return 0.06D;     // 0 – 35 ms → 0.06
+        /* flat cap below 35 ms – floor-check handles those */
+        if (avgNs <= T0_NS) return 0.06D;     // 0 – 35 ms → 0.06
 
         if (avgNs <= T1_NS) {
             double t = (avgNs - T0_NS) / (double) (T1_NS - T0_NS);
-            return 0.06D - 0.035D * t * t;     // 35 ms → 0.06 ▼ 65 ms → 0.035
+            return 0.06D - 0.035D * t * t;     // 35 ms → 0.06 ▼ 65 ms → 0.035
         }
 
         if (avgNs <= T2_NS) {
             double t = (avgNs - T1_NS) / (double) (T2_NS - T1_NS);
-            return 0.035D - 0.005D * t * t;    // 65 ms → 0.035 ▼ 150 ms → 0.005
+            return 0.035D - 0.005D * t * t;    // 65 ms → 0.035 ▼ 150 ms → 0.005
         }
 
         return 0.005D;
