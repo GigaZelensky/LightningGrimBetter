@@ -23,7 +23,7 @@ import java.util.Deque;
  * • Δ-domain CoV limit: 0.50 @ 1 ms → 0.35 @ 60 ms → 0.15 @ 150 ms.
  * • σ(Cov) "cov-stability" starts after 12 samples:
  *     0.50 @ 1 ms → 0.050 @ 35 ms → 0.025 @ 65 ms → 0.005 @ 150 ms (quadratic).
- * • Floor protection: window-μ <35 ms (but ≥1 ms) for 4 of 6 consecutive
+ * • Floor protection: window-μ <35 ms (but ≥1 ms) for 7 of 8 consecutive
  *   windows → instant flag (combined).
  * • Exhaustion: ≥12 CPS widens limits after ≤23.5 s (CPS-dependent),
  *   ramping to max over +5 s (resets if 7/8 packets are slow).
@@ -47,8 +47,8 @@ public class FastPlace extends Check implements PacketCheck {
 
     /* floor uses window-average */
     private static final long FLOOR_NS       = 35_000_000L;     // 35 ms
-    private static final int  FLOOR_WINDOW   = 6;
-    private static final int  FLOOR_HITS_MAX = 4;
+    private static final int  FLOOR_WINDOW   = 8;
+    private static final int  FLOOR_HITS_MAX = 7;
 
     /* dynamic exhaustion */
     private static final long   THRESHOLD_NS_12CPS = 83_000_000L;  // ≈12 CPS
