@@ -17,15 +17,21 @@ public class GrimSendAlert implements BuildableCommand {
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("sendalert")
                         .permission("grim.sendalert")
-                        .required("message", StringParser.greedyStringParser())
+                        .required("message", StringParser.stringParser())
                         .handler(this::handleSendAlert)
         );
     }
 
     private void handleSendAlert(@NonNull CommandContext<Sender> context) {
-        String string = context.get("message");
-        string = MessageUtil.replacePlaceholders((Sender) null, string);
-        Component message = MessageUtil.miniMessage(string);
-        GrimAPI.INSTANCE.getAlertManager().sendAlert(message, null);
+    String string = context.get("message");
+    // Strip optional surrounding quotes so users can paste the MiniMessage literally
+    if (string.length() > 1 && (
+            (string.startsWith(""") && string.endsWith(""")) ||
+            (string.startsWith("'") && string.endsWith("'")))) {
+        string = string.substring(1, string.length() - 1);
     }
+    string = MessageUtil.replacePlaceholders((Sender) null, string);
+    Component message = MessageUtil.miniMessage(string);
+    GrimAPI.INSTANCE.getAlertManager().sendAlert(message, null);
+}
 }
