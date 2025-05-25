@@ -306,18 +306,18 @@ public class FastPlace extends Check implements PacketCheck {
         final long T2_NS = 150_000_000L;      // 150 ms
 
         /* flat cap below 35 ms – floor-check handles those */
-        if (avgNs <= T0_NS) return 0.60D;                // 0 – 35 ms → 0.60
+        if (avgNs <= T0_NS) return 0.06D;                       // 0–35 ms → 0.06
 
-        if (avgNs <= T1_NS) {
+        if (avgNs <= T1_NS) {                                   // 35–65 ms
             double t = (avgNs - T0_NS) / (double) (T1_NS - T0_NS);
-            return 0.60D - 0.57D * t * t;                // 35 ms → 0.60 ▼ 65 ms → 0.030
+            return 0.06D - 0.03D * t * t;                       // 35 ms → 0.06 ▼ 65 ms → 0.030
         }
 
-        if (avgNs <= T2_NS) {
+        if (avgNs <= T2_NS) {                                   // 65–150 ms
             double t = (avgNs - T1_NS) / (double) (T2_NS - T1_NS);
-            return 0.030D - 0.025D * t * t;              // 65 ms → 0.030 ▼ 150 ms → 0.005
+            return 0.03D - 0.025D * t * t;                      // 65 ms → 0.030 ▼ 150 ms → 0.005
         }
 
-        return 0.005D;
+        return 0.005D;                                          // >150 ms
     }
 }

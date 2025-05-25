@@ -8,30 +8,52 @@ import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
-import org.incendo.cloud.parser.standard.StringParser;
 
+/**
+ * /grim sendalert <miniMessage>
+ *
+ * We bypass Cloud's argument tokenizer by reading the raw input line
+ * and slicing everything that follows the literal sub‑command "sendalert".
+ * That way staff can paste any MiniMessage—including <> click/hover tags,
+ * quotes, spaces, and line‑breaks—without needing to escape them.
+ */
 public class GrimSendAlert implements BuildableCommand {
+
     @Override
-    public void register(CommandManager<Sender> commandManager) {
+    public void register(@NonNull CommandManager<Sender> commandManager) {
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("sendalert")
                         .permission("grim.sendalert")
-                        .required("message", StringParser.stringParser())
+                        // no arguments; we parse the tail manually
                         .handler(this::handleSendAlert)
         );
     }
 
     private void handleSendAlert(@NonNull CommandContext<Sender> context) {
-    String string = context.get("message");
-    // Strip optional surrounding quotes so users can paste the MiniMessage literally
-    if (string.length() > 1 && (
-            (string.startsWith("\"") && string.endsWith("\"")) ||
-            (string.startsWith("'") && string.endsWith("'")))) {
-        string = string.substring(1, string.length() - 1);
+
+        // Full line, e.g. "/grim sendalert <click:...>"
+        final String raw = context.rawInput();
+
+        // Locate the sub‑command token "sendalert"
+        final int idx = raw.toLowerCase().indexOf("sendalert");
+        if (idx == -1) {
+            context.sender().sendMessage("§cCould not parse alert text.");
+            return;
+        }
+
+        // Everything after the token (trim leading whitespace)
+        String msg = raw.substring(idx + "sendalert".length()).trim();
+
+        // Strip optional surrounding quotes so users can still wrap the message
+        if (msg.length() > 1 &&
+                ((msg.startsWith(""") && msg.endsWith(""")) ||
+                 (msg.startsWith("'") && msg.endsWith("'")))) {
+            msg = msg.substring(1, msg.length() - 1);
+        }
+
+        msg = MessageUtil.replacePlaceholders(null, msg);
+        Component component = MessageUtil.miniMessage(msg);
+        GrimAPI.INSTANCE.getAlertManager().sendAlert(component, null);
     }
-    string = MessageUtil.replacePlaceholders((Sender) null, string);
-    Component message = MessageUtil.miniMessage(string);
-    GrimAPI.INSTANCE.getAlertManager().sendAlert(message, null);
-}
 }
