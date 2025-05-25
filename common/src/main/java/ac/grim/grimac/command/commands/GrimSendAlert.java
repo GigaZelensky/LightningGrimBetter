@@ -26,7 +26,7 @@ public class GrimSendAlert implements BuildableCommand {
     String string = context.get("message");
     // Strip optional surrounding quotes so users can paste the MiniMessage literally
     if (string.length() > 1 && (
-            (string.startsWith(""") && string.endsWith(""")) ||
+            (string.startsWith("\"") && string.endsWith("\"")) ||
             (string.startsWith("'") && string.endsWith("'")))) {
         string = string.substring(1, string.length() - 1);
     }
