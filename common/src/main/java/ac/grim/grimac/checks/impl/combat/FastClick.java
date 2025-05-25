@@ -194,7 +194,7 @@ public class FastClick extends Check implements PacketCheck {
                 double elapsed = (now - combinedFastStart) / 1_000_000_000.0D;
 
                 if (elapsed >= tfFlag) {
-                    double ramp = Math.min(1.0D, (elapsed - tfFlag) / 5.0D); // 0 → 1 over 5 s
+                    double ramp = Math.min(1.0D, (elapsed - tfFlag) / 15.0D); // 0 → 1 over 15 s
                     effLimit += (1.0D - effLimit) * ramp;                   // stretch to 1.0
                 }
             }
