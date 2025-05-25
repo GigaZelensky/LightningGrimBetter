@@ -16,6 +16,7 @@ import ac.grim.grimac.checks.impl.breaking.NoSwingBreak;
 import ac.grim.grimac.checks.impl.breaking.PositionBreakA;
 import ac.grim.grimac.checks.impl.breaking.PositionBreakB;
 import ac.grim.grimac.checks.impl.breaking.RotationBreak;
+import ac.grim.grimac.checks.impl.breaking.AutoTool;
 import ac.grim.grimac.checks.impl.breaking.WrongBreak;
 import ac.grim.grimac.checks.impl.combat.*;
 import ac.grim.grimac.checks.impl.crash.*;
@@ -282,6 +283,7 @@ public class CheckManager {
                 .put(NoSwingBreak.class, new NoSwingBreak(player))
                 .put(FarBreak.class, new FarBreak(player))
                 .put(InvalidBreak.class, new InvalidBreak(player))
+                .put(AutoTool.class, new AutoTool(player))
                 .put(PositionBreakA.class, new PositionBreakA(player))
                 .put(PositionBreakB.class, new PositionBreakB(player))
                 .build();
