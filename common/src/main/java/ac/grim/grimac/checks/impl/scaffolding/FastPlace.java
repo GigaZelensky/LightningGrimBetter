@@ -22,7 +22,7 @@ import java.util.Deque;
  * • **Single** timing window – begins at 5 packets and grows to 12.
  * • Δ-domain CoV limit: 0.50 @ 1 ms → 0.35 @ 60 ms → 0.15 @ 150 ms.
  * • σ(Cov) "cov-stability" starts after 12 samples:
- *     0.50 @ 1 ms → 0.050 @ 65 ms → 0.005 @ 150 ms (quadratic).
+ *     0.50 @ 1 ms → 0.050 @ 35 ms → 0.025 @ 65 ms → 0.005 @ 150 ms (quadratic).
  * • Floor protection: window-μ <35 ms (but ≥1 ms) for 4 of 6 consecutive
  *   windows → instant flag (combined).
  * • Exhaustion: ≥12 CPS widens limits after ≤23.5 s (CPS-dependent),
@@ -298,7 +298,7 @@ public class FastPlace extends Check implements PacketCheck {
         return 0.15D;
     }
 
-    /* σ(Cov) quadratic limit – untouched */
+    /* σ(Cov) quadratic limit */
     private static double covVarLimit(double avgNs) {
 
         final long T0_NS = 35_000_000L;       //  35 ms
@@ -306,16 +306,16 @@ public class FastPlace extends Check implements PacketCheck {
         final long T2_NS = 150_000_000L;      // 150 ms
 
         /* flat cap below 35 ms – floor-check handles those */
-        if (avgNs <= T0_NS) return 0.06D;     // 0 – 35 ms → 0.06
+        if (avgNs <= T0_NS) return 0.05D;     // 0 – 35 ms → 0.050
 
         if (avgNs <= T1_NS) {
             double t = (avgNs - T0_NS) / (double) (T1_NS - T0_NS);
-            return 0.06D - 0.035D * t * t;     // 35 ms → 0.06 ▼ 65 ms → 0.035
+            return 0.05D - 0.025D * t * t;     // 35 ms → 0.050 ▼ 65 ms → 0.025
         }
 
         if (avgNs <= T2_NS) {
             double t = (avgNs - T1_NS) / (double) (T2_NS - T1_NS);
-            return 0.035D - 0.005D * t * t;    // 65 ms → 0.035 ▼ 150 ms → 0.005
+            return 0.025D - 0.020D * t * t;    // 65 ms → 0.025 ▼ 150 ms → 0.005
         }
 
         return 0.005D;
