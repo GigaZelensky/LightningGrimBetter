@@ -22,7 +22,7 @@ import java.util.Deque;
  * • **Single** timing window – begins at 5 packets and grows to 12.
  * • Δ-domain CoV limit: 0.50 @ 1 ms → 0.35 @ 60 ms → 0.15 @ 150 ms.
  * • σ(Cov) "cov-stability" starts after 12 samples:
- *     0.60 @ ≤35 ms → 0.030 @ 65 ms → 0.005 @ 150 ms (quadratic).
+ *     0.060 @ ≤35 ms → 0.030 @ 65 ms → 0.005 @ 150 ms (quadratic).
  * • Floor protection: window-μ <35 ms (but ≥1 ms) for 7 of 8 consecutive
  *   windows → instant flag (combined).
  * • Exhaustion: ≥12 CPS widens limits after ≤23.5 s (CPS-dependent),
