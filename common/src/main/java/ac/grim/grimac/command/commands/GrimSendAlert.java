@@ -6,7 +6,6 @@ import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.parser.exception.ParsingException;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
@@ -15,6 +14,7 @@ import org.incendo.cloud.parser.standard.StringParser;
 
 public final class GrimSendAlert implements BuildableCommand {
 
+    /** Re-use one MiniMessage instance – cheap and thread-safe. */
     private static final MiniMessage MM = MiniMessage.miniMessage();
 
     @Override
@@ -24,17 +24,16 @@ public final class GrimSendAlert implements BuildableCommand {
                    .literal(
                        "sendalert",
                        Description.of("Broadcast an alert (MiniMessage or legacy) to all staff"))
-                   .required("message", StringParser.greedyStringParser())
                    .permission("grim.sendalert")
+                   .required("message", StringParser.greedyStringParser())
                    .handler(this::handleSendAlert)
         );
     }
 
     private void handleSendAlert(@NonNull CommandContext<Sender> ctx) {
-        // Grab the raw, greedy argument
         String raw = ((String) ctx.get("message")).trim();
 
-        // Allow optional wrapping quotes for ease of use
+        // Allow optional wrapping quotes
         if (raw.length() > 1 &&
            ((raw.startsWith("\"") && raw.endsWith("\"")) ||
             (raw.startsWith("'")  && raw.endsWith("'")))) {
@@ -43,21 +42,16 @@ public final class GrimSendAlert implements BuildableCommand {
 
         Component component;
 
-        /*
-         * 1) First attempt: treat the whole thing as MiniMessage.
-         *    If the string contains legacy ampersand codes, bad tags, etc.,
-         *    MiniMessage will throw a ParsingException -> we catch and fall back.
-         */
         try {
-            component = MM.deserialize(raw);                          // MiniMessage parse
+            /* ---------- ① MiniMessage path ---------- */
+            component = MM.deserialize(raw);                       // parse tags / click / hover / colours
             component = MessageUtil.replacePlaceholders(null, component); // swap %placeholders%
-        } catch (ParsingException ex) {
-            // 2) Fallback: apply placeholders on the raw string, then legacy-parse
-            String replaced = MessageUtil.replacePlaceholders(null, raw);
-            component = MessageUtil.miniMessage(replaced);            // original pipeline
+        } catch (Exception ignored) {
+            /* ---------- ② Legacy fallback ---------- */
+            String replaced = MessageUtil.replacePlaceholders(null, raw); // %prefix% etc.
+            component = MessageUtil.miniMessage(replaced);               // legacy & colours
         }
 
-        // Fire it off – same signature you were already using
         GrimAPI.INSTANCE.getAlertManager().sendAlert(component, null);
     }
 }
