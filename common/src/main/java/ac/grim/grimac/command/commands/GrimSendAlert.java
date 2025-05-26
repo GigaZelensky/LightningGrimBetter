@@ -28,22 +28,22 @@ public final class GrimSendAlert implements BuildableCommand {
     }
 
     private void handleSendAlert(@NonNull CommandContext<Sender> ctx) {
-        // Cast – ctx.get(...) is Object
         String raw = ((String) ctx.get("message")).trim();
 
-        // Optional wrapping quotes
+        // Strip optional wrapping quotes
         if (raw.length() > 1 &&
            ((raw.startsWith("\"") && raw.endsWith("\"")) ||
             (raw.startsWith("'")  && raw.endsWith("'")))) {
             raw = raw.substring(1, raw.length() - 1);
         }
 
-        // Replace %prefix% and any other placeholders the plugin knows about
-        raw = MessageUtil.replacePlaceholders(ctx.sender(), raw);
-
-        // Deserialize **once** – click / hover survive
+        // 1. Deserialize MiniMessage -> Component (hover / click survive)
         Component component = MM.deserialize(raw);
 
+        // 2. Apply %prefix% and any other placeholders the plugin knows
+        component = MessageUtil.replacePlaceholders(/* GrimPlayer */ null, component);
+
+        // 3. Ship it
         GrimAPI.INSTANCE.getAlertManager().sendAlert(component, null);
     }
 }
