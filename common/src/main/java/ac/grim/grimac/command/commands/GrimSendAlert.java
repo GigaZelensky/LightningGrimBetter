@@ -14,7 +14,6 @@ import org.incendo.cloud.parser.standard.StringParser;
 
 public final class GrimSendAlert implements BuildableCommand {
 
-    /** Re-use one MiniMessage instance – cheap and thread-safe. */
     private static final MiniMessage MM = MiniMessage.miniMessage();
 
     @Override
@@ -44,12 +43,12 @@ public final class GrimSendAlert implements BuildableCommand {
 
         try {
             /* ---------- ① MiniMessage path ---------- */
-            component = MM.deserialize(raw);                       // parse tags / click / hover / colours
-            component = MessageUtil.replacePlaceholders(null, component); // swap %placeholders%
+            component = MM.deserialize(raw);                                // full MiniMessage
+            component = MessageUtil.replacePlaceholders((Sender) null, component);
         } catch (Exception ignored) {
             /* ---------- ② Legacy fallback ---------- */
-            String replaced = MessageUtil.replacePlaceholders(null, raw); // %prefix% etc.
-            component = MessageUtil.miniMessage(replaced);               // legacy & colours
+            String replaced = MessageUtil.replacePlaceholders((Sender) null, raw);
+            component = MessageUtil.miniMessage(replaced);                  // legacy &-codes
         }
 
         GrimAPI.INSTANCE.getAlertManager().sendAlert(component, null);
