@@ -32,23 +32,27 @@ public final class GrimSendAlert implements BuildableCommand {
     private void handleSendAlert(@NonNull CommandContext<Sender> ctx) {
         String raw = ((String) ctx.get("message")).trim();
 
-        // Allow optional wrapping quotes
+        // Strip optional wrapping quotes
         if (raw.length() > 1 &&
            ((raw.startsWith("\"") && raw.endsWith("\"")) ||
             (raw.startsWith("'")  && raw.endsWith("'")))) {
             raw = raw.substring(1, raw.length() - 1);
         }
 
-        Component component;
+        /* -----------------------------------------------------------
+         *  Replace %placeholders% BEFORE any parsing.
+         *  Casting the first arg to (Sender) resolves the overload
+         *  ambiguity in MessageUtil.replacePlaceholders(..., String).
+         * ----------------------------------------------------------- */
+        String replaced = MessageUtil.replacePlaceholders((Sender) null, raw);
 
+        Component component;
         try {
-            /* ---------- ① MiniMessage path ---------- */
-            component = MM.deserialize(raw);                                // full MiniMessage
-            component = MessageUtil.replacePlaceholders((Sender) null, component);
+            /* ---------- ① MiniMessage path (click / hover / gradients) ---------- */
+            component = MM.deserialize(replaced);
         } catch (Exception ignored) {
-            /* ---------- ② Legacy fallback ---------- */
-            String replaced = MessageUtil.replacePlaceholders((Sender) null, raw);
-            component = MessageUtil.miniMessage(replaced);                  // legacy &-codes
+            /* ---------- ② Legacy fallback (&-codes) ---------- */
+            component = MessageUtil.miniMessage(replaced);
         }
 
         GrimAPI.INSTANCE.getAlertManager().sendAlert(component, null);
