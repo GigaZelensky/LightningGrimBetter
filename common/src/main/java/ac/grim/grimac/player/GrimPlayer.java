@@ -230,6 +230,7 @@ public class GrimPlayer implements GrimUser {
     public int maxAttackSlow = 0;
     public GameMode gamemode;
     public DimensionType dimensionType;
+    public @Nullable String worldName;
     public Vector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
     public long lastBlockBreak = 0;
@@ -782,7 +783,7 @@ public class GrimPlayer implements GrimUser {
         if (getClientVersion().isOlderThan(ClientVersion.V_1_21_2)
                 || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)) {
             final ItemStack chestPlate = getInventory().getChestplate();
-            return chestPlate.getType() == ItemTypes.ELYTRA && chestPlate.getDamageValue() < chestPlate.getMaxDamage();
+            return chestPlate.getType() == ItemTypes.ELYTRA && chestPlate.getDamageValue() < chestPlate.getMaxDamage() - 1;
         }
 
         final CompensatedInventory inventory = getInventory();
@@ -795,7 +796,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     private static boolean isGlider(ItemStack stack, EquipmentSlot slot) {
-        if (!stack.hasComponent(ComponentTypes.GLIDER) || stack.getDamageValue() >= stack.getMaxDamage()) {
+        if (!stack.hasComponent(ComponentTypes.GLIDER) || stack.getDamageValue() >= (stack.getMaxDamage() - 1)) {
             return false;
         }
 

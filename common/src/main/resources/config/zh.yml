@@ -29,6 +29,9 @@ client-brand:
         - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
         - "^Feather Fabric$"
         - "^labymod$"
+    # Grim 将把包含内置攻击距离修改功能的特定 Forge 版本列入黑名单（Forge 1.18.2 至 1.19.3） 可能会导致1.18.2-1.19.3的Forge版本玩家无法进入服务器。
+    # 将此选项设置为 false 将允许上述客户端连接服务器。禁用此选项需自行承担风险（建议打开）。
+    disconnect-blacklisted-forge-versions: true
 
 spectators:
     # 将拥有 grim.spectator 权限的人进行隐藏,不管他是否在观察玩家
@@ -133,7 +136,7 @@ TimerA:
     # 如果设置得太高，可能会允许 1.8 快速使用/快速治疗/快速弓箭绕过，120 毫秒似乎是一个很好的平衡
     drift: 120
 
-# This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
+# 此项是config是用来防止玩家移动与实时差距过大，来限制对 TimerA 平衡机制的滥用。
 TimerLimit:
     # 在检查玩家的延迟时对timer balance进行限制, 防止滥用
     # 在合法玩家的延迟超过这个延迟阈值时可能会造成误拉回
@@ -145,7 +148,7 @@ NegativeTimer:
     drift: 1200
 
 # 与 TimerA 相同的检查方法，但适用于坐骑
-TimerVehicle:
+VehicleTimer:
     # 实体1.0005 检查
     setbackvl: 10
 

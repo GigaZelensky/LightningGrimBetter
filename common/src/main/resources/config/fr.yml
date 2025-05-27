@@ -28,6 +28,9 @@ client-brand:
         - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
         - "^Feather Fabric$"
         - "^labymod$"
+    # Grim will blacklist specific Forge versions which include built-in Reach hacks (Forge 1.18.2 to 1.19.3).
+    # Setting this option to false will allow said clients to connect to the server. Disable this at your own risk.
+    disconnect-blacklisted-forge-versions: true
 
 spectators:
     # Masquer tout les spectateurs ayant la permission grim.spectator, peu importe s'ils sont actuellement en train d'observer.
@@ -141,7 +144,7 @@ NegativeTimer:
     drift: 1200
 
 # Même méthode de vérification que TimerA, mais pour les véhicules.
-TimerVehicle:
+VehicleTimer:
     # Cibler un chronomètre de 1,005.
     setbackvl: 10
 
