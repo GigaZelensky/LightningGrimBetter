@@ -10,7 +10,6 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.material.MaterialData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +34,8 @@ public class BukkitPlatformWorld implements PlatformWorld {
     public WrappedBlockState getBlockAt(int x, int y, int z) {
         if (LEGACY_SERVER_VERSION) {
             Block block = bukkitWorld.getBlockAt(x, y, z);
-            return SpigotConversionUtil.fromBukkitMaterialData(new MaterialData(block.getType(), block.getData()));
+            int blockId = (block.getType().getId() << 4) | block.getData();
+            return WrappedBlockState.getByGlobalId(blockId);
         } else {
             return SpigotConversionUtil.fromBukkitBlockData(bukkitWorld.getBlockAt(x, y, z).getBlockData());
         }
