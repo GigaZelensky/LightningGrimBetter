@@ -9,13 +9,17 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
-import org.incendo.cloud.description.Description; // Keep Description import
+import org.incendo.cloud.description.Description;
 import org.incendo.cloud.parser.standard.StringParser;
 
 public final class GrimSendAlert implements BuildableCommand {
 
-    // Keep static MiniMessage instance for efficiency
-    private static final MiniMessage MM = MiniMessage.miniMessage();
+    // IMPORTANT: Build MiniMessage with legacyColors() enabled.
+    // This allows it to parse both MiniMessage tags AND legacy & codes
+    // within the same string.
+    private static final MiniMessage MM = MiniMessage.builder()
+                                                     .legacyColors()
+                                                     .build();
 
     @Override
     public void register(@NonNull CommandManager<Sender> manager) {
@@ -23,7 +27,7 @@ public final class GrimSendAlert implements BuildableCommand {
             manager.commandBuilder("grim", "grimac")
                    .literal(
                        "sendalert",
-                       Description.of("Broadcast an alert (MiniMessage or legacy) to all staff")) // Keep description
+                       Description.of("Broadcast an alert (MiniMessage or legacy) to all staff"))
                    .permission("grim.sendalert")
                    .required("message", StringParser.greedyStringParser())
                    .handler(this::handleSendAlert)
@@ -47,27 +51,13 @@ public final class GrimSendAlert implements BuildableCommand {
          * ----------------------------------------------------------- */
         String replaced = MessageUtil.replacePlaceholders((Sender) null, raw);
 
-        Component component;
-
-        // Always attempt MiniMessage parsing first.
-        // MM.deserialize won't throw an exception for legacy codes,
-        // it will just treat them as literal text.
-        Component miniMessageParsed = MM.deserialize(replaced);
-
-        // Also parse using the legacy method, which handles & codes.
-        Component legacyParsed = MessageUtil.miniMessage(replaced);
-
-        // If the MiniMessage-parsed component is *exactly* the same as a plain text
-        // component of the original string, it means MiniMessage didn't apply
-        // any formatting (i.e., no MiniMessage tags were found or valid).
-        // In this case, we prefer the legacy-parsed component.
-        if (miniMessageParsed.equals(Component.text(replaced))) {
-            // MiniMessage didn't do anything special, so use the legacy formatted message.
-            component = legacyParsed;
-        } else {
-            // MiniMessage successfully processed some tags, so use its output.
-            component = miniMessageParsed;
-        }
+        // With legacyColors() enabled in the MM instance,
+        // MM.deserialize will now correctly handle:
+        // - Pure MiniMessage: "<red>Hello</red>"
+        // - Pure Legacy: "&4Hello"
+        // - Mixed: "<hover:show_text:"&cLegacy">MiniMessage &bMixed</hover>"
+        // without throwing the reported exception.
+        Component component = MM.deserialize(replaced);
 
         GrimAPI.INSTANCE.getAlertManager().sendAlert(component, null);
     }
