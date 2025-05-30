@@ -123,6 +123,7 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
         if (configVersion < 9) {
             newOffsetHandlingAntiKB(config, configString);
         }
+        addIncludeVerboseField();
     }
 
     private void removeLegacyTwoPointOne(File config) throws IOException {
@@ -285,6 +286,20 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
                         "  max-ceiling: 4"
         );
         Files.write(config.toPath(), configString.getBytes());
+    }
+
+    private void addIncludeVerboseField() {
+        File discordFile = new File(GrimAPI.INSTANCE.getGrimPlugin().getDataFolder(), "discord.yml");
+        if (discordFile.exists()) {
+            try {
+                String discordString = new String(Files.readAllBytes(discordFile.toPath()));
+                if (!discordString.contains("include-verbose-field")) {
+                    discordString += "\ninclude-verbose-field: true\n";
+                    Files.write(discordFile.toPath(), discordString.getBytes());
+                }
+            } catch (IOException ignored) {
+            }
+        }
     }
 
     @Override

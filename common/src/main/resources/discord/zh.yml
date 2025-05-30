@@ -11,3 +11,4 @@ violation-content:
     - "**客户端品牌**: %brand%"
     - "**延迟**: %ping%"
     - "**服务器卡顿程度**: %tps%"
+include-verbose-field: true
