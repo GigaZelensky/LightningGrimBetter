@@ -9,3 +9,4 @@ violation-content:
     - "**Kullanılan Client**: %brand%"
     - "**Gecikme**: %ping%"
     - "**TPS**: %tps%"
+include-verbose-field: true

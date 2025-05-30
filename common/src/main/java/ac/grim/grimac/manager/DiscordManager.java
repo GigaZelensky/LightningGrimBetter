@@ -37,6 +37,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
     private int embedColor;
     private String staticContent = "";
     private String embedTitle = "";
+    private boolean includeVerboseField = true;
 
     @Override
     public void start() {
@@ -61,6 +62,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
             }
 
             embedTitle = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("embed-title", "**Grim Alert**");
+            includeVerboseField = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("include-verbose-field", true);
 
             try {
                 embedColor = Color.decode(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("embed-color", "#00FFFF")).getRGB();
@@ -108,7 +110,7 @@ public class DiscordManager implements StartableInitable, ReloadableInitable {
                 .timestamp(Instant.now())
                 .footer(new EmbedFooter("", "https://grim.ac/images/grim.png"));
 
-        if (!verbose.isEmpty()) {
+        if (includeVerboseField && !verbose.isEmpty()) {
             embed.addFields(new EmbedField("Verbose", MessageUtil.filterDiscordText(verbose), true));
         }
 

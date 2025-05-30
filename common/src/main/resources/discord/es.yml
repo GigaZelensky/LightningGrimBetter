@@ -21,3 +21,4 @@ violation-content:
     - "**Marca del cliente**: %brand%"
     - "**Latencia**: %ping%"
     - "**TPS**: %tps%"
+include-verbose-field: true
