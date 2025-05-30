@@ -13,3 +13,4 @@ violation-content:
     - "**ブランド**: %brand%"
     - "**Ping**: %ping%"
     - "**TPS**: %tps%"
+include-verbose-field: true
