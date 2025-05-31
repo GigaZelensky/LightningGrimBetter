@@ -10,3 +10,4 @@ violation-content:
     - "**Nature du client**: %brand%"
     - "**Latence**: %ping%"
     - "**TPS**: %tps%"
+include-verbose-field: true

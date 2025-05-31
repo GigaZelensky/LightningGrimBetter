@@ -81,7 +81,7 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 9");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 10");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -122,6 +122,9 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
         }
         if (configVersion < 9) {
             newOffsetHandlingAntiKB(config, configString);
+        }
+        if (configVersion < 10) {
+            addDiscordVerboseField();
         }
     }
 
@@ -285,6 +288,21 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
                         "  max-ceiling: 4"
         );
         Files.write(config.toPath(), configString.getBytes());
+    }
+
+    private void addDiscordVerboseField() {
+        File discordFile = new File(GrimAPI.INSTANCE.getGrimPlugin().getDataFolder(), "discord.yml");
+
+        if (discordFile.exists()) {
+            try {
+                String discordString = new String(Files.readAllBytes(discordFile.toPath()));
+                if (!discordString.contains("include-verbose-field")) {
+                    discordString += "\ninclude-verbose-field: true\n";
+                    Files.write(discordFile.toPath(), discordString.getBytes());
+                }
+            } catch (IOException ignored) {
+            }
+        }
     }
 
     @Override

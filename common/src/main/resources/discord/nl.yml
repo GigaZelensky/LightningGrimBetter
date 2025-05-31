@@ -10,3 +10,4 @@ violation-content:
     - "**Client-merk**: %brand%"
     - "**Ping**: %ping%"
     - "**TPS**: %tps%"
+include-verbose-field: true
