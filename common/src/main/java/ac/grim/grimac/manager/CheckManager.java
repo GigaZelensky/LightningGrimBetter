@@ -16,6 +16,7 @@ import ac.grim.grimac.checks.impl.breaking.NoSwingBreak;
 import ac.grim.grimac.checks.impl.breaking.PositionBreakA;
 import ac.grim.grimac.checks.impl.breaking.PositionBreakB;
 import ac.grim.grimac.checks.impl.breaking.RotationBreak;
+import ac.grim.grimac.checks.impl.breaking.AutoTool;
 import ac.grim.grimac.checks.impl.breaking.WrongBreak;
 import ac.grim.grimac.checks.impl.combat.*;
 import ac.grim.grimac.checks.impl.crash.*;
@@ -53,6 +54,7 @@ import ac.grim.grimac.checks.impl.scaffolding.FabricatedPlace;
 import ac.grim.grimac.checks.impl.scaffolding.FarPlace;
 import ac.grim.grimac.checks.impl.scaffolding.InvalidPlaceA;
 import ac.grim.grimac.checks.impl.scaffolding.InvalidPlaceB;
+import ac.grim.grimac.checks.impl.scaffolding.FastPlace;
 import ac.grim.grimac.checks.impl.scaffolding.MultiPlace;
 import ac.grim.grimac.checks.impl.scaffolding.PositionPlace;
 import ac.grim.grimac.checks.impl.scaffolding.RotationPlace;
@@ -171,6 +173,8 @@ public class CheckManager {
                 .put(VehicleA.class, new VehicleA(player))
                 .put(VehicleB.class, new VehicleB(player))
                 .put(VehicleD.class, new VehicleD(player))
+                .put(FastClick.class, new FastClick(player))
+                .put(FastPlace.class, new FastPlace(player))
                 .put(CrashI.class, new CrashI(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
@@ -279,6 +283,7 @@ public class CheckManager {
                 .put(NoSwingBreak.class, new NoSwingBreak(player))
                 .put(FarBreak.class, new FarBreak(player))
                 .put(InvalidBreak.class, new InvalidBreak(player))
+                .put(AutoTool.class, new AutoTool(player))
                 .put(PositionBreakA.class, new PositionBreakA(player))
                 .put(PositionBreakB.class, new PositionBreakB(player))
                 .build();
