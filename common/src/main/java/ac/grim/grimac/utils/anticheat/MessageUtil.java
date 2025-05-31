@@ -105,8 +105,6 @@ public class MessageUtil {
 
     public @NotNull Component miniMessage(@NotNull String string) {
         string = string.replace("%prefix%", GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("prefix", "&bGrim &8»"));
-                // Unescape common sequences when received via commands
-                string = string.replace("\\n", "\n").replace("\\\"", "\"");
 
         // hex codes
         Matcher matcher = HEX_PATTERN.matcher(string);
