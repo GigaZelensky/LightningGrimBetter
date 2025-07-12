@@ -28,6 +28,7 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAttachEntity;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityEffect;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityEquipment;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityPositionSync;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityRelativeMove;
@@ -87,7 +88,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         // Teleports don't interpolate, duplicate 1.17 packets don't interpolate
         if (!isTickPacket(event.getPacketType())) return;
-
+        player.compensatedEntities.entitiesRemovedThisTick.clear();
         boolean isTickingReliably = player.isTickingReliablyFor(3);
 
         PacketEntity playerVehicle = player.compensatedEntities.self.getRiding();
@@ -143,6 +144,9 @@ public class PacketEntityReplication extends Check implements PacketCheck {
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
             WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getEntityMetadata()));
+        } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_EQUIPMENT) {
+            WrapperPlayServerEntityEquipment equipment = new WrapperPlayServerEntityEquipment(event);
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityEquipment(equipment.getEntityId(), equipment.getEquipment()));
         }
 
         // 1.19.3+
@@ -252,7 +256,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             }
 
             if (status.getStatus() >= 24 && status.getStatus() <= 28 && status.getEntityId() == player.entityID) {
-                player.compensatedEntities.self.setOpLevel(status.getStatus() - 24);
+                player.compensatedEntities.self.opLevel = status.getStatus() - 24;
             }
         } else if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
             WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
@@ -376,6 +380,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 for (int integer : destroyEntityIds) {
                     player.compensatedEntities.removeEntity(integer);
                     player.fireworks.removeFirework(integer);
+                    player.compensatedEntities.entitiesRemovedThisTick.add(integer);
                 }
             });
 
@@ -496,7 +501,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             if (entity == null) return;
             if (entity instanceof PacketEntityTrackXRot xRotEntity && yaw != null) {
                 xRotEntity.packetYaw = yaw;
-                xRotEntity.steps = entity.isBoat() ? 10 : 3;
+                xRotEntity.steps = entity.isBoat ? 10 : 3;
             }
 
             entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, player);

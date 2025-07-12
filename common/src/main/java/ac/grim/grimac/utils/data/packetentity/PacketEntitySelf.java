@@ -16,17 +16,13 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.ArrayList;
 
 public class PacketEntitySelf extends PacketEntity {
 
     private final GrimPlayer player;
-    @Getter
-    @Setter
-    int opLevel;
+    public int opLevel;
 
     public PacketEntitySelf(GrimPlayer player) {
         super(player, EntityTypes.PLAYER);
@@ -72,6 +68,7 @@ public class PacketEntitySelf extends PacketEntity {
         final ValuedAttribute movementSpeed = ValuedAttribute.ranged(Attributes.MOVEMENT_SPEED, 0.1f, 0, 1024);
         movementSpeed.with(new WrapperPlayServerUpdateAttributes.Property(Attributes.MOVEMENT_SPEED, 0.1f, new ArrayList<>()));
         trackAttribute(movementSpeed);
+        trackAttribute(ValuedAttribute.ranged(Attributes.ATTACK_DAMAGE, 2, 0, 2048)); // NOTE: Not synced to client currently.
         trackAttribute(ValuedAttribute.ranged(Attributes.ATTACK_SPEED, 4, 0, 1024)
                 .requiredVersion(player, ClientVersion.V_1_9));
         trackAttribute(ValuedAttribute.ranged(Attributes.JUMP_STRENGTH, 0.42f, 0, 32)
@@ -126,7 +123,7 @@ public class PacketEntitySelf extends PacketEntity {
                         return (double) 0.3f;
                     }
 
-                    final int swiftSneak = player.getInventory().getLeggings().getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion());
+                    final int swiftSneak = player.getInventory().getLeggings().getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK);
                     final double clamped = GrimMath.clamp(0.3f + swiftSneak * 0.15f, 0f, 1f);
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21)) {
                         return clamped;

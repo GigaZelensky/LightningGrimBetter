@@ -26,10 +26,10 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.change.PlayerBlockHistory;
-import ac.grim.grimac.utils.chat.ChatUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHappyGhast;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
 import ac.grim.grimac.utils.enums.FluidTag;
@@ -44,7 +44,9 @@ import ac.grim.grimac.utils.math.Location;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
+import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.reflection.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -190,6 +192,7 @@ public class GrimPlayer implements GrimUser {
     public boolean clientClaimsLastOnGround;
     // Set from base tick
     public boolean wasTouchingWater = false;
+    public boolean wasWasTouchingWater = false;
     public boolean wasTouchingLava = false;
     // For slightly reduced vertical lava friction and jumping
     public boolean slightlyTouchingLava = false;
@@ -197,6 +200,7 @@ public class GrimPlayer implements GrimUser {
     public boolean slightlyTouchingWater = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
+    public boolean softHorizontalCollision;
     public boolean horizontalCollision;
     public boolean verticalCollision;
     public boolean clientControlledVerticalCollision;
@@ -265,11 +269,11 @@ public class GrimPlayer implements GrimUser {
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
     public boolean disableGrim = false;
-    // TODO: teleport clear this?
-    public final List<List<Movement>> movementThisTick = new ObjectArrayList<>();
+    public final ArrayDeque<Movement> movementThisTick = new ArrayDeque<>(8);
     public final List<Movement> finalMovementsThisTick = new ObjectArrayList<>();
     public final LongSet visitedBlocks = new LongOpenHashSet();
     private @Nullable UserConnection viaUserConnection;
+    public boolean wasLastPredictionCompleteChecked;
 
     public GrimPlayer(@NonNull User user) {
         this.user = user;
@@ -437,12 +441,17 @@ public class GrimPlayer implements GrimUser {
         final PacketEntity riding = self.getRiding();
         if (riding == null) return (float) self.getAttributeValue(Attributes.STEP_HEIGHT);
 
-        if (riding.isBoat()) {
+        if (riding.isBoat) {
             return 0f;
         }
 
+        float value = (float) riding.getAttributeValue(Attributes.STEP_HEIGHT);
+        if (riding.isHappyGhast) {
+            return ((PacketEntityHappyGhast) riding).isControllingPassenger() ? Math.max(value, 1.0F) : value;
+        }
+
         // Pigs, horses, striders, and other vehicles all have 1 stepping height by default
-        return (float) riding.getAttributeValue(Attributes.STEP_HEIGHT);
+        return value;
     }
 
     public void sendTransaction() {
@@ -508,7 +517,7 @@ public class GrimPlayer implements GrimUser {
         } else {
             textReason = LegacyComponentSerializer.legacySection().serialize(reason);
         }
-        LogUtil.info("Disconnecting " + user.getProfile().getName() + " for " + ChatUtil.stripColor(textReason));
+        LogUtil.info("Disconnecting " + user.getProfile().getName() + " for " + MessageUtil.stripColor(textReason));
         try {
             user.sendPacket(new WrapperPlayServerDisconnect(reason));
         } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
@@ -656,7 +665,7 @@ public class GrimPlayer implements GrimUser {
     @Override
     public int getKeepAlivePing() {
         if (platformPlayer == null) return -1;
-        return PacketEvents.getAPI().getPlayerManager().getPing(platformPlayer);
+        return PacketEvents.getAPI().getPlayerManager().getPing(platformPlayer.getNative());
     }
 
     public SetbackTeleportUtil getSetbackTeleportUtil() {
@@ -693,7 +702,12 @@ public class GrimPlayer implements GrimUser {
             // If we actually need to check vehicle movement
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
                 // And if the vehicle is a type of vehicle that we track
-                if (EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.BOAT) || EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_HORSE) || data.getEntityType() == EntityTypes.PIG || data.getEntityType() == EntityTypes.STRIDER) {
+                if (EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.BOAT) ||
+                        EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_HORSE) ||
+                        data.getEntityType() == EntityTypes.PIG ||
+                        data.getEntityType() == EntityTypes.STRIDER ||
+                        data.getEntityType() == EntityTypes.CAMEL ||
+                        data.getEntityType() == EntityTypes.HAPPY_GHAST) {
                     // We need to set its velocity otherwise it will jump a bit on us, flagging the anticheat
                     // The server does override this with some vehicles. This is intentional.
                     user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
@@ -722,6 +736,15 @@ public class GrimPlayer implements GrimUser {
                 TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);
                 if (data != null) {
                     user.writePacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
+                }
+
+                // vehicle velocity is present after dismounting, this is a workaround for that
+                // otherwise jumping on a horse and then dismounting it will cause false positives
+                // it's just easier to do this rather than dealing with all this transaction splitting bullshit
+                //
+                // TODO: turns out to be a 1.21.2+ client/1.21.2+ server issue
+                if (supportsEndTick()) {
+                    user.writePacket(new WrapperPlayServerEntityVelocity(entityID, new Vector3d()));
                 }
             }
         });
@@ -770,7 +793,11 @@ public class GrimPlayer implements GrimUser {
     public boolean canUseGameMasterBlocks() {
         // This check was added in 1.11
         // 1.11+ players must be in creative and have a permission level at or above 2
-        return getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.self.getOpLevel() >= 2);
+        return getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.self.opLevel >= 2);
+    }
+
+    public boolean isInWaterOrRain() {
+        return compensatedWorld.isRaining || Collisions.hasMaterial(this, boundingBox.copy().expand(0.1f), (block) -> Materials.isWater(CompensatedWorld.blockVersion, block.first()));
     }
 
     @Contract(pure = true)
@@ -911,7 +938,18 @@ public class GrimPlayer implements GrimUser {
                 GrimMath.ceil(box.maxX), GrimMath.ceil(box.maxY), GrimMath.ceil(box.maxZ));
     }
 
-    public record Movement(Vector3d from, Vector3d to) {}
+    public void addMovementThisTick(GrimPlayer.Movement movement) {
+        if (this.movementThisTick.size() >= 100) {
+            GrimPlayer.Movement movement1 = this.movementThisTick.removeFirst();
+            GrimPlayer.Movement movement2 = this.movementThisTick.removeFirst();
+            GrimPlayer.Movement movement3 = new GrimPlayer.Movement(movement1.from(), movement2.to(), false);
+            this.movementThisTick.addFirst(movement3);
+        }
+
+        this.movementThisTick.add(movement);
+    }
+
+    public record Movement(Vector3d from, Vector3d to, boolean axisIndependant) {}
 
     // TODO (Cross-platform) keep track of world at packet level; do not rely on potentially non-lag-compensated platformPlayer.getWorld()
     public Location getLocation() {

@@ -20,9 +20,11 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
+import lombok.experimental.UtilityClass;
 
 import java.util.Optional;
 
+@UtilityClass
 public final class PlayerBaseTick {
 
     public static boolean canEnterPose(GrimPlayer player, Pose pose, double x, double y, double z) {
@@ -108,7 +110,7 @@ public final class PlayerBaseTick {
         double d0 = player.lastY + player.getEyeHeight() - 0.1111111119389534D;
 
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
-        if (riding != null && riding.isBoat() && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
+        if (riding != null && riding.isBoat && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
         }
 
@@ -386,7 +388,8 @@ public final class PlayerBaseTick {
 
     public static void updateInWaterStateAndDoWaterCurrentPushing(GrimPlayer player) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
-        player.wasTouchingWater = updateFluidHeightAndDoFluidPushing(player, FluidTag.WATER, 0.014) && !(riding != null && riding.isBoat());
+        player.wasWasTouchingWater = player.wasTouchingWater;
+        player.wasTouchingWater = updateFluidHeightAndDoFluidPushing(player, FluidTag.WATER, 0.014) && !(riding != null && riding.isBoat);
         if (player.wasTouchingWater)
             player.fallDistance = 0;
     }

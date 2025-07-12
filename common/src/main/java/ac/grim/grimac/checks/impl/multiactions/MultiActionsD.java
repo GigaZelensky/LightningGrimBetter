@@ -7,7 +7,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
-@CheckData(name = "MultiActionsD", description = "Closed inventory while sprinting", experimental = true)
+@CheckData(name = "MultiActionsD", description = "Closed inventory while moving", experimental = true)
 public class MultiActionsD extends Check implements PacketCheck {
     public MultiActionsD(GrimPlayer player) {
         super(player);
@@ -16,7 +16,8 @@ public class MultiActionsD extends Check implements PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
-            if (player.isSprinting && !player.isSwimming && !player.serverOpenedInventoryThisTick && flagAndAlert() && shouldModifyPackets()) {
+            String verbose = MultiActionsC.getVerbose(player);
+            if (!verbose.isEmpty() && flagAndAlert(verbose) && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }
