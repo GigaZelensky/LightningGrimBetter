@@ -185,6 +185,8 @@ debug-pipeline-on-join: false
 
 # Enables experimental checks
 experimental-checks: false
+# Resets how many times a punishment command has executed when the player's VL drops below its threshold
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
