@@ -163,6 +163,8 @@ debug-pipeline-on-join: false
 
 # Enables experimental checks
 experimental-checks: false
+# Reimposta il conteggio di esecuzione della punizione quando il VL del giocatore scende sotto la soglia
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

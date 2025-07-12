@@ -181,6 +181,8 @@ debug-pipeline-on-join: false
 
 # Включает экспериментальные проверки
 experimental-checks: false
+# Сбрасывать количество выполнения наказания, когда VL игрока опускается ниже порога
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

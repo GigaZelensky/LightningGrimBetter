@@ -181,6 +181,8 @@ debug-pipeline-on-join: false
 
 # Active les vérifications expérimentales
 experimental-checks: false
+# Réinitialise le nombre d'exécutions de la sanction lorsque le VL du joueur repasse sous le seuil
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
