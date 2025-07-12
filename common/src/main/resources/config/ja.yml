@@ -194,6 +194,8 @@ debug-pipeline-on-join: false
 
 # 実験的なチェックを有効にします
 experimental-checks: false
+# プレイヤーのVLがしきい値を下回ったときに制裁実行回数をリセット
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

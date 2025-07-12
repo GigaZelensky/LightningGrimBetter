@@ -186,6 +186,8 @@ debug-pipeline-on-join: false
 
 # Habilitar comprobaciones experimentales
 experimental-checks: false
+# Restablece el conteo de ejecuciones del castigo cuando el VL del jugador baja del umbral
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

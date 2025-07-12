@@ -185,6 +185,8 @@ debug-pipeline-on-join: false
 
 # Experimentele controles inschakelen
 experimental-checks: false
+# Reset het aantal keren dat een straf is uitgevoerd wanneer de VL onder de drempel zakt
+reset-punishment-execute-count: true
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

@@ -187,6 +187,8 @@ debug-pipeline-on-join: false
 
 # 启用实验性检查
 experimental-checks: false
+# 当玩家的VL低于阈值时重置头期执行次数
+reset-punishment-execute-count: true
 
 # 取消有问题的格挡
 reset-item-usage-on-item-update: true
