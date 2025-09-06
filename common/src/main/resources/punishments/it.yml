@@ -8,6 +8,8 @@
 # [proxy] - special command to alert to other servers connected to your proxy (BungeeCord/Velocity)
 Punishments:
   Simulation:
+    # Dovremmo azzerare il contatore dei comandi quando i livelli scendono sotto la soglia del comando?
+    reset-execute-counter: true
     remove-violations-after: 300
     checks:
       - "Simulation"

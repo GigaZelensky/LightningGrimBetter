@@ -8,6 +8,8 @@
 # [proxy] - special command to alert to other servers connected to your proxy (BungeeCord/Velocity)
 Punishments:
   Simulation:
+    # Should we reset the command execute counter when the violation level falls below a command's threshold?
+    reset-execute-counter: true
     # After how many seconds should a violation be removed?
     remove-violations-after: 300
     # This section will match all checks with the name,

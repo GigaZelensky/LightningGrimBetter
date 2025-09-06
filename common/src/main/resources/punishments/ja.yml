@@ -8,6 +8,8 @@
 # [proxy] - プロキシに接続された他のサーバーに通知する特別なコマンド（BungeeCord/Velocity用）
 Punishments:
   Simulation:
+    # 違反レベルが閾値を下回ったときに実行回数をリセットしますか？
+    reset-execute-counter: true
     # 何秒後に違反をリセットしますか？
     remove-violations-after: 300
     # このセクションでは、指定した名前と一致するすべてのチェックに対して処罰を設定します

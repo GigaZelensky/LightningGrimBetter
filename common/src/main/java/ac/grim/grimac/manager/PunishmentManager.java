@@ -51,6 +51,7 @@ public class PunishmentManager implements ConfigReloadable {
                 List<String> checks = (List<String>) map.getOrDefault("checks", new ArrayList<>());
                 List<String> commands = (List<String>) map.getOrDefault("commands", new ArrayList<>());
                 int removeViolationsAfter = (int) map.getOrDefault("remove-violations-after", 300);
+                boolean resetExecuteCounter = (boolean) map.getOrDefault("reset-execute-counter", true);
 
                 List<ParsedCommand> parsed = new ArrayList<>();
                 List<AbstractCheck> checksList = new ArrayList<>();
@@ -88,7 +89,7 @@ public class PunishmentManager implements ConfigReloadable {
                     parsed.add(new ParsedCommand(threshold, interval, commandString));
                 }
 
-                groups.add(new PunishGroup(checksList, parsed, removeViolationsAfter * 1000));
+                groups.add(new PunishGroup(checksList, parsed, removeViolationsAfter * 1000, resetExecuteCounter));
             }
         } catch (Exception e) {
             LogUtil.error("Error while loading punishments.yml! This is likely your fault!", e);
@@ -113,9 +114,22 @@ public class PunishmentManager implements ConfigReloadable {
         for (PunishGroup group : groups) {
             if (group.checks.contains(check)) {
                 final int vl = getViolations(group, check);
-                final int violationCount = group.violations.size();
                 for (ParsedCommand command : group.commands) {
                     String cmd = replaceAlertPlaceholders(command.command, vl, check, verbose);
+
+                    if (group.resetExecuteCounter) {
+                        int expected;
+                        if (vl < command.threshold) {
+                            expected = 0;
+                        } else if (command.interval == 0) {
+                            expected = 1;
+                        } else {
+                            expected = 1 + (vl - command.threshold) / command.interval;
+                        }
+                        if (command.executeCount > expected) {
+                            command.executeCount = expected;
+                        }
+                    }
 
                     @Nullable Set<@Nullable PlatformPlayer> verboseListeners = null;
 
@@ -126,11 +140,11 @@ public class PunishmentManager implements ConfigReloadable {
                         verboseListeners = GrimAPI.INSTANCE.getAlertManager().sendVerbose(component, null);
                     }
 
-                    if (violationCount >= command.threshold) {
-                        // 0 means execute once
-                        // Any other number means execute every X interval
-                        boolean inInterval = command.interval == 0 ? (command.executeCount == 0) : (violationCount % command.interval == 0);
-                        if (inInterval) {
+                    // 0 means execute once
+                    // Any other number means execute every X interval
+                    for (; vl >= (command.threshold + (command.interval * command.executeCount)); command.executeCount++) {
+                        if (command.interval == 0 && command.executeCount > 0) break;
+
                             CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, verbose, cmd);
                             GrimAPI.INSTANCE.getEventBus().post(executeEvent);
                             if (executeEvent.isCancelled()) continue;
@@ -138,9 +152,8 @@ public class PunishmentManager implements ConfigReloadable {
                             switch (command.command) {
                                 case "[webhook]" -> GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getDisplayName(), vl);
                                 case "[log]" -> {
-                                    int vls = (int) group.violations.values().stream().filter((e) -> e == check).count();
                                     String verboseWithoutGl = verbose.replaceAll(" /gl .*", "");
-                                    GrimAPI.INSTANCE.getViolationDatabaseManager().logAlert(player, verboseWithoutGl, check.getDisplayName(), vls);
+                                    GrimAPI.INSTANCE.getViolationDatabaseManager().logAlert(player, verboseWithoutGl, check.getDisplayName(), vl);
                                 }
                                 case "[proxy]" -> ProxyAlertMessenger.sendPluginMessage(cmd);
                                 case "[alert]" -> {
@@ -161,9 +174,6 @@ public class PunishmentManager implements ConfigReloadable {
                                         )
                                 );
                             }
-                        }
-
-                        command.executeCount++;
                     }
                 }
             }
@@ -177,11 +187,31 @@ public class PunishmentManager implements ConfigReloadable {
             if (group.checks.contains(check)) {
                 long currentTime = System.currentTimeMillis();
 
+                Iterator<Map.Entry<Long, Check>> it = group.violations.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<Long, Check> entry = it.next();
+                    if (currentTime - entry.getKey() > group.removeViolationsAfter) {
+                        entry.getValue().violations = Math.max(0, entry.getValue().violations - 1);
+                        it.remove();
+                    }
+                }
+
                 group.violations.put(currentTime, check);
-                // Remove violations older than the defined time in the config
-                group.violations.entrySet().removeIf(time -> currentTime - time.getKey() > group.removeViolationsAfter);
             }
         }
+    }
+
+    public void recordExtraViolations(Check check, int amount) {
+        if (amount <= 0) return;
+        long currentTime = System.currentTimeMillis();
+        for (PunishGroup group : groups) {
+            if (group.checks.contains(check)) {
+                for (int i = 0; i < amount; i++) {
+                    group.violations.put(currentTime + i, check);
+                }
+            }
+        }
+        check.violations += amount;
     }
 
     private int getViolations(PunishGroup group, Check check) {
@@ -189,7 +219,7 @@ public class PunishmentManager implements ConfigReloadable {
         for (Check value : group.violations.values()) {
             if (value == check) vl++;
         }
-        return vl;
+        return Math.max(vl, (int) Math.ceil(check.violations));
     }
 }
 
@@ -199,6 +229,7 @@ class PunishGroup {
     public final List<ParsedCommand> commands;
     public final Map<Long, Check> violations = new HashMap<>();
     public final int removeViolationsAfter; // time to remove violations after in milliseconds
+    public final boolean resetExecuteCounter;
 }
 
 @RequiredArgsConstructor

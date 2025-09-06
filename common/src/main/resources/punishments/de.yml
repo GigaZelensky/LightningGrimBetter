@@ -8,6 +8,8 @@
 # [proxy] - spezieller Befehl zur Alarmierung anderer Server, die mit Ihrem Proxy verbunden sind (BungeeCord/Velocity)
 Punishments:
   Simulation:
+    # Soll der Befehlszähler zurückgesetzt werden, wenn die Verstöße unter den Schwellenwert fallen?
+    reset-execute-counter: true
     # Nach wie vielen Sekunden soll ein Verstoß entfernt werden?
     remove-violations-after: 300
     # In diesem Abschnitt werden alle Prüfungen mit dem Namen gefunden,

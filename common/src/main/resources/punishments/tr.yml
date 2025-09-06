@@ -8,6 +8,8 @@
 # [proxy] - Proxy'nize bağlı diğer sunuculara uyarı göndermek için bunu kullanın (BungeeCord/Velocity)
 Punishments:
   Simulation:
+    # İhlal seviyesi komut eşiğinin altına düştüğünde komut sayacı sıfırlansın mı?
+    reset-execute-counter: true
     # Kaç saniye sonra ihlaller kaldırılsın?
     remove-violations-after: 300
     # Bu bölüm, aşağıdaki adlara sahip tüm kontrollerle eşleşecektir,
