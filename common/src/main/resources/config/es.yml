@@ -70,6 +70,8 @@ Simulation:
     # Esto es para prevenir que el jugador obtenga muchas violaciones y no pueda ser capaz de borrarlas
     # Tope de ventaja por defecto (eje x = segundos, eje y = bloque 1/1000): https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    vl-scale: 10
+    max-vls-per-flag: 5
     # Umbral del nivel de violación para el retroceso
     # 1 para el comportamiento antiguo
     setback-violation-threshold: 1

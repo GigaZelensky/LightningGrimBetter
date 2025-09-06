@@ -61,6 +61,8 @@ Simulation:
     max-advantage: 1
     # Limite massimo di vantaggio accumulabile prima di arretrare il giocatore
     max-ceiling: 4
+    vl-scale: 10
+    max-vls-per-flag: 5
     # Soglia del livello di violazione per il setback
     # 1 per il comportamento precedente
     setback-violation-threshold: 1
