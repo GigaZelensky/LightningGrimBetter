@@ -10,6 +10,8 @@ Punishments:
   Simulation:
     # ¿Después de cuantos segundos deberíamos quitar una violación?
     remove-violations-after: 300
+    # Should we reset the command execute counter when the violation level falls below a command's threshold?
+    reset-execute-counter: true
     # Esta sección incluirá todas las comprobaciones con el nombre
     # Para excluir una comprobación que de otro modo coincidiría, pon un signo de exclamación en frente del nombre
     # Por ejemplo: !BadPacketsN

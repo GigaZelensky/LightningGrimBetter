@@ -9,6 +9,8 @@
 Punishments:
   Simulation:
     remove-violations-after: 300
+    # Should we reset the command execute counter when the violation level falls below a command's threshold?
+    reset-execute-counter: true
     checks:
       - "Simulation"
       - "GroundSpoof"
