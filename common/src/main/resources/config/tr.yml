@@ -69,6 +69,13 @@ Simulation:
     # Bu, oyuncunun çok fazla ihlal biriktirmesini ve bunların hepsini temizleyememesini önlemek içindir
     # Varsayılan avantaj tavanı (x ekseni = saniye, y ekseni = 1/1000 blok): https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # Bir bayraktan kazanılan VL artışını oyuncunun avantajına göre ne kadar ölçeklendirmeliyiz?
+    # ≤1 için ölçekleme yok (eski davranış)
+    vl-scale: 1
+    # Her bayrağın verebileceği VL sayısını sınırlar
+    # Bu, yüksek gecikmeli oyuncuların lag dalgalanmaları yüzünden fazla VL almasını önler
+    # -1 devre dışı bırakır
+    max-vls-per-flag: -1
     # Geri alma için ihlal seviyesi eşiği
     # Eski davranış için 1
     setback-violation-threshold: 1

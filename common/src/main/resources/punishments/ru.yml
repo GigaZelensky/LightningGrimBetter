@@ -7,6 +7,8 @@
 # [webhook] - специальная команда для оповещения на discord webhook
 # [proxy] - специальная команда для оповещения других серверов, подключенных к вашему прокси (BungeeCord/Velocity)
 Punishments:
+  # Сбрасывать счётчик выполнений, если уровень опустился ниже порога?
+  reset-execute-counter: true
   Simulation:
     # Через сколько секунд нарушение должно быть удалено?
     remove-violations-after: 300

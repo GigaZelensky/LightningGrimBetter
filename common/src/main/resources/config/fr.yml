@@ -69,6 +69,13 @@ Simulation:
     # Cela vise à empêcher le joueur d'accumuler trop de violations et de ne jamais pouvoir toutes les réinitialiser.
     # Plafond d'avantage par défaut (l"axe x = secondes, l'axe y = 1/1000 de bloc)) : https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # Dans quelle mesure faut-il multiplier le gain de VL d'un flag par l'avantage du joueur ?
+    # ≤1 pour aucune mise à l'échelle (ancien comportement)
+    vl-scale: 1
+    # Limite la quantité de VL que chaque flag peut ajouter
+    # Cela empêche les joueurs à haute latence d'obtenir trop de VL à cause des pics de lag
+    # -1 pour désactiver
+    max-vls-per-flag: -1
     # Seuil du niveau de violation pour le setback
     # 1 pour le comportement ancien
     setback-violation-threshold: 1

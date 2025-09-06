@@ -7,6 +7,8 @@
 # [webhook] - DiscordのWebhookに通知する特別なコマンド
 # [proxy] - プロキシに接続された他のサーバーに通知する特別なコマンド（BungeeCord/Velocity用）
 Punishments:
+  # レベルが閾値を下回ったとき、コマンドの実行回数カウンターをリセットしますか？
+  reset-execute-counter: true
   Simulation:
     # 何秒後に違反をリセットしますか？
     remove-violations-after: 300

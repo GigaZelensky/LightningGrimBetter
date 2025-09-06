@@ -70,6 +70,13 @@ Simulation:
     # Isso serve para previnir o jogador de alcançar violações demais e nunca conseguir se livrar delas.
     # Cela de vantagens padrão (eixo X = segundos, eixo Y = 1/1000 blocos): https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # Quanto devemos escalar o ganho de VL de um flag pelo vantagem do jogador?
+    # ≤1 para não escalar (comportamento antigo)
+    vl-scale: 1
+    # Limita a quantidade de VL que cada flag pode conceder
+    # Isso evita que jogadores com alta latência recebam muitos VLs devido a picos de lag
+    # -1 para desativar
+    max-vls-per-flag: -1
     # Quantas violações para começar a recuar o jogador?
     # 1 para comportamento antigo
     setback-violation-threshold: 1

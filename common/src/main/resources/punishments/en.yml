@@ -7,6 +7,8 @@
 # [webhook] - special command to alert to discord webhook
 # [proxy] - special command to alert to other servers connected to your proxy (BungeeCord/Velocity)
 Punishments:
+  # Should we reset the command execute counter when the violation level falls below a command's threshold?
+  reset-execute-counter: true
   Simulation:
     # After how many seconds should a violation be removed?
     remove-violations-after: 300

@@ -69,6 +69,13 @@ Simulation:
     # Dies soll verhindern, dass der Spieler zu viele Verstöße sammelt und nie in der Lage ist, sie alle zu beseitigen.
     # Standard-Vorteilsgrenze (x-Achse = Sekunden, y-Achse = 1/1000 Block): https://www.desmos.com/calculator/4lovswdarj
     max-ceiling: 4
+    # Wie stark sollen wir den VL-Zuwachs eines Flags anhand des Vorteils des Spielers skalieren?
+    # ≤1 für kein Skalieren (altes Verhalten)
+    vl-scale: 1
+    # Begrenzt die Anzahl der VLs, die ein Flag hinzufügen kann
+    # Dies verhindert, dass Spieler mit hoher Latenz wegen Lagspitzen viele VLs erhalten
+    # -1 zum Deaktivieren
+    max-vls-per-flag: -1
     # Schwellenwert für die Verletzungsstufe für den Rückschlag
     # 1 für das alte Verhalten
     setback-violation-threshold: 1

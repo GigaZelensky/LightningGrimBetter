@@ -7,6 +7,8 @@
 # [webhook] - Commande spéciale pour alerter via un Webhook Discord
 # [proxy] - Commande spéciale pour alerter les autres serveurs connectés à votre proxy (BungeeCord/Velocity)
 Punishments:
+  # Faut-il réinitialiser le compteur d'exécution lorsque le niveau repasse sous le seuil ?
+  reset-execute-counter: true
   Simulation:
     # Au bout de combien de secondes une violation doit-elle être supprimée ?
     remove-violations-after: 300
