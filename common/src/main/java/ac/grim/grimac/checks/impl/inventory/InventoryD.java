@@ -37,7 +37,7 @@ public class InventoryD extends InventoryCheck {
                 VehicleData vehicle = player.vehicleData;
 
                 // Will flag once if player open anything with pressed space bar
-                isJumping = vehicle.nextHorseJump > 0 && horseJumpVerbose++ >= 1;
+                isJumping = !vehicle.pendingJumps.isEmpty() && horseJumpVerbose++ >= 1;
                 isMoving = vehicle.nextVehicleForward != 0 || vehicle.nextVehicleHorizontal != 0;
             } else {
                 MoveVectorData move = findMovement(player.predictedVelocity);

@@ -51,6 +51,7 @@ dependencies {
     }
     implementation(libs.cloud.paper)
     implementation(libs.adventure.platform.bukkit)
+    implementation(libs.grim.bukkit.internal)
 
     implementation(project(":common"))
     shadow(project(":common"))
@@ -79,6 +80,7 @@ bukkit {
         "floodgate",
         "FastLogin",
         "PlaceholderAPI",
+        "ZNPCsPlus",
     )
 
     permissions {
@@ -158,7 +160,7 @@ publishing.publications.create<MavenPublication>("maven") {
 
 tasks {
     runServer {
-        minecraftVersion("1.21.10")
+        minecraftVersion("1.21.11")
     }
 
     shadowJar {

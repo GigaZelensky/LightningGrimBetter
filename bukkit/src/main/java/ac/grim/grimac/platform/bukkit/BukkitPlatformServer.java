@@ -8,7 +8,6 @@ import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
-import java.lang.reflect.InvocationTargetException;
 
 
 public class BukkitPlatformServer implements PlatformServer {
