@@ -232,7 +232,7 @@ public class WorldRayTrace {
     // in previous parts of this check when we didn't check for any obstructions like blocks/entities
     public static @NotNull Pair<@NotNull Double, @NotNull HitData> didRayTraceHit(GrimPlayer player, PacketEntity targetEntity,
                                                                                    List<Pair<Vector3dm, Double>> possibleLookVecsAndEyeHeights,
-                                                                                   Vector3d from) {
+                                                                                   double x, double y, double z) {
         HitData firstObstruction = null;
         double firstObstructionDistanceSq = 0;
 
@@ -241,7 +241,7 @@ public class WorldRayTrace {
             Vector3dm lookVec = vectorDoublePair.first();
             double eye = vectorDoublePair.second();
 
-            Vector3dm eyes = new Vector3dm(from.getX(), from.getY() + eye, from.getZ());
+            Vector3dm eyes = new Vector3dm(x, y + eye, z);
             // this function is completely 0.03 aware
             final HitData hitResult = WorldRayTrace.getNearestHitResult(player, targetEntity, eyes, lookVec);
 

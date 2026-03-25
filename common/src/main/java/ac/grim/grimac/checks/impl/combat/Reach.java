@@ -31,6 +31,7 @@ import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySizeable;
 import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragonPart;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
@@ -311,7 +312,7 @@ public class Reach extends Check implements PacketCheck {
         }
 
         if (hitboxDebuggingEnabled())
-            sendHitboxDebugData(reachEntity, from, lookVecsAndEyeHeights, isPrediction);
+            sendHitboxDebugData(reachEntity, x, y, z, lookVecsAndEyeHeights, isPrediction);
 
         HitData foundHitData = null;
         // If the entity is within range of the player (we'll flag anyway if not, so no point checking blocks in this case)
@@ -319,7 +320,7 @@ public class Reach extends Check implements PacketCheck {
         if (minDistance <= distance - extraSearchDistance && !player.compensatedWorld.isNearHardEntity(player.boundingBox.copy().expand(4))) {
             // we can optimize didRayTraceHit more to only rayTrace up to the maximize distance of all rays that hit to the target...
             // I'm too lazy to do that and we don't need to optimize that much yet so...
-            final @Nullable Pair<Double, HitData> hitResult = WorldRayTrace.didRayTraceHit(player, reachEntity, lookVecsAndEyeHeights, from);
+            final @Nullable Pair<Double, HitData> hitResult = WorldRayTrace.didRayTraceHit(player, reachEntity, lookVecsAndEyeHeights, x, y, z);
             HitData hitData = hitResult.second();
             // If the returned hit result was NOT the target entity we flag the check
             if (hitData instanceof EntityHitData &&
@@ -416,7 +417,7 @@ public class Reach extends Check implements PacketCheck {
     public void handleBlockChange(Vector3i vector3i, WrappedBlockState state) {
         if (blocksChangedThisTick.size() >= 40) return; // Don't let players freeze movement packets to grow this
         // Only do this for nearby blocks
-        if (new Vector3dm(vector3i.x, vector3i.y, vector3i.z).distanceSquared(new Vector3dm(player.x, player.y, player.z)) > 6) return;
+        if (GrimMath.distanceSquared(vector3i.x, vector3i.y, vector3i.z, player.x, player.y, player.z) > 36) return;
         // Only do this if the state really had any world impact
         if (state.equals(player.compensatedWorld.getBlock(vector3i))) return;
         blocksChangedThisTick.add(vector3i);
@@ -426,7 +427,7 @@ public class Reach extends Check implements PacketCheck {
         return player.checkManager.getCheck(HitboxDebugHandler.class).isEnabled();
     }
 
-    private void sendHitboxDebugData(PacketEntity reachEntity, Vector3d from, List<Pair<Vector3dm, Double>> lookVecsAndEyeHeights, boolean isPrediction) {
+    private void sendHitboxDebugData(PacketEntity reachEntity, double x, double y, double z, List<Pair<Vector3dm, Double>> lookVecsAndEyeHeights, boolean isPrediction) {
         Map<Integer, CollisionBox> hitboxes = new HashMap<>();
         for (Int2ObjectMap.Entry<PacketEntity> entry : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
             PacketEntity entity = entry.getValue();
@@ -473,7 +474,7 @@ public class Reach extends Check implements PacketCheck {
         player.checkManager.getCheck(HitboxDebugHandler.class).sendHitboxData(hitboxes,
                 Collections.singleton(player.compensatedEntities.getPacketEntityID(reachEntity)),
                 lookVecsAndEyeHeights,
-                new Vector3dm(from.getX(), from.getY(), from.getZ()),
+                x, y, z,
                 isPrediction, player.compensatedEntities.self.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE));
     }
 
