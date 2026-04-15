@@ -174,7 +174,11 @@ public class MovementTicker {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         // this needs to be looked at for 1.21.2+ (especially when riding entities, as Mojang has changed this logic a few times).
         if (player.getClientVersion() != ClientVersion.V_1_21_4 && (!player.wasTouchingWater && (riding == null || (!riding.isBoat && !riding.isHappyGhast)))) {
-            PlayerBaseTick.updateInWaterStateAndDoWaterCurrentPushing(player);
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_21_11)) {
+                PlayerBaseTick.updateInWaterStateAndDoWaterCurrentPushing(player);
+            } else {
+                PlayerBaseTick.updateFluidInteraction(player);
+            }
         }
 
         if (player.onGround) {
@@ -448,7 +452,7 @@ public class MovementTicker {
                 doLavaMove();
 
                 // Lava movement changed in 1.16
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.slightlyTouchingLava) {
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.getFluidHeight(FluidTag.LAVA) <= 0.4D) {
                     player.clientVelocity = player.clientVelocity.multiply(0.5D, 0.800000011920929D, 0.5D);
                     player.clientVelocity = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity);
                 } else {
@@ -492,7 +496,7 @@ public class MovementTicker {
 
         PacketEntity vehicle = player.getVehicle();
         boolean canFloatWhileRidden = EntityTypeTags.CAN_FLOAT_WHILE_RIDDEN.anyOf(vehicle.type);
-        double fluidHeight = player.fluidHeight.getDouble(FluidTag.WATER);
+        double fluidHeight = player.getFluidHeight(FluidTag.WATER);
         if (canFloatWhileRidden && player.inVehicle() && fluidHeight > 0.4) {
             player.clientVelocity.add(0.0, 0.04F, 0.0);
         }
