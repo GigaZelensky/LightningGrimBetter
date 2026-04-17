@@ -12,7 +12,6 @@ import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 
 import java.util.EnumMap;
-import java.util.Map.Entry;
 
 public class EntityFluidInteraction {
     private final EnumMap<FluidTag, EntityFluidInteraction.Tracker> trackerByFluid = new EnumMap<>(FluidTag.class);
