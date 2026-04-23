@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.event.events.GrimPlayerSetbackEvent;
 import ac.grim.grimac.api.event.events.GrimTeleportEvent;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsN;
@@ -53,6 +54,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
     public final ConcurrentLinkedQueue<TeleportData> pendingTeleports = new ConcurrentLinkedQueue<>();
     private final Random random = new Random();
     private static final GrimTeleportEvent.Channel TELEPORT_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(GrimTeleportEvent.class);
+    private static final GrimPlayerSetbackEvent.Channel PLAYER_SETBACK_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(GrimPlayerSetbackEvent.class);
     // Sync to netty, a player MUST accept a teleport to spawn into the world
     // A teleport is used to end the loading screen.  Some cheats pretend to never end the loading screen
     // in an attempt to disable the anticheat.  Be careful.
@@ -280,8 +282,11 @@ public class SetbackTeleportUtil extends Check implements PostPredictionCheck {
             requiredSetBack = data;
             // Send after tracking to fix race condition
             PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), 0, 0, data.getTeleportData().getFlags().getMask(), teleportId, false));
-            // Allows anticheats to keep track of this outbound teleport for compatibility
-            TELEPORT_CHANNEL.fire(player, teleportId, System.currentTimeMillis());
+            // Dual fire: packet-level signal for anticheat compat (GrimTeleportEvent),
+            // semantic signal for admin/observability consumers (GrimPlayerSetbackEvent).
+            long now = System.currentTimeMillis();
+            TELEPORT_CHANNEL.fire(player, teleportId, now);
+            PLAYER_SETBACK_CHANNEL.fire(player, teleportId, position.getX(), position.getY(), position.getZ(), now);
             player.sendTransaction();
 
             if (data.getVelocity() != null && data.getVelocity().lengthSquared() > 0) {
