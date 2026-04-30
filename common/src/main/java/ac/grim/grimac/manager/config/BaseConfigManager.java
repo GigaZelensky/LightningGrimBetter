@@ -40,7 +40,8 @@ public class BaseConfigManager {
     private String disconnectBlacklistedForge;
     @Getter
     private boolean blockBlacklistedForgeClients;
-
+    @Getter
+    private boolean ignoreProxyViaVersion;
     @Getter
     private boolean disablePongCancelling;
 
@@ -75,7 +76,7 @@ public class BaseConfigManager {
         blockBlacklistedForgeClients = config.getBooleanElse("client-brand.disconnect-blacklisted-forge-versions", true);
         disconnectBlacklistedForge = config.getStringElse("disconnect.blacklisted-forge",
                 "<red>Your forge version is blacklisted due to inbuilt reach hacks.<newline><gold>Versions affected: 1.18.2-1.19.3<newline><newline><red>Please see https://github.com/MinecraftForge/MinecraftForge/issues/9309.");
-
+        ignoreProxyViaVersion = config.getBooleanElse("ignore-proxy-viaversion", false);
         disablePongCancelling = config.getBooleanElse("disable-pong-cancelling", false);
     }
 
