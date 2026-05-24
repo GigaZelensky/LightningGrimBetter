@@ -109,7 +109,7 @@ public class GrimPlayer implements GrimUser {
     // Start transaction handling stuff
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
-    public final Queue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
+    public final Queue<ShortToLongPair> transactionsSent = new ConcurrentLinkedQueue<>();
     public final Set<Short> didWeSendThatTrans = ConcurrentHashMap.newKeySet();
     private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
     public final AtomicInteger lastTransactionSent = new AtomicInteger(0);
@@ -399,10 +399,10 @@ public class GrimPlayer implements GrimUser {
     // But if some error made a client miss a packet, then it won't hurt them too bad.
     // Also it forces players to take knockback
     public boolean addTransactionResponse(short id) {
-        Pair<Short, Long> data = null;
+        ShortToLongPair data = null;
         boolean hasID = false;
         int skipped = 0;
-        for (Pair<Short, Long> iterator : transactionsSent) {
+        for (ShortToLongPair iterator : transactionsSent) {
             if (iterator.first() == id) {
                 hasID = true;
                 break;

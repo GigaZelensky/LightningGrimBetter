@@ -1,6 +1,5 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class ComplexCollisionBox implements CollisionBox {
