@@ -667,8 +667,8 @@ public class CompensatedWorld implements PacketWorld {
         return Materials.isWaterSource(player.getClientVersion(), bukkitBlock);
     }
 
-    public boolean containsLiquid(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data.first()) || data.first().getType() == StateTypes.LAVA);
+    public boolean containsLiquid(SimpleCollisionBox box) {
+        return Collisions.hasMaterial(player, box, (block, x, y, z) -> Materials.isWater(player.getClientVersion(), block) || block.getType() == StateTypes.LAVA);
     }
 
     public float getLavaFluidLevelAt(int x, int y, int z) {
@@ -689,8 +689,8 @@ public class CompensatedWorld implements PacketWorld {
         return (8 - level) / 9f;
     }
 
-    public boolean containsLava(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> data.first().getType() == StateTypes.LAVA);
+    public boolean containsLava(SimpleCollisionBox box) {
+        return Collisions.hasMaterial(player, box, (block, x, y, z) -> block.getType() == StateTypes.LAVA);
     }
 
     public float getWaterFluidLevelAt(double x, double y, double z) {
