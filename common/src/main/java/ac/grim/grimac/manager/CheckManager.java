@@ -324,6 +324,11 @@ public class CheckManager {
     }
 
     @SuppressWarnings("unchecked")
+    public <T extends PacketCheck> T getPreViaPacketCheck(Class<T> check) {
+        return (T) preViaPacketChecks.get(check);
+    }
+
+    @SuppressWarnings("unchecked")
     public <T extends PacketCheck> T getPrePredictionCheck(Class<T> check) {
         return (T) prePredictionChecks.get(check);
     }
