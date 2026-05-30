@@ -41,9 +41,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.*;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.function.Predicate;
 
 public class CheckManagerListener extends PacketListenerAbstract {
@@ -414,24 +411,27 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
 
             if (flying.hasRotationChanged() && !flying.hasPositionChanged() && !flying.isOnGround() && !flying.isHorizontalCollision()) {
-                List<RotationData> rotations = new ArrayList<>();
+                RotationData last = null;
+                int transaction = player.getLastTransactionReceived();
+                float yaw = flying.getLocation().getYaw();
+                float pitch = flying.getLocation().getPitch();
 
                 for (RotationData data : player.pendingRotations) {
-                    rotations.add(data);
+                    if (transaction == data.getTransaction()
+                            && (data.isRelativeYaw() || data.getYaw() == yaw)
+                            // TODO: pitch bounds?
+                            && (data.isRelativePitch() || data.getPitch() == pitch)) {
+                        last = data;
+                    }
+
                     if (!data.isAccepted()) {
                         break;
                     }
                 }
 
-                // reverse to handle the unaccepted possibility first
-                Collections.reverse(rotations);
-
-                for (RotationData data : rotations) {
-                    if (data.getYaw() == flying.getLocation().getYaw() && data.getPitch() == flying.getLocation().getPitch() && data.getTransaction() == player.getLastTransactionReceived()) {
-                        player.packetStateData.lastPacketWasTeleport = true;
-                        data.accept(); // we could be wrong (especially in vehicles), don't remove this
-                        break;
-                    }
+                if (last != null) {
+                    player.packetStateData.lastPacketWasTeleport = true;
+                    last.accept(); // we could be wrong (especially in vehicles), don't remove this
                 }
             }
 
