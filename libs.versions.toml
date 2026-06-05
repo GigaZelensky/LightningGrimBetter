@@ -11,7 +11,7 @@ cloud-processors-requirements = "1.0.0-rc.1"
 # --- Minecraft-Specific APIs ---
 floodgate-api = "2.0-SNAPSHOT"
 geyser-base-api = "1.0.2"
-grim-api = "1.5.0.3-10fed42"
+grim-api = "1.6.0.0"
 packetevents = "2.12.3+e18eca8-SNAPSHOT"
 placeholderapi = "2.11.6"
 viaversion = "5.9.0"
@@ -21,6 +21,7 @@ luckperms = "5.5"
 fastutil = "8.5.15"
 hikaricp = "7.0.2"
 jetbrains-annotations = "24.1.0"
+mongoDriverSync = "5.3.1"
 netty = "4.1.85.Final"
 snakeyaml = "2.2"
 configuralize = "1.4.1" # :slim classifier is applied in build.gradle.kts
@@ -65,6 +66,7 @@ viabackwards = { group = "com.viaversion", name = "viabackwards", version.ref = 
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil"}
 hikaricp = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikaricp" }
 jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
+mongoDriverSync = { group = "org.mongodb", name = "mongodb-driver-sync", version.ref = "mongoDriverSync" }
 netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
 snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }
 
