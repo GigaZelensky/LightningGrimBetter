@@ -73,6 +73,7 @@ dependencies {
     compileOnly(libs.viaversion)
     compileOnly(libs.viabackwards)
     compileOnly(libs.netty)
+    compileOnly(libs.luckperms)
 }
 
 publishing.publications.create<MavenPublication>("maven") {

@@ -613,20 +613,28 @@ public class GrimPlayer implements GrimUser {
     // TODO: Create a configurable timer for this
     @Override
     public void updatePermissions() {
-        if (platformPlayer == null) return;
-        try {
-            GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(), () -> {
-                this.noModifyPacketPermission = platformPlayer.hasPermission("grim.nomodifypacket");
-                this.noSetbackPermission = platformPlayer.hasPermission("grim.nosetback");
+        runSafely(() -> {
+            try {
+                boolean noModifyPacketPermission = hasPermission("grim.nomodifypacket");
+                boolean noSetbackPermission = hasPermission("grim.nosetback");
+                boolean disabledPermission = hasPermission("grim.disabled");
+                boolean exemptPermission = hasPermission("grim.exempt");
                 for (AbstractCheck check : checkManager.allChecks.values()) {
                     if (check instanceof Check c) {
                         c.updatePermissions();
                     }
                 }
-            }, null, 0);
-        } catch (Exception e) {
-            LogUtil.error("Failed to update permissions for " + getName() + "!", e);
-        }
+
+                this.noModifyPacketPermission = noModifyPacketPermission;
+                this.noSetbackPermission = noSetbackPermission;
+                this.disableGrim = disabledPermission;
+                if (exemptPermission) {
+                    GrimAPI.INSTANCE.getPlayerDataManager().exemptUser(user);
+                }
+            } catch (Exception e) {
+                LogUtil.error("Failed to update permissions for " + getName() + "!", e);
+            }
+        });
     }
 
     public boolean isPointThree() {

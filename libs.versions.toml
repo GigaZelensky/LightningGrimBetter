@@ -15,6 +15,7 @@ grim-api = "1.5.0.3-10fed42"
 packetevents = "2.12.3+e18eca8-SNAPSHOT"
 placeholderapi = "2.11.6"
 viaversion = "5.9.0"
+luckperms = "5.5"
 
 # --- General Java Utilities ---
 fastutil = "8.5.15"
@@ -43,6 +44,7 @@ cloud-processors-requirements = { group = "org.incendo", name = "cloud-processor
 # --- Minecraft Server APIs ---
 paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper-api" }
 placeholderapi = { group = "me.clip", name = "placeholderapi", version.ref = "placeholderapi" }
+luckperms = { group = "net.luckperms", name = "api", version.ref = "luckperms" }
 
 # --- Minecraft-Specific Libraries ---
 configuralize = { group = "github.scarsz", name = "configuralize", version.ref = "configuralize" }
