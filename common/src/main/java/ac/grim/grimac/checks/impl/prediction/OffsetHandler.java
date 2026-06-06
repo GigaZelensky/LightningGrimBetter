@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @CheckData(name = "Simulation", stableKey = "grim.prediction.simulation", verboseVersion = 1, decay = 0.02)
 public class OffsetHandler extends Check implements PostPredictionCheck {
-    public static final VerboseSchema V = VerboseSchema.of("offset:f64", "flagId:vi");
+    public static final VerboseSchema V = VerboseSchema.of("offset:f32");
 
     private static final AtomicInteger flags = new AtomicInteger(0);
     // Config
@@ -59,7 +59,7 @@ public class OffsetHandler extends Check implements PostPredictionCheck {
                 }
 
                 String verbose = humanFormattedOffset + " /gl " + flagId;
-                if (flag(V.write(verbose()).f64(offset).vi(flagId))) {
+                if (flag(V.write(verbose()).f32((float) offset))) {
                     if (alert(verbose)) {
                         flags.incrementAndGet(); // This debug was sent somewhere
                         predictionComplete.setIdentifier(flagId);
