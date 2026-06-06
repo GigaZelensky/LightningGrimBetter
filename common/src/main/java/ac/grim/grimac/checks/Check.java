@@ -112,6 +112,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
 
     public final boolean flag(@NotNull VerboseBuf verbose) {
         Objects.requireNonNull(verbose, "verbose");
+        // Invokes VerboseSchema's drift-completion validation via length() when assertions are enabled.
         assert verbose.length() >= 0;
 
         if (player.disableGrim || (experimental && !player.isExperimentalChecks()) || exemptPermission)

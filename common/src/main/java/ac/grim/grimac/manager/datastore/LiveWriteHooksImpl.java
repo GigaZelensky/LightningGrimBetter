@@ -119,7 +119,7 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
                 .vl(vl)
                 .occurredEpochMs(now)
                 .verboseData(payload)
-                .verboseFormat(VerboseFormat.TEXT));
+                .verboseFormat(VerboseFormat.STRUCTURED_V1));
     }
 
     @Override
