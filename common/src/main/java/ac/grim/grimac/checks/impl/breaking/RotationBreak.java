@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.breaking;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
@@ -21,8 +22,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@CheckData(name = "RotationBreak", stableKey = "grim.breaking.rotation_break", experimental = true)
+@CheckData(name = "RotationBreak", stableKey = "grim.breaking.rotation_break", verboseVersion = 1, experimental = true)
 public class RotationBreak extends Check implements BlockBreakCheck {
+    public static final VerboseSchema V = VerboseSchema.of("preFlying:bool", "action:str");
+
     private double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
     private boolean ignorePost = false;
 
@@ -40,7 +43,9 @@ public class RotationBreak extends Check implements BlockBreakCheck {
         if (flagBuffer > 0 && !didRayTraceHit(blockBreak)) {
             ignorePost = true;
             // If the player hit and has flagged this check recently
-            if (flagAndAlert("pre-flying, action=" + blockBreak.action) && shouldModifyPackets()) {
+            String action = String.valueOf(blockBreak.action);
+            String verbose = "pre-flying, action=" + action;
+            if (flag(V.write(verbose()).bool(true).str(action)) && alert(verbose) && shouldModifyPackets()) {
                 blockBreak.cancel();
             }
         }
@@ -63,7 +68,11 @@ public class RotationBreak extends Check implements BlockBreakCheck {
             flagBuffer = Math.max(0, flagBuffer - 0.1);
         } else {
             flagBuffer = 1;
-            flagAndAlert("post-flying, action=" + blockBreak.action);
+            String action = String.valueOf(blockBreak.action);
+            String verbose = "post-flying, action=" + action;
+            if (flag(V.write(verbose()).bool(false).str(action))) {
+                alert(verbose);
+            }
         }
     }
 

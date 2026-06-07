@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
@@ -14,8 +15,10 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import org.jetbrains.annotations.NotNull;
 
-@CheckData(name = "AirLiquidBreak", stableKey = "grim.breaking.air_liquid_break", description = "Breaking a block that cannot be broken")
+@CheckData(name = "AirLiquidBreak", stableKey = "grim.breaking.air_liquid_break", verboseVersion = 1, description = "Breaking a block that cannot be broken")
 public class AirLiquidBreak extends Check implements BlockBreakCheck {
+    public static final VerboseSchema V = VerboseSchema.of("block:str", "action:str");
+
     public final boolean noFireHitbox = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2);
     private int lastTick;
     private boolean didLastFlag;
@@ -61,9 +64,16 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
                 // or the client claims to have broken an unbreakable block
                 || block.getHardness() == -1.0f && blockBreak.action == DiggingAction.FINISHED_DIGGING;
 
-        if (invalid && flagAndAlert("block=" + block.getName() + ", type=" + blockBreak.action) && shouldModifyPackets()) {
-            didLastFlag = true;
-            blockBreak.cancel();
+        if (invalid) {
+            String blockName = block.getName();
+            String action = String.valueOf(blockBreak.action);
+            String verbose = "block=" + blockName + ", type=" + action;
+            if (flag(V.write(verbose()).str(blockName).str(action)) && alert(verbose) && shouldModifyPackets()) {
+                didLastFlag = true;
+                blockBreak.cancel();
+            } else {
+                didLastFlag = false;
+            }
         } else {
             didLastFlag = false;
         }

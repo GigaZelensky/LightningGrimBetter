@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.breaking;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
@@ -8,8 +9,10 @@ import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 
-@CheckData(name = "InvalidBreak", stableKey = "grim.breaking.invalid_break", description = "Sent impossible block face id")
+@CheckData(name = "InvalidBreak", stableKey = "grim.breaking.invalid_break", verboseVersion = 1, description = "Sent impossible block face id")
 public class InvalidBreak extends Check implements BlockBreakCheck {
+    public static final VerboseSchema V = VerboseSchema.of("faceId:zz", "action:str");
+
     public InvalidBreak(GrimPlayer player) {
         super(player);
     }
@@ -22,7 +25,9 @@ public class InvalidBreak extends Check implements BlockBreakCheck {
 
         if (blockBreak.faceId < 0 || blockBreak.faceId > 5) {
             // ban
-            if (flagAndAlert("face=" + blockBreak.faceId + ", action=" + blockBreak.action) && shouldModifyPackets()) {
+            String action = String.valueOf(blockBreak.action);
+            String verbose = "face=" + blockBreak.faceId + ", action=" + action;
+            if (flag(V.write(verbose()).zz(blockBreak.faceId).str(action)) && alert(verbose) && shouldModifyPackets()) {
                 blockBreak.cancel();
             }
         }

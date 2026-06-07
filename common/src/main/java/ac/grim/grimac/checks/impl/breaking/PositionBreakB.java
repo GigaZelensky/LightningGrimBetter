@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.breaking;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
@@ -9,8 +10,10 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
-@CheckData(name = "PositionBreakB", stableKey = "grim.breaking.position_break_b")
+@CheckData(name = "PositionBreakB", stableKey = "grim.breaking.position_break_b", verboseVersion = 1)
 public class PositionBreakB extends Check implements BlockBreakCheck {
+    public static final VerboseSchema V = VerboseSchema.of("lastFace:str", "action:str");
+
     private final boolean allowLegacyFace = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10);
     private BlockFace lastFace;
 
@@ -27,7 +30,12 @@ public class PositionBreakB extends Check implements BlockBreakCheck {
         }
 
         if (lastFace != null) {
-            flagAndAlert("lastFace=" + lastFace + ", action=" + blockBreak.action);
+            String lastFaceName = String.valueOf(lastFace);
+            String action = String.valueOf(blockBreak.action);
+            String verbose = "lastFace=" + lastFaceName + ", action=" + action;
+            if (flag(V.write(verbose()).str(lastFaceName).str(action))) {
+                alert(verbose);
+            }
         }
 
         if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) {

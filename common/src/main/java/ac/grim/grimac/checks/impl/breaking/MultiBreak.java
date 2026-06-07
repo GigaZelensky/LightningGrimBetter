@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.breaking;
 
+import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
@@ -15,9 +16,12 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "MultiBreak", stableKey = "grim.breaking.multi_break", experimental = true)
+@CheckData(name = "MultiBreak", stableKey = "grim.breaking.multi_break", verboseVersion = 1, experimental = true)
 public class MultiBreak extends Check implements BlockBreakCheck {
-    private final List<String> flags = new ArrayList<>();
+    public static final VerboseSchema V = VerboseSchema.of(
+            "face:str", "lastFace:str", "pos:str", "lastPos:str");
+
+    private final List<FlagData> flags = new ArrayList<>();
     private boolean hasBroken;
     private BlockFace lastFace;
     private Vector3i lastPos;
@@ -33,15 +37,19 @@ public class MultiBreak extends Check implements BlockBreakCheck {
         }
 
         if (hasBroken && (blockBreak.face != lastFace || !blockBreak.position.equals(lastPos))) {
-            final String verbose = "face=" + blockBreak.face + ", lastFace=" + lastFace
-                    + ", pos=" + MessageUtil.toUnlabledString(blockBreak.position)
-                    + ", lastPos=" + MessageUtil.toUnlabledString(lastPos);
+            final String face = String.valueOf(blockBreak.face);
+            final String previousFace = String.valueOf(lastFace);
+            final String pos = MessageUtil.toUnlabledString(blockBreak.position);
+            final String previousPos = MessageUtil.toUnlabledString(lastPos);
+            final String verbose = "face=" + face + ", lastFace=" + previousFace
+                    + ", pos=" + pos
+                    + ", lastPos=" + previousPos;
             if (!player.canSkipTicks()) {
-                if (flagAndAlert(verbose) && shouldModifyPackets()) {
+                if (flag(V.write(verbose()).str(face).str(previousFace).str(pos).str(previousPos)) && alert(verbose) && shouldModifyPackets()) {
                     blockBreak.cancel();
                 }
             } else {
-                flags.add(verbose);
+                flags.add(new FlagData(verbose, face, previousFace, pos, previousPos));
             }
         }
 
@@ -62,11 +70,17 @@ public class MultiBreak extends Check implements BlockBreakCheck {
         if (!player.canSkipTicks()) return;
 
         if (player.isTickingReliablyFor(3)) {
-            for (String verbose : flags) {
-                flagAndAlert(verbose);
+            for (FlagData data : flags) {
+                String verbose = data.verbose();
+                if (flag(V.write(verbose()).str(data.face()).str(data.previousFace()).str(data.pos()).str(data.previousPos()))) {
+                    alert(verbose);
+                }
             }
         }
 
         flags.clear();
+    }
+
+    private record FlagData(String verbose, String face, String previousFace, String pos, String previousPos) {
     }
 }
