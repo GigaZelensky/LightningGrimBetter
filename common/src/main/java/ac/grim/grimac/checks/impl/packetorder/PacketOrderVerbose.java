@@ -8,8 +8,10 @@ import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.api.storage.verbose.VerboseSink;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.internal.storage.checks.CheckRegistry;
 import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +27,7 @@ public final class PacketOrderVerbose {
         registerStructured(registry, checks, PacketOrderD.class, PacketOrderD.V,
                 formatter(PacketOrderD.V, PacketOrderVerbose::renderPacketOrderD));
         registerStructured(registry, checks, PacketOrderE.class, PacketOrderE.V,
-                formatter(PacketOrderE.V, (in, ctx, out) -> out.text(in.rstr())));
+                formatter(PacketOrderE.V, (in, ctx, out) -> out.text(PacketOrderE.verbose(in.rvi()))));
         registerStructured(registry, checks, PacketOrderF.class, PacketOrderF.V,
                 formatter(PacketOrderF.V, PacketOrderVerbose::renderPacketOrderF));
         registerStructured(registry, checks, PacketOrderG.class, PacketOrderG.V,
@@ -37,9 +39,9 @@ public final class PacketOrderVerbose {
         registerStructured(registry, checks, PacketOrderL.class, PacketOrderL.V,
                 formatter(PacketOrderL.V, (in, ctx, out) -> out.text(PacketOrderL.verbose(in.rvi()))));
         registerStructured(registry, checks, PacketOrderO.class, PacketOrderO.V,
-                formatter(PacketOrderO.V, (in, ctx, out) -> out.text("type=").text(in.rstr())));
+                formatter(PacketOrderO.V, (in, ctx, out) -> out.text("type=").text(VerboseCodecs.packetName(ctx, in.rzz()))));
         registerStructured(registry, checks, PacketOrderP.class, PacketOrderP.V,
-                formatter(PacketOrderP.V, (in, ctx, out) -> out.text(PacketOrderP.verbose(in.rvi(), in.rstr()))));
+                formatter(PacketOrderP.V, (in, ctx, out) -> out.text(PacketOrderP.verbose(in.rvi(), VerboseCodecs.packetName(ctx, in.rzz())))));
     }
 
     private static void renderPacketOrderC(
@@ -49,16 +51,16 @@ public final class PacketOrderVerbose {
         int kind = in.rvi();
         int requiredEntity = in.rzz();
         int entity = in.rzz();
-        String requiredHand = in.rstr();
-        String hand = in.rstr();
+        int requiredHand = in.rvi();
+        int hand = in.rvi();
         boolean requiredSneaking = in.rbool();
         boolean sneaking = in.rbool();
 
         if (kind == PacketOrderC.KIND_MISMATCH) {
             out.text("requiredEntity=").num(requiredEntity)
                     .text(", entity=").num(entity)
-                    .text(", requiredHand=").text(requiredHand)
-                    .text(", hand=").text(hand)
+                    .text(", requiredHand=").text(VerboseCodecs.enumName(requiredHand, InteractionHand.values()))
+                    .text(", hand=").text(VerboseCodecs.enumName(hand, InteractionHand.values()))
                     .text(", requiredSneaking=").bool(requiredSneaking)
                     .text(", sneaking=").bool(sneaking);
         } else {

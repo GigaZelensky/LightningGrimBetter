@@ -8,8 +8,12 @@ import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.api.storage.verbose.VerboseSink;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.internal.storage.checks.CheckRegistry;
 import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
+import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction.Action;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,13 +38,13 @@ public final class BadPacketsVerbose {
         registerStructured(registry, checks, BadPacketsL.class, BadPacketsL.V,
                 formatter(BadPacketsL.V, BadPacketsVerbose::renderBadPacketsL));
         registerStructured(registry, checks, BadPacketsO.class, BadPacketsO.V,
-                formatter(BadPacketsO.V, (in, ctx, out) -> out.text("id=").text(in.rstr())));
+                formatter(BadPacketsO.V, (in, ctx, out) -> out.text("id=").num(VerboseCodecs.rSignedLong(in))));
         registerStructured(registry, checks, BadPacketsP.class, BadPacketsP.V,
                 formatter(BadPacketsP.V, BadPacketsVerbose::renderBadPacketsP));
         registerStructured(registry, checks, BadPacketsQ.class, BadPacketsQ.V,
                 formatter(BadPacketsQ.V, (in, ctx, out) ->
                         out.text("boost=").num(in.rzz())
-                                .text(", action=").text(in.rstr())
+                                .text(", action=").text(VerboseCodecs.enumName(in.rvi(), Action.values()))
                                 .text(", entity=").num(in.rzz())));
         registerSchema(registry, checks, BadPacketsR.class, BadPacketsR.V);
         registerStructured(registry, checks, BadPacketsT.class, BadPacketsT.V,
@@ -59,19 +63,17 @@ public final class BadPacketsVerbose {
             @NotNull VerboseRenderContext ctx,
             @NotNull VerboseSink out) {
         out.text("pos=")
-                .num(in.rzz()).text(", ")
-                .num(in.rzz()).text(", ")
-                .num(in.rzz())
+                .text(VerboseCodecs.rMcBlockPos(in))
                 .text(", face=").num(in.rzz())
                 .text(", sequence=").num(in.rzz())
-                .text(", action=").text(in.rstr());
+                .text(", action=").text(VerboseCodecs.lowerEnumName(in.rvi(), DiggingAction.values()));
     }
 
     private static void renderBadPacketsP(
             @NotNull VerboseBuf in,
             @NotNull VerboseRenderContext ctx,
             @NotNull VerboseSink out) {
-        String clickType = in.rstr();
+        String clickType = VerboseCodecs.lowerEnumName(in.rvi(), WindowClickType.values());
         int button = in.rzz();
         boolean hasContainer = in.rbool();
         int container = in.rzz();
@@ -85,17 +87,15 @@ public final class BadPacketsVerbose {
             @NotNull VerboseBuf in,
             @NotNull VerboseRenderContext ctx,
             @NotNull VerboseSink out) {
-        int x = in.rzz();
-        int y = in.rzz();
-        int z = in.rzz();
+        String pos = VerboseCodecs.rMcBlockPos(in);
         float cursorX = in.rf32();
         float cursorY = in.rf32();
         float cursorZ = in.rf32();
         boolean item = in.rbool();
         int sequence = in.rzz();
         out.text(String.format(
-                "xyz=%s, %s, %s, cursor=%s, %s, %s, item=%s, sequence=%s",
-                x, y, z, cursorX, cursorY, cursorZ, item, sequence));
+                "xyz=%s, cursor=%s, %s, %s, item=%s, sequence=%s",
+                pos, cursorX, cursorY, cursorZ, item, sequence));
     }
 
     private static void registerStructured(

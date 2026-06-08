@@ -8,8 +8,10 @@ import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.api.storage.verbose.VerboseSink;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.internal.storage.checks.CheckRegistry;
 import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +24,7 @@ public final class ScaffoldingVerbose {
                 formatter(DuplicateRotPlace.V, ScaffoldingVerbose::renderDuplicateRotPlace));
         registerStructured(registry, checks, FabricatedPlace.class, FabricatedPlace.V,
                 formatter(FabricatedPlace.V, (in, ctx, out) ->
-                        out.text(String.format("cursor=%s limit=%.16f", in.rstr(), in.rf64()))));
+                        out.text(String.format("cursor=%s limit=%.16f", VerboseCodecs.rCursor3fObject(in), in.rf64()))));
         registerStructured(registry, checks, InvalidPlaceB.class, InvalidPlaceB.V,
                 formatter(InvalidPlaceB.V, (in, ctx, out) -> out.text("direction=").num(in.rzz())));
         registerStructured(registry, checks, MultiPlace.class, MultiPlace.V,
@@ -45,12 +47,12 @@ public final class ScaffoldingVerbose {
             @NotNull VerboseBuf in,
             @NotNull VerboseRenderContext ctx,
             @NotNull VerboseSink out) {
-        out.text("face=").text(in.rstr())
-                .text(", lastFace=").text(in.rstr())
-                .text(", cursor=").text(in.rstr())
-                .text(", lastCursor=").text(in.rstr())
-                .text(", pos=").text(in.rstr())
-                .text(", lastPos=").text(in.rstr());
+        out.text("face=").text(VerboseCodecs.enumName(in.rvi(), BlockFace.values()))
+                .text(", lastFace=").text(VerboseCodecs.enumName(in.rvi(), BlockFace.values()))
+                .text(", cursor=").text(VerboseCodecs.rCursor3f(in))
+                .text(", lastCursor=").text(VerboseCodecs.rCursor3f(in))
+                .text(", pos=").text(VerboseCodecs.rMcBlockPos(in))
+                .text(", lastPos=").text(VerboseCodecs.rMcBlockPos(in));
     }
 
     private static void registerStructured(

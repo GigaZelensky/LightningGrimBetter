@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.badpackets;
 import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -10,9 +11,9 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Cli
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction.Action;
 
-@CheckData(name = "BadPacketsQ", stableKey = "grim.badpackets.invalid_horse_jump", verboseVersion = 1)
+@CheckData(name = "BadPacketsQ", stableKey = "grim.badpackets.invalid_horse_jump", verboseVersion = 2)
 public class BadPacketsQ extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of("boost:zz", "action:str", "entity:zz");
+    public static final VerboseSchema V = VerboseSchema.of(2, "boost:zz", "action:enum", "entity:zz");
 
     public BadPacketsQ(final GrimPlayer player) {
         super(player);
@@ -27,9 +28,9 @@ public class BadPacketsQ extends Check implements PacketCheck {
                     || wrapper.getEntityId() != player.entityID
                     || wrapper.getAction() != Action.START_JUMPING_WITH_HORSE && wrapper.getJumpBoost() != 0) {
                 int boost = wrapper.getJumpBoost();
-                String action = String.valueOf(wrapper.getAction());
+                int action = VerboseCodecs.enumOrdinal(wrapper.getAction());
                 int entity = wrapper.getEntityId();
-                if (flagAndAlert(V.write(verbose()).zz(boost).str(action).zz(entity)) && shouldModifyPackets()) {
+                if (flagAndAlert(V.write(verbose()).zz(boost).vi(action).zz(entity)) && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

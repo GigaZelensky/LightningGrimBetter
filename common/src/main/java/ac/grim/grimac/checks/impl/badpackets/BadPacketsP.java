@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.badpackets;
 import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -12,10 +13,10 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 
-@CheckData(name = "BadPacketsP", stableKey = "grim.badpackets.invalid_click", verboseVersion = 1, description = "Invalid window click packet", experimental = true)
+@CheckData(name = "BadPacketsP", stableKey = "grim.badpackets.invalid_click", verboseVersion = 2, description = "Invalid window click packet", experimental = true)
 public class BadPacketsP extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of(
-            "clickType:str", "button:zz", "hasContainer:bool", "container:zz");
+    public static final VerboseSchema V = VerboseSchema.of(2,
+            "clickType:enum", "button:zz", "hasContainer:bool", "container:zz");
 
     private int containerType = -1;
     private int containerId = -1;
@@ -52,9 +53,9 @@ public class BadPacketsP extends Check implements PacketCheck {
 
             // Allowing this to false flag to debug and find issues faster
             if (flag) {
-                String clickTypeName = clickType.toString().toLowerCase();
                 boolean hasContainer = wrapper.getWindowId() == containerId;
-                if (flagAndAlert(V.write(verbose()).str(clickTypeName).zz(button).bool(hasContainer).zz(containerType))
+                int clickTypeId = VerboseCodecs.enumOrdinal(clickType);
+                if (flagAndAlert(V.write(verbose()).vi(clickTypeId).zz(button).bool(hasContainer).zz(containerType))
                         && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();

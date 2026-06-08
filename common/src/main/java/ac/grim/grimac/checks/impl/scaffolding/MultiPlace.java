@@ -2,9 +2,9 @@ package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -15,10 +15,13 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "MultiPlace", stableKey = "grim.scaffolding.multi_place", verboseVersion = 1, description = "Placed multiple blocks in a tick", experimental = true)
+@CheckData(name = "MultiPlace", stableKey = "grim.scaffolding.multi_place", verboseVersion = 2, description = "Placed multiple blocks in a tick", experimental = true)
 public class MultiPlace extends BlockPlaceCheck {
-    public static final VerboseSchema V = VerboseSchema.of(
-            "face:str", "lastFace:str", "cursor:str", "lastCursor:str", "pos:str", "lastPos:str");
+    public static final VerboseSchema V = VerboseSchema.of(2,
+            "face:enum", "lastFace:enum",
+            "cursorX:f32", "cursorY:f32", "cursorZ:f32",
+            "lastCursorX:f32", "lastCursorY:f32", "lastCursorZ:f32",
+            "posXZ:vl", "posY:zz", "lastPosXZ:vl", "lastPosY:zz");
 
     private final List<FlagData> flags = new ArrayList<>();
     private boolean hasPlaced;
@@ -37,19 +40,20 @@ public class MultiPlace extends BlockPlaceCheck {
         final Vector3i pos = place.position;
 
         if (hasPlaced && (face != lastFace || !cursor.equals(lastCursor) || !pos.equals(lastPos))) {
-            final String faceName = String.valueOf(face);
-            final String lastFaceName = String.valueOf(lastFace);
-            final String cursorText = MessageUtil.toUnlabledString(cursor);
-            final String lastCursorText = MessageUtil.toUnlabledString(lastCursor);
-            final String posText = MessageUtil.toUnlabledString(pos);
-            final String lastPosText = MessageUtil.toUnlabledString(lastPos);
+            final int faceId = VerboseCodecs.enumOrdinal(face);
+            final int lastFaceId = VerboseCodecs.enumOrdinal(lastFace);
             if (!player.canSkipTicks()) {
-                if (flagAndAlert(V.write(verbose()).str(faceName).str(lastFaceName).str(cursorText).str(lastCursorText).str(posText).str(lastPosText))
+                var buf = V.write(verbose()).vi(faceId).vi(lastFaceId);
+                VerboseCodecs.cursor3f(buf, cursor);
+                VerboseCodecs.cursor3f(buf, lastCursor);
+                VerboseCodecs.mcBlockPos(buf, pos);
+                VerboseCodecs.mcBlockPos(buf, lastPos);
+                if (flagAndAlert(buf)
                         && shouldModifyPackets() && shouldCancel()) {
                     place.resync();
                 }
             } else {
-                flags.add(new FlagData(faceName, lastFaceName, cursorText, lastCursorText, posText, lastPosText));
+                flags.add(new FlagData(faceId, lastFaceId, cursor, lastCursor, pos, lastPos));
             }
         }
 
@@ -72,7 +76,12 @@ public class MultiPlace extends BlockPlaceCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (FlagData data : flags) {
-                flagAndAlert(V.write(verbose()).str(data.face()).str(data.lastFace()).str(data.cursor()).str(data.lastCursor()).str(data.pos()).str(data.lastPos()));
+                var buf = V.write(verbose()).vi(data.face()).vi(data.lastFace());
+                VerboseCodecs.cursor3f(buf, data.cursor());
+                VerboseCodecs.cursor3f(buf, data.lastCursor());
+                VerboseCodecs.mcBlockPos(buf, data.pos());
+                VerboseCodecs.mcBlockPos(buf, data.lastPos());
+                flagAndAlert(buf);
             }
         }
 
@@ -80,11 +89,11 @@ public class MultiPlace extends BlockPlaceCheck {
     }
 
     private record FlagData(
-            String face,
-            String lastFace,
-            String cursor,
-            String lastCursor,
-            String pos,
-            String lastPos) {
+            int face,
+            int lastFace,
+            Vector3f cursor,
+            Vector3f lastCursor,
+            Vector3i pos,
+            Vector3i lastPos) {
     }
 }

@@ -8,8 +8,10 @@ import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.api.storage.verbose.VerboseSink;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.internal.storage.checks.CheckRegistry;
 import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +52,7 @@ public final class CrashVerbose {
             @NotNull VerboseBuf in,
             @NotNull VerboseRenderContext ctx,
             @NotNull VerboseSink out) {
-        String clickType = in.rstr();
+        String clickType = VerboseCodecs.enumName(in.rvi(), WindowClickType.values());
         int button = in.rzz();
         boolean hasSlot = in.rbool();
         int slot = in.rzz();

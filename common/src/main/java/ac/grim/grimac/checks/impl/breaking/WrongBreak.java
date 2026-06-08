@@ -3,9 +3,9 @@ package ac.grim.grimac.checks.impl.breaking;
 import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.BlockBreakCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -16,9 +16,10 @@ import com.github.retrooper.packetevents.util.Vector3i;
 
 import static ac.grim.grimac.utils.nmsutil.BlockBreakSpeed.getBlockDamage;
 
-@CheckData(name = "WrongBreak", stableKey = "grim.breaking.wrong_break", verboseVersion = 1)
+@CheckData(name = "WrongBreak", stableKey = "grim.breaking.wrong_break", verboseVersion = 2)
 public class WrongBreak extends Check implements BlockBreakCheck {
-    public static final VerboseSchema V = VerboseSchema.of("action:str", "lastPos:str", "pos:str");
+    public static final VerboseSchema V = VerboseSchema.of(2,
+            "action:enum", "lastPosPresent:bool", "lastPosXZ:vl", "lastPosY:zz", "posXZ:vl", "posY:zz");
 
     private final int exemptedY = player.getClientVersion().isOlderThan(ClientVersion.V_1_8) ? 255 : (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14) ? -1 : 4095);
     private boolean lastBlockWasInstantBreak = false;
@@ -59,10 +60,10 @@ public class WrongBreak extends Check implements BlockBreakCheck {
             if (!shouldExempt(blockBreak.block, pos.y) && !pos.equals(lastBlock)) {
                 // https://github.com/GrimAnticheat/Grim/issues/1512
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4) || (!lastBlockWasInstantBreak && pos.equals(lastCancelledBlock))) {
-                    String action = "CANCELLED_DIGGING";
-                    String lastPos = MessageUtil.toUnlabledString(lastBlock);
-                    String currentPos = MessageUtil.toUnlabledString(pos);
-                    if (flagAndAlert(V.write(verbose()).str(action).str(lastPos).str(currentPos))) {
+                    var buf = V.write(verbose()).vi(VerboseCodecs.enumOrdinal(DiggingAction.CANCELLED_DIGGING));
+                    VerboseCodecs.nullableMcBlockPos(buf, lastBlock);
+                    VerboseCodecs.mcBlockPos(buf, pos);
+                    if (flagAndAlert(buf)) {
                         if (shouldModifyPackets()) {
                             blockBreak.cancel();
                         }
@@ -81,10 +82,10 @@ public class WrongBreak extends Check implements BlockBreakCheck {
 
             // when a player looks away from the mined block, they send a cancel, and if they look at it again, they don't send another start. (thanks mojang!)
             if (!pos.equals(lastCancelledBlock) && (!lastBlockWasInstantBreak || player.getClientVersion().isOlderThan(ClientVersion.V_1_14_4)) && !pos.equals(lastBlock)) {
-                String action = "FINISHED_DIGGING";
-                String lastPos = MessageUtil.toUnlabledString(lastBlock);
-                String currentPos = MessageUtil.toUnlabledString(pos);
-                if (flagAndAlert(V.write(verbose()).str(action).str(lastPos).str(currentPos))) {
+                var buf = V.write(verbose()).vi(VerboseCodecs.enumOrdinal(DiggingAction.FINISHED_DIGGING));
+                VerboseCodecs.nullableMcBlockPos(buf, lastBlock);
+                VerboseCodecs.mcBlockPos(buf, pos);
+                if (flagAndAlert(buf)) {
                     if (shouldModifyPackets()) {
                         blockBreak.cancel();
                     }

@@ -8,8 +8,11 @@ import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.api.storage.verbose.VerboseSink;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.internal.storage.checks.CheckRegistry;
 import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
+import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,8 +23,8 @@ public final class BreakingVerbose {
     public static void register(@NotNull VerboseRegistry registry, @NotNull CheckRegistry checks) {
         registerStructured(registry, checks, AirLiquidBreak.class, AirLiquidBreak.V,
                 formatter(AirLiquidBreak.V, (in, ctx, out) ->
-                        out.text("block=").text(in.rstr())
-                                .text(", type=").text(in.rstr())));
+                        out.text("block=").text(VerboseCodecs.stateTypeName(in.rvi()))
+                                .text(", type=").text(VerboseCodecs.enumName(in.rvi(), DiggingAction.values()))));
         registerStructured(registry, checks, FarBreak.class, FarBreak.V,
                 formatter(FarBreak.V, (in, ctx, out) ->
                         out.text(String.format("distance=%.2f", in.rf64()))));
@@ -30,24 +33,24 @@ public final class BreakingVerbose {
         registerStructured(registry, checks, InvalidBreak.class, InvalidBreak.V,
                 formatter(InvalidBreak.V, (in, ctx, out) ->
                         out.text("face=").num(in.rzz())
-                                .text(", action=").text(in.rstr())));
+                                .text(", action=").text(VerboseCodecs.enumName(in.rvi(), DiggingAction.values()))));
         registerStructured(registry, checks, MultiBreak.class, MultiBreak.V,
                 formatter(MultiBreak.V, BreakingVerbose::renderMultiBreak));
         registerStructured(registry, checks, PositionBreakA.class, PositionBreakA.V,
                 formatter(PositionBreakA.V, (in, ctx, out) ->
-                        out.text("action=").text(in.rstr())
-                                .text(", face=").text(in.rstr())));
+                        out.text("action=").text(VerboseCodecs.enumName(in.rvi(), DiggingAction.values()))
+                                .text(", face=").text(VerboseCodecs.enumName(in.rvi(), BlockFace.values()))));
         registerStructured(registry, checks, PositionBreakB.class, PositionBreakB.V,
                 formatter(PositionBreakB.V, (in, ctx, out) ->
-                        out.text("lastFace=").text(in.rstr())
-                                .text(", action=").text(in.rstr())));
+                        out.text("lastFace=").text(VerboseCodecs.enumName(in.rvi(), BlockFace.values()))
+                                .text(", action=").text(VerboseCodecs.enumName(in.rvi(), DiggingAction.values()))));
         registerStructured(registry, checks, RotationBreak.class, RotationBreak.V,
                 formatter(RotationBreak.V, BreakingVerbose::renderRotationBreak));
         registerStructured(registry, checks, WrongBreak.class, WrongBreak.V,
                 formatter(WrongBreak.V, (in, ctx, out) ->
-                        out.text("action=").text(in.rstr())
-                                .text(", last=").text(in.rstr())
-                                .text(", pos=").text(in.rstr())));
+                        out.text("action=").text(VerboseCodecs.enumName(in.rvi(), DiggingAction.values()))
+                                .text(", last=").text(VerboseCodecs.rNullableMcBlockPos(in))
+                                .text(", pos=").text(VerboseCodecs.rMcBlockPos(in))));
     }
 
     private static void renderFastBreak(
@@ -58,7 +61,7 @@ public final class BreakingVerbose {
         long delay = in.rvl();
         double diff = in.rf64();
         double balance = in.rf64();
-        String type = in.rstr();
+        String type = VerboseCodecs.stateTypeName(in.rvi());
         if (delayMode) {
             out.text("delay=").text(Double.toString((double) delay)).text("ms, type=").text(type);
         } else {
@@ -70,10 +73,10 @@ public final class BreakingVerbose {
             @NotNull VerboseBuf in,
             @NotNull VerboseRenderContext ctx,
             @NotNull VerboseSink out) {
-        out.text("face=").text(in.rstr())
-                .text(", lastFace=").text(in.rstr())
-                .text(", pos=").text(in.rstr())
-                .text(", lastPos=").text(in.rstr());
+        out.text("face=").text(VerboseCodecs.enumName(in.rvi(), BlockFace.values()))
+                .text(", lastFace=").text(VerboseCodecs.enumName(in.rvi(), BlockFace.values()))
+                .text(", pos=").text(VerboseCodecs.rMcBlockPos(in))
+                .text(", lastPos=").text(VerboseCodecs.rMcBlockPos(in));
     }
 
     private static void renderRotationBreak(
@@ -82,7 +85,7 @@ public final class BreakingVerbose {
             @NotNull VerboseSink out) {
         boolean preFlying = in.rbool();
         out.text(preFlying ? "pre-flying" : "post-flying")
-                .text(", action=").text(in.rstr());
+                .text(", action=").text(VerboseCodecs.enumName(in.rvi(), DiggingAction.values()));
     }
 
     private static void registerStructured(

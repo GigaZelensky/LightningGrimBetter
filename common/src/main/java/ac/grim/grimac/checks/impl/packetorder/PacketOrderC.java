@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.storage.verbose.VerboseSchema;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -14,14 +15,14 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
-@CheckData(name = "PacketOrderC", stableKey = "grim.packetorder.interact_order", verboseVersion = 1)
+@CheckData(name = "PacketOrderC", stableKey = "grim.packetorder.interact_order", verboseVersion = 2)
 public class PacketOrderC extends Check implements PacketCheck {
-    public static final VerboseSchema V = VerboseSchema.of(
+    public static final VerboseSchema V = VerboseSchema.of(2,
             "kind:vi",
             "requiredEntity:zz",
             "entity:zz",
-            "requiredHand:str",
-            "hand:str",
+            "requiredHand:enum",
+            "hand:enum",
             "requiredSneaking:bool",
             "sneaking:bool");
 
@@ -77,22 +78,20 @@ public class PacketOrderC extends Check implements PacketCheck {
                                 .vi(KIND_SKIPPED_INTERACT_AT)
                                 .zz(0)
                                 .zz(0)
-                                .str("")
-                                .str("")
+                                .vi(0)
+                                .vi(0)
                                 .bool(false)
                                 .bool(false)) && shouldModifyPackets()) {
                             event.setCancelled(true);
                             player.onPacketCancel();
                         }
                     } else if (packet.getEntityId() != requiredEntity || packet.getHand() != requiredHand || sneaking != requiredSneaking) {
-                        String requiredHandName = String.valueOf(requiredHand);
-                        String handName = String.valueOf(packet.getHand());
                         if (flagAndAlert(V.write(verbose())
                                 .vi(KIND_MISMATCH)
                                 .zz(requiredEntity)
                                 .zz(packet.getEntityId())
-                                .str(requiredHandName)
-                                .str(handName)
+                                .vi(VerboseCodecs.enumOrdinal(requiredHand))
+                                .vi(VerboseCodecs.enumOrdinal(packet.getHand()))
                                 .bool(requiredSneaking)
                                 .bool(sneaking)) && shouldModifyPackets()) {
                             event.setCancelled(true);
@@ -108,8 +107,8 @@ public class PacketOrderC extends Check implements PacketCheck {
                                 .vi(KIND_SKIPPED_INTERACT)
                                 .zz(0)
                                 .zz(0)
-                                .str("")
-                                .str("")
+                                .vi(0)
+                                .vi(0)
                                 .bool(false)
                                 .bool(false)) && shouldModifyPackets()) {
                             event.setCancelled(true);
@@ -132,8 +131,8 @@ public class PacketOrderC extends Check implements PacketCheck {
                         .vi(KIND_SKIPPED_INTERACT_TICK)
                         .zz(0)
                         .zz(0)
-                        .str("")
-                        .str("")
+                        .vi(0)
+                        .vi(0)
                         .bool(false)
                         .bool(false));
             }
