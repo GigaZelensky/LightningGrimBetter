@@ -46,7 +46,11 @@ public final class BadPacketsVerbose {
                         out.text("boost=").num(in.rzz())
                                 .text(", action=").text(VerboseCodecs.enumName(in.rvi(), Action.values()))
                                 .text(", entity=").num(in.rzz())));
-        registerSchema(registry, checks, BadPacketsR.class, BadPacketsR.V);
+        registerStructured(registry, checks, BadPacketsR.class, BadPacketsR.V,
+                formatter(BadPacketsR.V, (in, ctx, out) ->
+                        out.text("time=").num(in.rvl())
+                                .text("ms, lst=").num(in.rvl())
+                                .text("ms, positions=").num(in.rvi())));
         registerStructured(registry, checks, BadPacketsT.class, BadPacketsT.V,
                 formatter(BadPacketsT.V, (in, ctx, out) ->
                         out.text(String.format("%.5f/%.5f/%.5f", in.rf64(), in.rf64(), in.rf64()))));
