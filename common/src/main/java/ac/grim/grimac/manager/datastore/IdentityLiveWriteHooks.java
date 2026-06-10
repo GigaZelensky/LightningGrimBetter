@@ -45,6 +45,16 @@ final class IdentityLiveWriteHooks implements LiveWriteHooks {
     }
 
     @Override
+    public void recordFlagData(
+            @NotNull UUID playerUuid,
+            @NotNull AbstractCheck check,
+            double vl,
+            byte @Nullable [] verboseData,
+            long now,
+            @NotNull SessionTracker.ClientMeta meta) {
+    }
+
+    @Override
     public void onJoinFromUserLogin(@NotNull PlatformPlayer player, @NotNull User user, long now) {
         onJoin(player.getUniqueId(), player.getName(), now, SessionTracker.ClientMeta.empty());
     }
@@ -58,5 +68,13 @@ final class IdentityLiveWriteHooks implements LiveWriteHooks {
             @NotNull AbstractCheck check,
             double vl,
             @Nullable String verbose) {
+    }
+
+    @Override
+    public void recordFlagDataFromCheck(
+            @NotNull GrimPlayer player,
+            @NotNull AbstractCheck check,
+            double vl,
+            byte @Nullable [] verboseData) {
     }
 }
