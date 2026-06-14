@@ -18,7 +18,7 @@ public class BadPacketsS extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION
                 && !new WrapperPlayClientWindowConfirmation(event).isAccepted()
-                && flagAndAlert() && shouldModifyPackets()) {
+                && flag() && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
         }

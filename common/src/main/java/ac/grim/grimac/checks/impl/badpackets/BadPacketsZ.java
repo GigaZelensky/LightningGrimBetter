@@ -23,7 +23,7 @@ public class BadPacketsZ extends Check implements PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_INPUT) {
             if (sent) {
-                flagAndAlert();
+                flag();
             }
 
             sent = true;

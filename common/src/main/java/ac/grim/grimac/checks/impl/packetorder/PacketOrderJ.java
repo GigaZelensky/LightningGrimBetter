@@ -22,7 +22,7 @@ public class PacketOrderJ extends Check implements PostPredictionCheck {
             // we don't check stabbing here because you don't need to target an entity to stab
             if (player.packetOrderProcessor.isAttacking() && !player.packetOrderProcessor.isInteracting()) {
                 if (!player.canSkipTicks()) {
-                    if (flagAndAlert() && shouldModifyPackets()) {
+                    if (flag() && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }
@@ -39,7 +39,7 @@ public class PacketOrderJ extends Check implements PostPredictionCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (; invalid >= 1; invalid--) {
-                flagAndAlert();
+                flag();
             }
         }
 

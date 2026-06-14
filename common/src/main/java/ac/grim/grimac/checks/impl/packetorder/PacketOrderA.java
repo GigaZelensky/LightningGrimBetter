@@ -26,7 +26,7 @@ public class PacketOrderA extends Check implements PostPredictionCheck {
             if ((clickType == WindowClickType.PICKUP || clickType == WindowClickType.PICKUP_ALL) && player.packetOrderProcessor.isQuickMoveClicking()
                     || clickType == WindowClickType.QUICK_MOVE && player.packetOrderProcessor.isPickUpClicking()) {
                 if (!player.canSkipTicks()) {
-                    if (flagAndAlert() && shouldModifyPackets()) {
+                    if (flag() && shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
                     }
@@ -43,7 +43,7 @@ public class PacketOrderA extends Check implements PostPredictionCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (; invalid >= 1; invalid--) {
-                flagAndAlert();
+                flag();
             }
         }
 

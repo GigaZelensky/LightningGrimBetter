@@ -29,7 +29,7 @@ public class AimModulo360 extends Check implements RotationCheck {
         }
 
         if (player.yaw < 360 && player.yaw > -360 && Math.abs(rotationUpdate.getDeltaXRot()) > 320 && Math.abs(lastDeltaYaw) < 30) {
-            flagAndAlert();
+            flag();
         } else {
             reward();
         }

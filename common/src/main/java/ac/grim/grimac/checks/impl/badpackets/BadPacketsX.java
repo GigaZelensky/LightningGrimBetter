@@ -32,7 +32,7 @@ public class BadPacketsX extends Check implements PostPredictionCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (; flags > 0; flags--) {
-                flagAndAlertWithSetback();
+                flagWithSetback();
             }
         }
 
@@ -50,7 +50,7 @@ public class BadPacketsX extends Check implements PostPredictionCheck {
             switch (new WrapperPlayClientEntityAction(event).getAction()) {
                 case START_SNEAKING, STOP_SNEAKING -> {
                     if (sneak) {
-                        if (player.canSkipTicks() || flagAndAlert()) {
+                        if (player.canSkipTicks() || flag()) {
                             flags++;
                         }
                     }
@@ -63,7 +63,7 @@ public class BadPacketsX extends Check implements PostPredictionCheck {
                     }
 
                     if (sprint) {
-                        if (player.canSkipTicks() || flagAndAlert()) {
+                        if (player.canSkipTicks() || flag()) {
                             flags++;
                         }
                     }

@@ -27,7 +27,7 @@ public class PacketOrderM extends Check implements PostPredictionCheck {
                 interacting = true;
                 if (usingWithoutInteract) {
                     if (!player.canSkipTicks()) {
-                        if (flagAndAlert() && shouldModifyPackets()) {
+                        if (flag() && shouldModifyPackets()) {
                             event.setCancelled(true);
                             player.onPacketCancel();
                         }
@@ -59,7 +59,7 @@ public class PacketOrderM extends Check implements PostPredictionCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (; invalid >= 1; invalid--) {
-                flagAndAlert();
+                flag();
             }
         }
 

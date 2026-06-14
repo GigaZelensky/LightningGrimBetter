@@ -23,7 +23,7 @@ public class ChatA extends Check implements PacketCheck {
             WrapperPlayClientTabComplete wrapper = new WrapperPlayClientTabComplete(event);
             String text = wrapper.getText();
             if (text.equals("/") || text.trim().isEmpty()) {
-                if (flagAndAlert("")) {
+                if (flag("")) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

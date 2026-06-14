@@ -24,7 +24,7 @@ public class PacketOrderN extends BlockPlaceCheck {
         placing = true;
         if (usingWithoutPlacing) {
             if (!player.canSkipTicks()) {
-                if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
+                if (flag() && shouldModifyPackets() && shouldCancel()) {
                     place.resync();
                 }
             } else {
@@ -56,7 +56,7 @@ public class PacketOrderN extends BlockPlaceCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (; invalid >= 1; invalid--) {
-                flagAndAlert();
+                flag();
             }
         }
 

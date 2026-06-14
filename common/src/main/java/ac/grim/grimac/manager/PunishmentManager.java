@@ -6,7 +6,6 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.config.ConfigReloadable;
 import ac.grim.grimac.api.event.events.CommandExecuteEvent;
 import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
@@ -163,8 +162,8 @@ public class PunishmentManager implements ConfigReloadable {
                             switch (command.command) {
                                 case "[webhook]" -> GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, renderedVerbose, check.getDisplayName(), vl);
                                 case "[log]" -> {
-                                    // Binary-verbose checks store from flag(VerboseBuf); avoid an extra legacy text row.
-                                    if (!usesStructuredVerbose(check)) {
+                                    // Binary flags already stored a row; avoid an extra legacy text row.
+                                    if (!check.isLastFlagStoredBinaryVerbose()) {
                                         String verboseWithoutGl = renderedVerbose.replaceAll(" /gl .*", "");
                                         GrimAPI.INSTANCE.getDataStoreLifecycle().liveWriteHooks()
                                                 .recordFlagFromCheck(player, check, vl, verboseWithoutGl);
@@ -211,11 +210,6 @@ public class PunishmentManager implements ConfigReloadable {
         } catch (Throwable ignored) {
             return "";
         }
-    }
-
-    private static boolean usesStructuredVerbose(Check check) {
-        CheckData data = check.getClass().getAnnotation(CheckData.class);
-        return data != null && data.verboseVersion() >= 1;
     }
 
     private static void advanceBoundary(ParsedCommand command, int violationCount) {

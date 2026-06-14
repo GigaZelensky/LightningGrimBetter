@@ -22,7 +22,7 @@ public class TimerLimit extends Timer {
         if (timerBalanceRealTime > System.nanoTime()) {
             // If timer check already flagged, don't flag.
             if (!event.isCancelled()) {
-                if (flagAndAlert() && shouldSetback()) {
+                if (flag() && shouldSetback()) {
                     player.getSetbackTeleportUtil().executeNonSimulatingSetback();
                 }
             }
