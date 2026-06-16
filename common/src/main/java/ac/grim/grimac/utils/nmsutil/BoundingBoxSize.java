@@ -78,6 +78,12 @@ public final class BoundingBoxSize {
             return 0.85f;
         } else if (type == EntityTypes.IRON_GOLEM) {
             return 1.4f;
+        } else if (type == EntityTypes.SULFUR_CUBE) { // TODO: viaversion
+            if (packetEntity instanceof PacketEntitySizeable sizeable) {
+                return 0.49f * sizeable.size;
+            }
+
+            return 0.49f;
         } else if (type == EntityTypes.MAGMA_CUBE) {
             if (packetEntity instanceof PacketEntitySizeable sizeable) {
                 float size = sizeable.size;
@@ -320,6 +326,12 @@ public final class BoundingBoxSize {
             return 1.87f;
         } else if (type == EntityTypes.TROPICAL_FISH) {
             return 0.4f;
+        } else if (type == EntityTypes.SULFUR_CUBE) { // TODO: viaversion
+            if (packetEntity instanceof PacketEntitySizeable sizeable) {
+                return 0.49f * sizeable.size;
+            }
+
+            return 0.49f;
         } else if (type == EntityTypes.MAGMA_CUBE) {
             if (packetEntity instanceof PacketEntitySizeable sizeable) {
                 float size = sizeable.size;
