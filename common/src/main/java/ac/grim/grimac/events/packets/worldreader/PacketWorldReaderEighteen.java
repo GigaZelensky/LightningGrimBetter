@@ -17,6 +17,7 @@ public class PacketWorldReaderEighteen extends BasePacketWorldReader {
     private static final ChunkReader_v1_18 CHUNK_READER_V_1_18 = new ChunkReader_v1_18();
     private static final ServerVersion SERVER_VERSION = PacketEvents.getAPI().getServerManager().getVersion();
     private static final boolean PRE_1_21_5 = SERVER_VERSION.isOlderThan(ServerVersion.V_1_21_5);
+    private static final boolean READ_TILE_ENTITIES = SERVER_VERSION.isNewerThanOrEquals(ServerVersion.V_26_2);
 
     // Mojang decided to include lighting in this packet.  It's inefficient to read it, so we replace PacketEvents logic.
     @Override
@@ -50,7 +51,7 @@ public class PacketWorldReaderEighteen extends BasePacketWorldReader {
         }
 
         TileEntity[] tileEntities = null;
-        if (SERVER_VERSION.isNewerThanOrEquals(ServerVersion.V_26_2)) {
+        if (READ_TILE_ENTITIES) {
             int tileEntityCount = wrapper.readVarInt();
             tileEntities = new TileEntity[tileEntityCount];
             for (int i = 0; i < tileEntityCount; i++) {
