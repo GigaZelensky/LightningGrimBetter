@@ -112,6 +112,7 @@ public class MovementTicker {
             player.clientVelocity = new Vector3dm();
         }
 
+        double deltaX = player.clientVelocity.getX(), deltaY = player.clientVelocity.getY(), deltaZ = player.clientVelocity.getZ();
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2)) {
             boolean xAxis = !GrimMath.equal(inputVel.getX(), collide.getX());
             boolean zAxis = !GrimMath.equal(inputVel.getZ(), collide.getZ());
@@ -218,7 +219,7 @@ public class MovementTicker {
             Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
             Vector3d to = new Vector3d(player.x, player.y, player.z);
 
-            player.addMovementThisTick(new GrimPlayer.Movement(from, to, new Vector3d(inputVel.getX(), inputVel.getY(), inputVel.getZ())));
+            player.addMovementThisTick(new GrimPlayer.Movement(from, to, new Vector3d(deltaX, deltaY, deltaZ)));
         }
 
         // This is where vanilla moves the bounding box and sets it
@@ -327,7 +328,7 @@ public class MovementTicker {
             if (player.wasTouchingWater) {
                 float swimSpeed = 0.02F;
                 if (player.depthStriderLevel > 0.0F) {
-                    swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / 3.0F;
+                    swimSpeed += (((float) player.speed) - swimSpeed) * player.depthStriderLevel / 3.0F;
                 }
                 playerSpeed = swimSpeed;
             } else if (player.wasTouchingLava) {

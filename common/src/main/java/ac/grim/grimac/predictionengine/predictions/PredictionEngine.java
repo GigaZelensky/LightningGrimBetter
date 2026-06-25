@@ -542,7 +542,8 @@ public class PredictionEngine {
 
         // Handle the player landing within 0.03 movement, which resets Y velocity
         if (player.uncertaintyHandler.onGroundUncertain && vector.vector.getY() < 0 && !player.uncertaintyHandler.influencedByBouncyBlock()) {
-            double bounceY = BlockProperties.getVelocityAfterVerticalCollision(player, minVector.getY(), 0.0);
+            double movementY = Math.max(minVector.getY(), -player.getMovementThreshold());
+            double bounceY = BlockProperties.getVelocityAfterVerticalCollision(player, minVector.getY(), movementY);
             if (bounceY < 0) {
                 minVector.setY(bounceY);
             } else {
