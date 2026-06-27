@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
 
@@ -111,6 +112,7 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
         // backups (<name>.v<oldVersion>.bak) preserve operator-rollback
         // evidence across stacked migration steps.
         runConfigUpdates();
+        ensureLightningCombatPunishments();
 
         try {
             config.loadAll();
@@ -118,6 +120,72 @@ public class ConfigManagerFileImpl implements ConfigManager, BasicReloadable {
             throw new RuntimeException("Failed to load config", e);
         }
     }
+
+    private void ensureLightningCombatPunishments() {
+        File punishments = getConfigFile("punishments.yml");
+        if (!punishments.exists()) return;
+        try {
+            String before = Files.readString(punishments.toPath());
+            String after = ensureLightningCombatPunishmentGroups(before);
+            if (!after.equals(before)) {
+                Files.writeString(punishments.toPath(), after);
+                LogUtil.info("Added missing WallHit/EntityPierce punishment groups to punishments.yml");
+            }
+        } catch (IOException e) {
+            LogUtil.warn("Failed to add Lightning combat punishment groups: " + e);
+        }
+    }
+
+    static String ensureLightningCombatPunishmentGroups(String configString) {
+        if (!hasPunishmentsRoot(configString)) return configString;
+
+        StringBuilder out = new StringBuilder(configString);
+        if (!configString.endsWith("\n")) out.append('\n');
+
+        boolean changed = false;
+        if (!hasPunishmentGroup(configString, "WallHit")) {
+            out.append('\n').append(WALL_HIT_PUNISHMENT_GROUP);
+            changed = true;
+        }
+        if (!hasPunishmentGroup(configString, "EntityPierce")) {
+            out.append('\n').append(ENTITY_PIERCE_PUNISHMENT_GROUP);
+            changed = true;
+        }
+
+        return changed ? out.toString() : configString;
+    }
+
+    private static boolean hasPunishmentsRoot(String configString) {
+        return Pattern.compile("(?m)^Punishments:\\s*$").matcher(configString).find();
+    }
+
+    private static boolean hasPunishmentGroup(String configString, String groupName) {
+        return Pattern.compile("(?m)^  " + Pattern.quote(groupName) + ":\\s*$").matcher(configString).find();
+    }
+
+    private static final String WALL_HIT_PUNISHMENT_GROUP = """
+              WallHit:
+                remove-violations-after: 300
+                checks:
+                  - "WallHit"
+                commands:
+                  - "10:5 [alert]"
+                  - "10:5 [webhook]"
+                  - "10:5 [proxy]"
+                  - "10:5 [log]"
+            """;
+
+    private static final String ENTITY_PIERCE_PUNISHMENT_GROUP = """
+              EntityPierce:
+                remove-violations-after: 300
+                checks:
+                  - "EntityPierce"
+                commands:
+                  - "15:10 [alert]"
+                  - "15:10 [webhook]"
+                  - "15:10 [proxy]"
+                  - "15:10 [log]"
+            """;
 
     private void upgrade() {
         File config = new File(GrimAPI.INSTANCE.getGrimPlugin().getDataFolder(), "config.yml");
