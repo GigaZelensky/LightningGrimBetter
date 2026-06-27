@@ -10,7 +10,7 @@ import ac.grim.grimac.utils.data.VehicleData;
 
 import java.util.StringJoiner;
 
-@CheckData(name = "InventoryD", setback = 1, decay = 0.25)
+@CheckData(name = "InventoryD", stableKey = "grim.inventory.move_open", setback = 1, decay = 0.25)
 public class InventoryD extends InventoryCheck {
     private int horseJumpVerbose;
 

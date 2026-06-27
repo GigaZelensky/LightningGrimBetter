@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "ElytraE", description = "Started gliding while flying", experimental = true)
+@CheckData(name = "ElytraE", stableKey = "grim.elytra.flying", description = "Started gliding while flying", experimental = true)
 public class ElytraE extends Check implements PostPredictionCheck {
     private boolean setback;
 
@@ -27,7 +27,7 @@ public class ElytraE extends Check implements PostPredictionCheck {
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION
                 && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA
                 && player.isFlying
-                && flagAndAlert()
+                && flag()
         ) {
             setback = true;
             if (shouldModifyPackets()) {

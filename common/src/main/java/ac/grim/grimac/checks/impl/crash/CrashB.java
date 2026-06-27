@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 
-@CheckData(name = "CrashB", description = "Sent creative mode inventory click packets while not in creative mode")
+@CheckData(name = "CrashB", stableKey = "grim.crash.creative_while_not_creative", description = "Sent creative mode inventory click packets while not in creative mode")
 public class CrashB extends Check implements PacketCheck {
     public CrashB(GrimPlayer player) {
         super(player);
@@ -20,7 +20,7 @@ public class CrashB extends Check implements PacketCheck {
             if (player.gamemode != GameMode.CREATIVE) {
                 event.setCancelled(true);
                 player.onPacketCancel();
-                flagAndAlert(); // Could be transaction split, no need to setback though
+                flag(); // Could be transaction split, no need to setback though
             }
         }
     }

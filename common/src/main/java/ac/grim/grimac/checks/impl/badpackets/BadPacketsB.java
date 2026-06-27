@@ -6,7 +6,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
-@CheckData(name = "BadPacketsB", description = "Ignored set rotation packet")
+@CheckData(name = "BadPacketsB", stableKey = "grim.badpackets.ignored_rotation", description = "Ignored set rotation packet")
 public class BadPacketsB extends Check implements PacketCheck {
 
     public BadPacketsB(final GrimPlayer player) {
@@ -19,7 +19,7 @@ public class BadPacketsB extends Check implements PacketCheck {
             player.pendingRotations.removeIf(data -> {
                 if (player.getLastTransactionReceived() > data.getTransaction()) {
                     if (!data.isAccepted()) {
-                        flagAndAlert();
+                        flag();
                     }
 
                     return true;

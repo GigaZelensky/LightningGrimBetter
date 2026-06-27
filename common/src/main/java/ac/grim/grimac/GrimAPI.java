@@ -2,16 +2,24 @@ package ac.grim.grimac;
 
 import ac.grim.grimac.api.event.EventBus;
 import ac.grim.grimac.api.plugin.GrimPlugin;
+import ac.grim.grimac.api.storage.backend.BackendRegistry;
 import ac.grim.grimac.internal.plugin.resolver.GrimExtensionManager;
 import ac.grim.grimac.internal.event.OptimizedEventBus;
+import ac.grim.grimac.internal.storage.backend.BackendRegistryImpl;
+import ac.grim.grimac.internal.storage.backend.memory.InMemoryBackendProvider;
+import ac.grim.grimac.internal.storage.backend.mongo.MongoBackendProvider;
+import ac.grim.grimac.internal.storage.backend.mysql.MysqlBackendProvider;
+import ac.grim.grimac.internal.storage.backend.postgres.PostgresBackendProvider;
+import ac.grim.grimac.internal.storage.backend.redis.RedisBackendProvider;
+import ac.grim.grimac.internal.storage.backend.sqlite.SqliteBackendProvider;
 import ac.grim.grimac.manager.AlertManagerImpl;
 import ac.grim.grimac.manager.DiscordManager;
 import ac.grim.grimac.manager.InitManager;
 import ac.grim.grimac.manager.SpectateManager;
 import ac.grim.grimac.manager.TickManager;
 import ac.grim.grimac.manager.config.BaseConfigManager;
+import ac.grim.grimac.manager.datastore.DataStoreLifecycle;
 import ac.grim.grimac.manager.init.Initable;
-import ac.grim.grimac.manager.violationdatabase.ViolationDatabaseManager;
 import ac.grim.grimac.platform.api.Platform;
 import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.PlatformServer;
@@ -33,7 +41,6 @@ import org.jetbrains.annotations.NotNull;
 public final class GrimAPI {
     public static final GrimAPI INSTANCE = new GrimAPI();
 
-    @Getter
     private final Platform platform = detectPlatform();
     private final BaseConfigManager configManager;
     private final AlertManagerImpl alertManager;
@@ -44,9 +51,9 @@ public final class GrimAPI {
     private final GrimExtensionManager extensionManager;
     private final EventBus eventBus;
     private final GrimExternalAPI externalAPI;
-    private ViolationDatabaseManager violationDatabaseManager;
+    private DataStoreLifecycle dataStoreLifecycle;
+    private final BackendRegistry backendRegistry = buildBackendRegistry();
     private PlatformLoader loader;
-    @Getter
     private InitManager initManager;
     private boolean initialized = false;
 
@@ -74,10 +81,21 @@ public final class GrimAPI {
 
     public void load(PlatformLoader platformLoader, Initable... platformSpecificInitables) {
         this.loader = platformLoader;
-        this.violationDatabaseManager = new ViolationDatabaseManager(getGrimPlugin());
+        this.dataStoreLifecycle = new DataStoreLifecycle(getGrimPlugin(), backendRegistry);
         this.initManager = new InitManager(loader.getPacketEvents(), platformSpecificInitables);
         this.initManager.load();
         this.initialized = true;
+    }
+
+    private static BackendRegistry buildBackendRegistry() {
+        BackendRegistryImpl registry = new BackendRegistryImpl();
+        registry.register(new SqliteBackendProvider());
+        registry.register(new InMemoryBackendProvider());
+        registry.register(new MysqlBackendProvider());
+        registry.register(new PostgresBackendProvider());
+        registry.register(new MongoBackendProvider());
+        registry.register(new RedisBackendProvider());
+        return registry;
     }
 
     public void start() {
@@ -134,9 +152,5 @@ public final class GrimAPI {
 
     public PermissionRegistrationManager getPermissionManager() {
         return loader.getPermissionManager();
-    }
-
-    public GrimExtensionManager getExtensionManager() {
-        return extensionManager;
     }
 }

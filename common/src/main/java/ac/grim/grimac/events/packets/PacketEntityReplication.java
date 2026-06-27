@@ -6,6 +6,7 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.data.SprintingState;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.DashableEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -101,6 +102,12 @@ public class PacketEntityReplication extends Check implements PacketCheck {
             } else {
                 entity.onMovement(isTickingReliably);
             }
+        }
+
+        if (player.vehicleData.camelSprintingState == SprintingState.STOPPING) {
+            player.vehicleData.camelSprintingState = SprintingState.STOPPED;
+        } else if (player.vehicleData.camelSprintingState == SprintingState.STOPPED && player.isSprinting) { // For sprint desyncs
+            player.vehicleData.camelSprintingState = SprintingState.STARTED;
         }
     }
 
@@ -543,9 +550,10 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 (player.compensatedEntities.serverPlayerVehicle != null && entityID == player.compensatedEntities.serverPlayerVehicle);
     }
 
-    public void onEndOfTickEvent() {
+    public void onEndOfTickEvent(boolean async, boolean flush) {
         // Only send a transaction at the end of the tick if we are tracking players
-        player.sendTransaction(true); // We injected before vanilla flushes :) we don't need to flush
+        player.sendTransaction(async);
+        if (flush) player.user.flushPackets();
     }
 
     public void tickStartTick() {

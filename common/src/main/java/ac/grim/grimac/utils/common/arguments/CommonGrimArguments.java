@@ -2,8 +2,7 @@ package ac.grim.grimac.utils.common.arguments;
 
 import ac.grim.grimac.platform.api.Platform;
 
-import static ac.grim.grimac.utils.common.arguments.ArgumentUtils.platform;
-import static ac.grim.grimac.utils.common.arguments.ArgumentUtils.string;
+import static ac.grim.grimac.utils.common.arguments.ArgumentUtils.*;
 
 public class CommonGrimArguments {
 
@@ -12,10 +11,11 @@ public class CommonGrimArguments {
             .supportEnv()
             .build();
 
-    public final static SystemArgument<Boolean> KICK_ON_TRANSACTION_ERRORS = FACTORY.create(string("KickOnTransactionTaskErrors", false));
+    public final static SystemArgument<Boolean> KICK_ON_TRANSACTION_ERRORS = FACTORY.create(string("KickOnTransactionTaskErrors", true));
     public final static SystemArgument<String> API_URL = FACTORY.create(string("APIUrl", "https://api.grim.ac/v1/server/"));
     public final static SystemArgument<String> PASTE_URL = FACTORY.create(string("PasteUrl", "https://paste.grim.ac/"));
     public final static SystemArgument<Platform> PLATFORM_OVERRIDE = FACTORY.create(platform("PlatformOverride"));
+    public final static SystemArgument<Integer> URL_TIMEOUT = FACTORY.create(range("UrlTimeout", 10000, 1000, 60000));
 
     /**
      * Enables "Fast Bypass" mode for chat messages sent by GrimAC.
@@ -29,4 +29,12 @@ public class CommonGrimArguments {
      * This setting is opt-in (default: false) and requires a server restart to change.
      */
     public final static SystemArgument<Boolean> USE_CHAT_FAST_BYPASS = FACTORY.create(string("ChatFastBypass", true));
+
+    /**
+     * If true, players will be kicked when they try to connect from a proxy server with ViaVersion installed.
+     * <p>
+     * This setting is opt-out (default: true) and requires a server restart to change.
+     */
+    public final static SystemArgument<Boolean> KICK_ON_VIA_PROXY = FACTORY.create(string("KickOnViaProxy", true));
+
 }

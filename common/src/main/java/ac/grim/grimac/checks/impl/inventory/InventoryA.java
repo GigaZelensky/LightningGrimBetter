@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity.InteractAction;
 
-@CheckData(name = "InventoryA", setback = 3, description = "Attacked an entity while inventory is open")
+@CheckData(name = "InventoryA", stableKey = "grim.inventory.attack_open", setback = 3, description = "Attacked an entity while inventory is open")
 public class InventoryA extends InventoryCheck {
     public InventoryA(GrimPlayer player) {
         super(player);
@@ -25,7 +25,7 @@ public class InventoryA extends InventoryCheck {
 
             // Is not possible to attack while the inventory is open.
             if (player.hasInventoryOpen) {
-                if (flagAndAlert()) {
+                if (flag()) {
                     // Cancel the packet
                     if (shouldModifyPackets()) {
                         event.setCancelled(true);

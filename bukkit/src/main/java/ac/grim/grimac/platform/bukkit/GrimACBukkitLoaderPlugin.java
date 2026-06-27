@@ -18,17 +18,18 @@ import ac.grim.grimac.platform.api.command.CommandService;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
-import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
+import ac.grim.grimac.platform.api.manager.cloud.CloudPlatformCommandArguments;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.platform.bukkit.initables.BukkitBStats;
 import ac.grim.grimac.platform.bukkit.initables.BukkitEventManager;
+import ac.grim.grimac.platform.bukkit.initables.BukkitLuckPermsInitable;
 import ac.grim.grimac.platform.bukkit.initables.BukkitTickEndEvent;
 import ac.grim.grimac.platform.bukkit.manager.BukkitItemResetHandler;
 import ac.grim.grimac.platform.bukkit.manager.BukkitMessagePlaceHolderManager;
-import ac.grim.grimac.platform.bukkit.manager.BukkitParserDescriptorFactory;
+import ac.grim.grimac.platform.bukkit.manager.BukkitCloudPlatformCommandArguments;
 import ac.grim.grimac.platform.bukkit.manager.BukkitPermissionRegistrationManager;
 import ac.grim.grimac.platform.bukkit.manager.BukkitPlatformPluginManager;
 import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayerFactory;
@@ -52,9 +53,7 @@ import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 
-
 public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements PlatformLoader {
-
     public static GrimACBukkitLoaderPlugin LOADER;
 
     private final LazyHolder<PlatformScheduler> scheduler = LazyHolder.simple(this::createScheduler);
@@ -62,7 +61,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     private final LazyHolder<BukkitSenderFactory> senderFactory = LazyHolder.simple(BukkitSenderFactory::new);
     private final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(BukkitItemResetHandler::new);
     private final LazyHolder<CommandService> commandService = LazyHolder.simple(this::createCommandService);
-    private final CloudCommandAdapter commandAdapter = new BukkitParserDescriptorFactory();
+    private final CloudPlatformCommandArguments commandArguments = new BukkitCloudPlatformCommandArguments();
 
     @Getter private final PlatformPlayerFactory platformPlayerFactory = new BukkitPlatformPlayerFactory();
     @Getter private final PlatformPluginManager pluginManager = new BukkitPlatformPluginManager();
@@ -89,6 +88,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
                 new BukkitEventManager(),
                 new BukkitTickEndEvent(),
                 new BukkitBStats(),
+                new BukkitLuckPermsInitable(),
                 (StartableInitable) () -> {
                     if (BukkitMessagePlaceHolderManager.hasPlaceholderAPI) {
                         new PlaceholderAPIExpansion().register();
@@ -133,82 +133,53 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     @Override
+    @SuppressWarnings("removal")
     public void registerAPIService() {
         final GrimExternalAPI externalAPI = GrimAPI.INSTANCE.getExternalAPI();
         final EventBus eventBus = externalAPI.getEventBus();
-        final ac.grim.grimac.api.plugin.GrimPlugin context = GrimAPI.INSTANCE.getGrimPlugin();
+        final ac.grim.grimac.api.plugin.GrimPlugin plugin = GrimAPI.INSTANCE.getGrimPlugin();
 
-        eventBus.subscribe(context, ac.grim.grimac.api.event.events.GrimJoinEvent.class, (event) -> {
-            ac.grim.grimac.api.events.GrimJoinEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.GrimJoinEvent(event.getUser());
+        // Bridge Grim events → legacy Bukkit Event API so pre-1.3 plugins that
+        // listened for ac.grim.grimac.api.events.* Bukkit events keep working.
+        // Typed channel subscriptions here are plugin-bound so they go away if
+        // GrimAC itself is disabled.
 
-            Bukkit.getPluginManager().callEvent(bukkitEvent);
+        eventBus.get(ac.grim.grimac.api.event.events.GrimJoinEvent.class).onJoin(plugin, (user) -> {
+            Bukkit.getPluginManager().callEvent(new ac.grim.grimac.api.events.GrimJoinEvent(user));
         });
 
-        eventBus.subscribe(context, ac.grim.grimac.api.event.events.GrimQuitEvent.class, (event) -> {
-            ac.grim.grimac.api.events.GrimQuitEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.GrimQuitEvent(event.getUser());
-
-            Bukkit.getPluginManager().callEvent(bukkitEvent);
+        eventBus.get(ac.grim.grimac.api.event.events.GrimQuitEvent.class).onQuit(plugin, (user) -> {
+            Bukkit.getPluginManager().callEvent(new ac.grim.grimac.api.events.GrimQuitEvent(user));
         });
 
-        eventBus.subscribe(context, ac.grim.grimac.api.event.events.GrimReloadEvent.class, (event) -> {
-            ac.grim.grimac.api.events.GrimReloadEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.GrimReloadEvent(event.isSuccess());
-
-            Bukkit.getPluginManager().callEvent(bukkitEvent);
+        eventBus.get(ac.grim.grimac.api.event.events.GrimReloadEvent.class).onReload(plugin, (success) -> {
+            Bukkit.getPluginManager().callEvent(new ac.grim.grimac.api.events.GrimReloadEvent(success));
         });
 
-        eventBus.subscribe(context, ac.grim.grimac.api.event.events.FlagEvent.class, (event) -> {
+        eventBus.subscribe(plugin, ac.grim.grimac.api.event.events.FlagEvent.class, event -> {
             ac.grim.grimac.api.events.FlagEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.FlagEvent(
-                            event.getUser(),
-                            event.getCheck(),
-                            event.getVerbose()
-                    );
-
+                    new ac.grim.grimac.api.events.FlagEvent(event.getUser(), event.getCheck(), event::getVerbose);
             Bukkit.getPluginManager().callEvent(bukkitEvent);
+            event.setCancelled(event.isCancelled() || bukkitEvent.isCancelled());
+        }, 0, false, GrimACBukkitLoaderPlugin.class);
 
-            if (bukkitEvent.isCancelled()) {
-                event.setCancelled(true);
-            }
-        });
-
-        eventBus.subscribe(context, ac.grim.grimac.api.event.events.CommandExecuteEvent.class, (event) -> {
+        eventBus.get(ac.grim.grimac.api.event.events.CommandExecuteEvent.class).onCommandExecute(plugin, (user, check, verbose, command, cancelled) -> {
             ac.grim.grimac.api.events.CommandExecuteEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.CommandExecuteEvent(
-                            event.getUser(),
-                            event.getCheck(),
-                            event.getVerbose(),
-                            event.getCommand()
-                    );
-
+                    new ac.grim.grimac.api.events.CommandExecuteEvent(user, check, verbose, command);
             Bukkit.getPluginManager().callEvent(bukkitEvent);
-
-            if (bukkitEvent.isCancelled()) {
-                event.setCancelled(true);
-            }
+            return cancelled || bukkitEvent.isCancelled();
         });
 
-        eventBus.subscribe(context, ac.grim.grimac.api.event.events.CompletePredictionEvent.class, (event) -> {
-            // Note: New event doesn't have verbose, passing null or check name is standard fallback
+        eventBus.get(ac.grim.grimac.api.event.events.CompletePredictionEvent.class).onCompletePrediction(plugin, (user, check, offset, cancelled) -> {
+            // Legacy Bukkit event has a verbose field that the new channel event does not; pass empty.
             ac.grim.grimac.api.events.CompletePredictionEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.CompletePredictionEvent(
-                            event.getUser(),
-                            event.getCheck(),
-                            "",
-                            event.getOffset()
-                    );
-
+                    new ac.grim.grimac.api.events.CompletePredictionEvent(user, check, "", offset);
             Bukkit.getPluginManager().callEvent(bukkitEvent);
-
-            if (bukkitEvent.isCancelled()) {
-                event.setCancelled(true);
-            }
+            return cancelled || bukkitEvent.isCancelled();
         });
 
         GrimAPIProvider.init(externalAPI);
-        Bukkit.getServicesManager().register(GrimAbstractAPI.class, externalAPI, GrimACBukkitLoaderPlugin.LOADER, ServicePriority.Normal);
+        Bukkit.getServicesManager().register(GrimAbstractAPI.class, externalAPI, this, ServicePriority.Normal);
     }
 
     private PlatformScheduler createScheduler() {
@@ -217,7 +188,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
 
     private CommandService createCommandService() {
         try {
-            return new CloudCommandService(this::createCloudCommandManager, commandAdapter);
+            return new CloudCommandService(this::createCloudCommandManager, commandArguments);
         } catch (Throwable t) {
             LogUtil.warn("CRITICAL: Failed to initialize Command Framework. " +
                     "Grim will continue to run with no commands.", t);
@@ -246,6 +217,6 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     public BukkitSenderFactory getBukkitSenderFactory() {
-        return LOADER.senderFactory.get();
+        return senderFactory.get();
     }
 }

@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 
 import static com.github.retrooper.packetevents.protocol.potion.PotionTypes.BLINDNESS;
 
-@CheckData(name = "SprintD", description = "Started sprinting while having blindness", setback = 5, experimental = true)
+@CheckData(name = "SprintD", stableKey = "grim.sprint.blindness", description = "Started sprinting while having blindness", setback = 5, experimental = true)
 public class SprintD extends Check implements PostPredictionCheck {
     public boolean startedSprintingBeforeBlind = false;
 
@@ -30,9 +30,9 @@ public class SprintD extends Check implements PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        if (player.compensatedEntities.self.hasPotionEffect(BLINDNESS)) {
-            if (player.isSprinting && !startedSprintingBeforeBlind) {
-                flagAndAlertWithSetback();
+        if (player.compensatedEntities.self.hasPotionEffect(BLINDNESS) && !startedSprintingBeforeBlind) {
+            if (player.isSprinting) {
+                flagWithSetback();
             } else reward();
         }
     }

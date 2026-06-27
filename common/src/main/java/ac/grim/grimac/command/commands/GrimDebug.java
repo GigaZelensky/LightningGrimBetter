@@ -4,7 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.debug.HitboxDebugHandler;
 import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
-import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
+import ac.grim.grimac.platform.api.manager.cloud.CloudPlatformCommandArguments;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -21,27 +21,27 @@ import org.jetbrains.annotations.Nullable;
 
 public class GrimDebug implements BuildableCommand {
 
-    public void register(CommandManager<Sender> commandManager, CloudCommandAdapter adapter) {
+    public void register(CommandManager<Sender> commandManager, CloudPlatformCommandArguments arguments) {
         Command.Builder<Sender> grimCommand = commandManager.commandBuilder("grim", "grimac");
 
         // Register "debug" subcommand
         Command.Builder<Sender> debugCommand = grimCommand
                 .literal("debug", Description.of("Toggle debug output for a player"))
                 .permission("grim.debug")
-                .optional("target", adapter.singlePlayerSelectorParser())
+                .optional("target", arguments.singlePlayerSelectorParser())
                 .handler(this::handleDebug);
 
         // Register "consoledebug" subcommand
         Command.Builder<Sender> consoleDebugCommand = grimCommand
                 .literal("consoledebug", Description.of("Toggle console debug output for a player"))
                 .permission("grim.consoledebug")
-                .required("target", adapter.singlePlayerSelectorParser())
+                .required("target", arguments.singlePlayerSelectorParser())
                 .handler(this::handleConsoleDebug);
 
         Command.Builder<Sender> hitboxDebugCommand = grimCommand
                 .literal("hitboxdebug", Description.of("Toggle hitbox debug visualization"))
                 .permission("grim.hitboxdebug")
-                .optional("target", adapter.singlePlayerSelectorParser(), Description.of("Player to debug (defaults to self if sender is player)"))
+                .optional("target", arguments.singlePlayerSelectorParser(), Description.of("Player to debug (defaults to self if sender is player)"))
                 .handler(this::handleHitboxDebug);
 
         // Register command

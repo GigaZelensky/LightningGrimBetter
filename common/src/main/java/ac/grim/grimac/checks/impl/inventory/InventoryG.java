@@ -7,7 +7,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
-@CheckData(name = "InventoryG", setback = 3, description = "Sent a entity action packet while inventory is open", experimental = true)
+@CheckData(name = "InventoryG", stableKey = "grim.inventory.entity_action_open", setback = 3, description = "Sent a entity action packet while inventory is open", experimental = true)
 public class InventoryG extends InventoryCheck {
 
     public InventoryG(GrimPlayer player) {
@@ -29,7 +29,7 @@ public class InventoryG extends InventoryCheck {
             }
 
             if (player.hasInventoryOpen) {
-                if (flagAndAlert() && !isNoSetbackPermission()) {
+                if (flag() && !isNoSetbackPermission()) {
                     closeInventory();
                 }
             } else {

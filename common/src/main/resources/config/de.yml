@@ -219,20 +219,24 @@ max-ping-out-of-flying: 1000
 # Dies verhindert, dass Spieler mit hoher Latenz einen einzigen Feuerwerks‑Boost mit Elytra unbegrenzt nutzen können.
 max-ping-firework-boost: 1000
 
-history:
-    enabled: true
-    # Wie viele Einträge sollen pro Seite mit /grim history <player> angezeigt werden
-    entries-per-page: 15
-    # Welcher Servername soll für den History‑Befehl eingetragen werden? Nützlich, wenn dieselbe Datenbank für mehrere Server verwendet wird
-    server-name: Prison
-    database:
-        # SQLITE für lokale Speicherung, MYSQL oder POSTGRESQL für eine externe Datenbank. Wird nur nach Serverneustart aktualisiert
-        type: SQLITE
-        # Datenbank verbindungsdetails
-        host: localhost
-        port: 3306
-        database: grim
-        username: root
-        password: ""
+# Schema-Marker — nur ändern, wenn du weißt, was du tust.
+#   config-flavor:  V2 = Grim-2.x-Build, V3 = Grim-3.x. Das Plugin lehnt eine
+#                   Config ab, deren Flavor nicht zum eigenen Build passt —
+#                   eine V3-Config, die von einer V2-Jar geladen wird, scheitert
+#                   sofort, statt stillschweigend in falsche Schlüssel zu mergen.
+#   config-version: wird bei jeder inkompatiblen Schemaänderung erhöht. Alte
+#                   Configs werden beim nächsten Start automatisch vom
+#                   mitgelieferten Updater migriert.
+# Grim aktualisiert zwischengespeicherte Berechtigungen immer, wenn ein Spieler beitritt
+# und wenn Grim neu geladen wird, unabhängig davon, ob LuckPerms installiert ist.
+# LuckPerms-Event-Hooks aktualisieren zwischengespeicherte Grim-Berechtigungen
+# in normalen Setups ebenfalls sofort.
+# Dieser periodische Fallback wird nur für Online-Berechtigungsänderungen benötigt,
+# die nicht von diesen Events abgedeckt werden, z. B. ein benutzerdefinierter
+# LuckPerms-Kontext, der signalContextUpdate nicht aufruft, Lücken bei Fabric-Kontexten
+# oder ein Nicht-LuckPerms-Berechtigungsanbieter, der Berechtigungen live ändert.
+# Setze auf -1, um Polling zu deaktivieren. Setze einen positiven Wert, um alle X Ticks zu aktualisieren.
+update-permission-ticks: -1
 
-config-version: 9
+config-flavor: V2
+config-version: 11

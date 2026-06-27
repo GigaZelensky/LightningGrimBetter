@@ -4,6 +4,10 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.event.events.FlagEvent;
+import ac.grim.grimac.api.storage.verbose.Verbose;
+import ac.grim.grimac.api.storage.verbose.VerboseBuf;
+import ac.grim.grimac.api.storage.verbose.VerboseRenderContext;
+import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
@@ -12,33 +16,40 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying.isFlying;
 
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
 @Getter
 public class Check extends GrimProcessor implements AbstractCheck {
-    protected @NotNull final GrimPlayer player;
+    private static final FlagEvent.Channel FLAG_CHANNEL = GrimAPI.INSTANCE.getEventBus().get(FlagEvent.class);
+
+    protected final @NotNull GrimPlayer player;
 
     public double violations;
     private double decay;
     private double setbackVL;
+    private final VerboseBuf verbose = new VerboseBuf();
 
     private String checkName;
     private String configName;
     private String alternativeName;
     private String displayName;
     private String description;
+    private String stableKey = "";
 
     private boolean experimental;
-    private @Setter boolean isEnabled;
+    @Setter private boolean isEnabled;
 
     private boolean exemptPermission;
     private boolean noSetbackPermission;
     private boolean noModifyPacketPermission;
     private long lastViolationTime;
+    private boolean lastFlagStoredBinaryVerbose;
 
     public Check(final @NotNull GrimPlayer player) {
         this.player = Objects.requireNonNull(player);
@@ -54,6 +65,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
             this.alternativeName = checkData.alternativeName();
             this.experimental = checkData.experimental();
             this.description = checkData.description();
+            this.stableKey = checkData.stableKey();
             this.displayName = this.checkName;
         }
 
@@ -69,23 +81,11 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public final void updatePermissions() {
-        if (configName == null || player.platformPlayer == null) return;
+        if (configName == null) return;
         final String id = configName.toLowerCase();
-        exemptPermission = player.platformPlayer.hasPermission("grim.exempt." + id);
-        noSetbackPermission = player.platformPlayer.hasPermission("grim.nosetback." + id);
-        noModifyPacketPermission = player.platformPlayer.hasPermission("grim.nomodifypacket." + id);
-    }
-
-    public final boolean flagAndAlert(String verbose) {
-        if (flag(verbose)) {
-            alert(verbose);
-            return true;
-        }
-        return false;
-    }
-
-    public final boolean flagAndAlert() {
-        return flagAndAlert("");
+        exemptPermission = player.hasPermission("grim.exempt." + id);
+        noSetbackPermission = player.hasPermission("grim.nosetback." + id);
+        noModifyPacketPermission = player.hasPermission("grim.nomodifypacket." + id);
     }
 
     public final boolean flag() {
@@ -93,17 +93,91 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public final boolean flag(String verbose) {
+        Supplier<String> alertText = constant(verbose);
+        if (recordFlag(alertText)) {
+            alert(alertText);
+            return true;
+        }
+        return false;
+    }
+
+    public final boolean flag(@NotNull Verbose.Writer verbose) {
+        BinaryVerbose binary = lazyVerbose(verbose);
+        if (recordFlag(binary)) {
+            alert(binary.rendered());
+            return true;
+        }
+        return false;
+    }
+
+    public final boolean flag(@NotNull Verbose.Writer verbose, @NotNull Supplier<String> alertText) {
+        BinaryVerbose binary = lazyVerbose(verbose);
+        if (recordFlag(binary)) {
+            alert(memoize(Objects.requireNonNull(alertText, "alertText")));
+            return true;
+        }
+        return false;
+    }
+
+    private boolean recordFlag(@NotNull Supplier<String> verbose) {
         if (player.disableGrim || (experimental && !player.isExperimentalChecks()) || exemptPermission)
             return false; // Avoid calling event if disabled
 
-        FlagEvent event = new FlagEvent(player, this, verbose);
-        GrimAPI.INSTANCE.getEventBus().post(event);
-        if (event.isCancelled()) return false;
+        if (FLAG_CHANNEL.fire(player, this, verbose)) return false;
 
+        lastFlagStoredBinaryVerbose = false;
         player.punishmentManager.handleViolation(this);
         lastViolationTime = System.currentTimeMillis();
         violations++;
         return true;
+    }
+
+    private boolean recordFlag(@NotNull BinaryVerbose verbose) {
+        Supplier<String> rendered = verbose.rendered();
+        byte[] verboseData = verbose.data();
+
+        if (player.disableGrim || (experimental && !player.isExperimentalChecks()) || exemptPermission)
+            return false; // Avoid calling event if disabled
+
+        if (FLAG_CHANNEL.fire(player, this, rendered)) return false;
+
+        lastFlagStoredBinaryVerbose = true;
+        player.punishmentManager.handleViolation(this);
+        lastViolationTime = System.currentTimeMillis();
+        violations++;
+        GrimAPI.INSTANCE.getDataStoreLifecycle().liveWriteHooks()
+                .recordFlagDataFromCheck(player, this, violations, verboseData);
+        return true;
+    }
+
+    private @NotNull BinaryVerbose lazyVerbose(@NotNull Verbose.Writer writer) {
+        Objects.requireNonNull(writer, "writer");
+        byte[] verboseData = writer.end().toByteArray();
+        Verbose template = writer.verbose();
+        Supplier<String> rendered = memoize(() -> template.render(verboseData, new VerboseRenderContext(
+                player.getClientVersion().getProtocolVersion(),
+                GrimAPI.INSTANCE.getPlatformServer().getPlatformImplementationString())));
+        return new BinaryVerbose(verboseData, rendered);
+    }
+
+    public final void registerVerboseTemplates(@Nullable VerboseRegistry registry) {
+        if (registry == null || stableKey.isEmpty()) return;
+        String pluginVersion = safePluginVersion();
+        for (Verbose template : Verbose.declaredBy(getClass(), Check.class)) {
+            registry.registerTemplate(stableKey, checkName, description, pluginVersion, template);
+        }
+    }
+
+    private static @Nullable String safePluginVersion() {
+        try {
+            return GrimAPI.INSTANCE.getExternalAPI().getGrimVersion();
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    protected final @NotNull VerboseBuf verbose() {
+        return verbose;
     }
 
     public final boolean flagWithSetback() {
@@ -118,12 +192,16 @@ public class Check extends GrimProcessor implements AbstractCheck {
         return false;
     }
 
-    public final boolean flagAndAlertWithSetback() {
-        return flagAndAlertWithSetback("");
+    public final boolean flagWithSetback(@NotNull Verbose.Writer verbose) {
+        if (flag(verbose)) {
+            setbackIfAboveSetbackVL();
+            return true;
+        }
+        return false;
     }
 
-    public final boolean flagAndAlertWithSetback(String verbose) {
-        if (flagAndAlert(verbose)) {
+    public final boolean flagWithSetback(@NotNull Verbose.Writer verbose, @NotNull Supplier<String> alertText) {
+        if (flag(verbose, alertText)) {
             setbackIfAboveSetbackVL();
             return true;
         }
@@ -151,7 +229,11 @@ public class Check extends GrimProcessor implements AbstractCheck {
     }
 
     public boolean alert(String verbose) {
-        return player.punishmentManager.handleAlert(player, verbose, this);
+        return alert(constant(verbose));
+    }
+
+    public boolean alert(@NotNull Supplier<String> verbose) {
+        return player.punishmentManager.handleAlert(player, memoize(Objects.requireNonNull(verbose, "verbose")), this);
     }
 
     public boolean setbackIfAboveSetbackVL() {
@@ -163,6 +245,10 @@ public class Check extends GrimProcessor implements AbstractCheck {
 
     public boolean shouldSetback() {
         return !noSetbackPermission && violations > setbackVL;
+    }
+
+    public boolean executeViolationSetback() {
+        return !noSetbackPermission && player.getSetbackTeleportUtil().executeViolationSetback();
     }
 
     public String formatOffset(double offset) {
@@ -214,5 +300,34 @@ public class Check extends GrimProcessor implements AbstractCheck {
         return action != DiggingAction.RELEASE_USE_ITEM
                 // we check client version here because 1.8- doesn't predict dropping items, so we can cancel them. (see CompensatedInventory)
                 && (action != DiggingAction.DROP_ITEM && action != DiggingAction.DROP_ITEM_STACK || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8));
+    }
+
+    private static @NotNull Supplier<String> constant(String verbose) {
+        String value = verbose == null ? "" : verbose;
+        return () -> value;
+    }
+
+    private static @NotNull Supplier<String> memoize(@NotNull Supplier<String> supplier) {
+        return new Supplier<>() {
+            private String value;
+            private boolean computed;
+
+            @Override
+            public synchronized String get() {
+                if (!computed) {
+                    try {
+                        value = supplier.get();
+                        if (value == null) value = "";
+                    } catch (Throwable ignored) {
+                        value = "";
+                    }
+                    computed = true;
+                }
+                return value;
+            }
+        };
+    }
+
+    private record BinaryVerbose(byte @NotNull [] data, @NotNull Supplier<String> rendered) {
     }
 }

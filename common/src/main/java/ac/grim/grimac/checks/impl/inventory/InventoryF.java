@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
-@CheckData(name = "InventoryF", setback = 3, description = "Sent a click window packet without a open inventory", experimental = true)
+@CheckData(name = "InventoryF", stableKey = "grim.inventory.click_without_open", setback = 3, description = "Sent a click window packet without a open inventory", experimental = true)
 public class InventoryF extends InventoryCheck {
 
     public InventoryF(GrimPlayer player) {
@@ -28,7 +28,7 @@ public class InventoryF extends InventoryCheck {
 
         if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
             if (!player.hasInventoryOpen && player.inventoryDesyncStatus == InventoryDesyncStatus.NOT_DESYNCED) {
-                if (flagAndAlert()) {
+                if (flag()) {
                     // Cancel the packet
                     if (shouldModifyPackets()) {
                         event.setCancelled(true);

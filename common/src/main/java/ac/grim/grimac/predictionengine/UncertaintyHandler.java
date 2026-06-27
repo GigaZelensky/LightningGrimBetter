@@ -48,6 +48,7 @@ public class UncertaintyHandler {
     // Marks previous didGroundStatusChangeWithoutPositionPacket from last tick
     public boolean lastPacketWasGroundPacket = false;
     // Slime sucks in terms of bouncing and stuff.  Trust client onGround when on slime
+    public boolean wasSteppingOnSlime = false;
     public boolean isSteppingOnSlime = false;
     public boolean isSteppingOnIce = false;
     public boolean isSteppingOnHoney = false;
@@ -121,6 +122,7 @@ public class UncertaintyHandler {
         isStepMovement = false;
 
         isSteppingNearShulker = false;
+        wasSteppingOnSlime = isSteppingOnSlime;
         wasSteppingOnBouncyBlock = isSteppingOnBouncyBlock;
         isSteppingOnSlime = false;
         isSteppingOnBouncyBlock = false;
@@ -254,6 +256,10 @@ public class UncertaintyHandler {
         return isSteppingOnBouncyBlock || wasSteppingOnBouncyBlock;
     }
 
+    public boolean influencedBySlime() {
+        return isSteppingOnSlime || wasSteppingOnSlime;
+    }
+
     public double getVerticalOffset(VectorData data) {
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
@@ -335,7 +341,7 @@ public class UncertaintyHandler {
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.isBoat || entity.type == EntityTypes.SHULKER || entity.isHappyGhast) && entity != riding
+            if ((entity.isBoat || entity.getType() == EntityTypes.SHULKER || entity.isHappyGhast) && entity != riding
                     && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }
@@ -348,7 +354,7 @@ public class UncertaintyHandler {
         // Stiders can walk on top of other striders
         if (player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider) {
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.type == EntityTypes.STRIDER && entity != player.compensatedEntities.self.getRiding()
+                if (entity.getType() == EntityTypes.STRIDER && entity != player.compensatedEntities.self.getRiding()
                         && !entity.hasPassenger(entity) && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }

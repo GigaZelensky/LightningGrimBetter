@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.vehicle;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -10,8 +11,11 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSteerBoat;
 
-@CheckData(name = "VehicleF", experimental = true, description = "Sent incorrect boat paddle states")
+@CheckData(name = "VehicleF", stableKey = "grim.vehicle.boat_input_mismatch", experimental = true, description = "Sent incorrect boat paddle states")
 public class VehicleF extends Check implements PacketCheck {
+    private static final Verbose V =
+            Verbose.of("sent=({bool}, {bool}), expected=({bool}, {bool})");
+
     public VehicleF(GrimPlayer player) {
         super(player);
     }
@@ -43,7 +47,9 @@ public class VehicleF extends Check implements PacketCheck {
             }
 
             if (packet.isLeftPaddleTurning() != expectedLeft || packet.isRightPaddleTurning() != expectedRight) {
-                if (flagAndAlert("sent=(" + packet.isLeftPaddleTurning() + ", " + packet.isRightPaddleTurning() + "), expected=(" + expectedLeft + ", " + expectedRight + ")")
+                boolean sentLeft = packet.isLeftPaddleTurning();
+                boolean sentRight = packet.isRightPaddleTurning();
+                if (flag(V.write(verbose()).bool(sentLeft).bool(sentRight).bool(expectedLeft).bool(expectedRight))
                     && shouldModifyPackets()) {
                     packet.setLeftPaddleTurning(expectedLeft);
                     packet.setRightPaddleTurning(expectedRight);

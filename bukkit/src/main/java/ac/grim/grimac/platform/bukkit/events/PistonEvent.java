@@ -120,7 +120,7 @@ public class PistonEvent implements Listener {
 
     private void addPistonData(PistonTemplate pistonTemplate, int blockX, int blockY, int blockZ) {
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            if (player.compensatedWorld.isChunkLoaded(blockX >> 4, blockZ >> 4) || !isCloseEnough(blockX, blockY, blockZ, player.x, player.y, player.z)) continue;
+            if (!player.compensatedWorld.isChunkLoaded(blockX >> 4, blockZ >> 4) || !isCloseEnough(blockX, blockY, blockZ, player.x, player.y, player.z)) continue;
 
             int lastTrans = player.lastTransactionSent.get();
 

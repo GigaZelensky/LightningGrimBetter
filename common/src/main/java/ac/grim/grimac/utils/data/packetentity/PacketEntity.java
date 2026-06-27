@@ -91,11 +91,22 @@ public class PacketEntity extends TypedPacketEntity {
 
     protected void initAttributes(GrimPlayer player) {
         trackAttribute(ValuedAttribute.ranged(Attributes.SCALE, 1.0, 0.0625, 16)
-                .requiredVersion(player, ClientVersion.V_1_20_5));
+                .requiredVersion(player, ClientVersion.V_1_20_5)
+                .withGetRewriter(this::clampScale));
         trackAttribute(ValuedAttribute.ranged(Attributes.STEP_HEIGHT, 0.6f, 0, 10)
                 .requiredVersion(player, ClientVersion.V_1_20_5));
         trackAttribute(ValuedAttribute.ranged(Attributes.GRAVITY, 0.08, -1, 1)
                 .requiredVersion(player, ClientVersion.V_1_20_5));
+        trackAttribute(ValuedAttribute.ranged(Attributes.AIR_DRAG_MODIFIER, 1.0, 0, 2048)
+                .requiredVersion(player, ClientVersion.V_26_2));
+        trackAttribute(ValuedAttribute.ranged(Attributes.BOUNCINESS, 0.0, 0, 1)
+                .requiredVersion(player, ClientVersion.V_26_2));
+        trackAttribute(ValuedAttribute.ranged(Attributes.FRICTION_MODIFIER, 1.0, 0, 2048)
+                .requiredVersion(player, ClientVersion.V_26_2));
+    }
+
+    public double clampScale(double scale) {
+        return scale;
     }
 
     public Optional<ValuedAttribute> getAttribute(Attribute attribute) {
@@ -106,7 +117,7 @@ public class PacketEntity extends TypedPacketEntity {
     public void setAttribute(Attribute attribute, double value) {
         ValuedAttribute property = attributeMap.get(attribute);
         if (property == null) {
-            throw new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + type.getName() + "!");
+            throw new IllegalArgumentException("Cannot set attribute " + attribute.getName() + " for entity " + getType().getName() + "!");
         }
         property.override(value);
     }
@@ -114,7 +125,7 @@ public class PacketEntity extends TypedPacketEntity {
     public double getAttributeValue(Attribute attribute) {
         final ValuedAttribute property = attributeMap.get(attribute);
         if (property == null) {
-            throw new IllegalArgumentException("Cannot get attribute " + attribute.getName() + " for entity " + type.getName() + "!");
+            throw new IllegalArgumentException("Cannot get attribute " + attribute.getName() + " for entity " + getType().getName() + "!");
         }
         return property.get();
     }

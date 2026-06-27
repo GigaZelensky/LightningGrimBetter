@@ -1,7 +1,9 @@
 package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -11,8 +13,10 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 
-@CheckData(name = "BadPacketsP", description = "Invalid window click packet", experimental = true)
+@CheckData(name = "BadPacketsP", stableKey = "grim.badpackets.invalid_click", description = "Invalid window click packet", experimental = true)
 public class BadPacketsP extends Check implements PacketCheck {
+    private static final Verbose V =
+            Verbose.of("clickType={clicktype_lower}, button={sint}[, container={sint}]");
 
     private int containerType = -1;
     private int containerId = -1;
@@ -49,7 +53,9 @@ public class BadPacketsP extends Check implements PacketCheck {
 
             // Allowing this to false flag to debug and find issues faster
             if (flag) {
-                if (flagAndAlert("clickType=" + clickType.toString().toLowerCase() + ", button=" + button + (wrapper.getWindowId() == containerId ? ", container=" + containerType : "")) && shouldModifyPackets()) {
+                boolean hasContainer = wrapper.getWindowId() == containerId;
+                if (flag(V.write(verbose()).uint(VerboseCodecs.enumId(clickType)).sint(button).bool(hasContainer).sint(containerType))
+                        && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }

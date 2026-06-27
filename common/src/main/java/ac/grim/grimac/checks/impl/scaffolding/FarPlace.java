@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 
-@CheckData(name = "FarPlace", description = "Placing blocks from too far away")
+@CheckData(name = "FarPlace", stableKey = "grim.scaffolding.far_place", description = "Placing blocks from too far away")
 public class FarPlace extends BlockPlaceCheck {
     public FarPlace(GrimPlayer player) {
         super(player);
@@ -40,7 +40,7 @@ public class FarPlace extends BlockPlaceCheck {
         maxReach += Math.hypot(threshold, threshold);
 
         if (min > maxReach * maxReach) { // fail
-            if (flagAndAlert() && shouldModifyPackets() && shouldCancel()) {
+            if (flag() && shouldModifyPackets() && shouldCancel()) {
                 place.resync();
             }
         }
