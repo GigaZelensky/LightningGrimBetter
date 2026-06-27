@@ -12,6 +12,7 @@ import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.checks.impl.packetorder.PacketOrderProcessor;
 import ac.grim.grimac.events.packets.CheckManagerListener;
+import ac.grim.grimac.events.packets.PacketEntityReplication;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.manager.player.features.FeatureManagerImpl;
 import ac.grim.grimac.manager.player.handlers.DefaultResyncHandler;
@@ -218,6 +219,7 @@ public class GrimPlayer implements GrimUser {
     public final CompensatedEntities compensatedEntities;
     public final CompensatedDashableEntities dashableEntities;
     public final CompensatedInventory inventory;
+    public final PacketEntityReplication packetEntityReplication = new PacketEntityReplication(this);
     public final LatencyUtils latencyUtils = new LatencyUtils(this);
     public final PointThreeEstimator pointThreeEstimator;
     public final TrigHandler trigHandler = new TrigHandler(this);
