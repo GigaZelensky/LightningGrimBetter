@@ -20,7 +20,7 @@ public class EntityMetadataPoseUtil {
     private static final int POSE_METADATA_INDEX = 6;
 
     public static boolean usesPoseMetadata(@Nullable PacketEntity entity) {
-        return entity != null && usesPoseMetadata(entity.type);
+        return entity != null && usesPoseMetadata(entity.getType());
     }
 
     public static boolean usesPoseMetadata(@Nullable EntityType entityType) {
